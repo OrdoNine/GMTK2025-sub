@@ -116,7 +116,6 @@ func _physics_process(delta: float) -> void:
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
 
 	if Input.is_action_just_pressed("player_jump") and can_jump:
-		print("JUMP!")
 		_jump_remaining = 1.0
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
@@ -150,7 +149,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x += walk_acceleration * move_dir * delta
 			velocity.x *= speed_damping
 
-			if is_on_wall_only() and velocity.y > 0.0:
+			if is_on_wall_only() and move_dir != 0:
 				_jump_remaining = 0.0
 				_cur_state = PlayerState.WALLSLIDE
 
@@ -167,13 +166,17 @@ func _physics_process(delta: float) -> void:
 				_cur_state = PlayerState.FREEMOVE
 			
 			else:
-				velocity.y = get_gravity().y * delta * wall_slide_speed
+				var max_y_vel: float = get_gravity().y * delta * wall_slide_speed
+				velocity += get_gravity() * delta
 				
-				if move_dir != _last_move_dir:
+				if velocity.y > max_y_vel:
+					velocity.y = max_y_vel
+				
+				if move_dir != _last_move_dir and move_dir != 0:
 					velocity.x += walk_acceleration * move_dir * delta
 					velocity.x *= speed_damping
 				else:
-					velocity.x = -move_direction * wall_jump_velocity
+					velocity.x = -move_direction * 100.0 # please stay on the wall
 
 		PlayerState.WALLJUMP:
 			# apply gravity normally
@@ -182,9 +185,10 @@ func _physics_process(delta: float) -> void:
 			# apply movement direction
 			# velocity.x = move_dir * walk_speed
 			
-			if is_on_wall():
+			if is_on_wall_only():
 				_jump_remaining = 0.0
 				_cur_state = PlayerState.WALLSLIDE
+				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
 				
 			elif is_on_floor() or _wall_jump_freeze < 0.0:
 				_jump_remaining = 0.0
