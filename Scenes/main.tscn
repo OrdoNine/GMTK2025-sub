@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
 [ext_resource type="TileSet" uid="uid://bfoi1yk3rbga3" path="res://Assets/test-tileset.tres" id="1_bo1nx"]
 [ext_resource type="Script" uid="uid://downf0rj4synv" path="res://Scripts/player_controller.gd" id="2_bo1nx"]
-[ext_resource type="Texture2D" uid="uid://c3l6wyvreio5u" path="res://Assets/slime16x16.png" id="3_8gbba"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="3_kry3j"]
+[ext_resource type="Texture2D" uid="uid://eoynmupkcfgv" path="res://Assets/strudel.png" id="6_6bp64"]
 [ext_resource type="Script" uid="uid://hqquso563p3j" path="res://Objects/win.gd" id="6_21xkr"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
@@ -94,7 +94,7 @@ text = "Stamina: 0
 label_settings = SubResource("LabelSettings_kry3j")
 
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
-texture = ExtResource("3_8gbba")
+texture = ExtResource("6_6bp64")
 region_rect = Rect2(0, 0, 32, 32)
 
 [node name="WinArea" type="Area2D" parent="."]
