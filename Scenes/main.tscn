@@ -1,8 +1,8 @@
 [gd_scene load_steps=14 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="TileSet" uid="uid://bfoi1yk3rbga3" path="res://Assets/test-tileset.tres" id="1_bo1nx"]
-[ext_resource type="Script" uid="uid://db8px7j78l74f" path="res://Scripts/cam.gd" id="1_ynf5e"]
-[ext_resource type="PackedScene" uid="uid://d1lqjf6ebjrvt" path="res://Scenes/game_play_ui.tscn" id="2_344ge"]
+[ext_resource type="Script" path="res://Scripts/cam.gd" id="1_ynf5e"]
+[ext_resource type="PackedScene" uid="uid://dtffmkkwd7jot" path="res://Scenes/game_play_ui.tscn" id="2_344ge"]
 [ext_resource type="Script" uid="uid://downf0rj4synv" path="res://Scripts/player_controller.gd" id="2_bo1nx"]
 [ext_resource type="Texture2D" uid="uid://c3l6wyvreio5u" path="res://Assets/slime16x16.png" id="3_8gbba"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="3_kry3j"]

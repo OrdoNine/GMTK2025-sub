@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://d1lqjf6ebjrvt"]
+[gd_scene load_steps=5 format=3 uid="uid://dtffmkkwd7jot"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_dfes0"]
-[ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://Scripts/game_play_ui.gd" id="1_rfokx"]
+[ext_resource type="Script" path="res://Scripts/game_play_ui.gd" id="1_rfokx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_rfokx"]
 font = ExtResource("1_dfes0")
