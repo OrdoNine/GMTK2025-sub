@@ -26,8 +26,68 @@ const WALL_JUMP_FREEZE_LENGTH := 0.1
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
 var _wall_jump_freeze = 0.0
-
 var _cur_state := PlayerState.FREEMOVE
+var _tilemap: TileMapLayer
+var _temp_construction_area: Area2D
+
+func _ready() -> void:
+	_tilemap = get_node("../TileMap")
+
+# destroy radius of blocks
+func eat() -> void:
+	print("CHOMP! CHOMP!")
+
+	var origin_pos = _tilemap.local_to_map(_tilemap.to_local(global_position))
+
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var pos: Vector2i = origin_pos + Vector2i(dx, dy)
+			var coords := _tilemap.get_cell_atlas_coords(pos)
+
+			# TODO: make hashset of destructible tiles (szudzik/cantor pairing function?)
+			if (coords.x == 1 and coords.y == 0) or (coords.x == 3 and coords.y == 0):
+				_tilemap.erase_cell(pos)
+
+# create a platform
+func spit() -> void:
+	print("Spit.")
+
+	# amazing
+	var tilemap_origin = _tilemap.local_to_map(_tilemap.to_local(global_position))
+	var origin_pos := _tilemap.to_global(_tilemap.map_to_local(tilemap_origin))
+
+	# construct temporary area
+	var area := Area2D.new()
+	var colshape := RectangleShape2D.new()
+	colshape.size = _tilemap.tile_set.tile_size * 3
+	var colshape_node := CollisionShape2D.new()
+	colshape_node.shape = colshape
+	area.add_child(colshape_node)
+	area.position = origin_pos
+	get_parent().add_child(area)
+
+	# once player leaves this temporary area, the cells occupied by the
+	# area will be filled with the Goop. if the cell is empty.
+	_temp_construction_area = area
+	_temp_construction_area.body_exited.connect(func(body):
+		if body == self:
+			_temp_construction_area.queue_free()
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					var pos: Vector2i = tilemap_origin + Vector2i(dx, dy)
+
+					# overwrite cell if exists
+					if _tilemap.get_cell_source_id(pos) == -1:
+						_tilemap.set_cell(pos, 1, Vector2i(3, 0))
+		)
+
+
+func _process(_delta: float) -> void:
+	if Input.is_action_just_pressed("player_action1"):
+		eat()
+
+	if Input.is_action_just_pressed("player_action2"):
+		spit()
 
 func _physics_process(delta: float) -> void:
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
