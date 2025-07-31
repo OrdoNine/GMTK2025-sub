@@ -1,5 +1,6 @@
 extends CharacterBody2D
 
+const WALL_JUMP_FREEZE_LENGTH := 0.1
 enum PlayerState {
 	# normal grounded/mid-air movement mode
 	FREEMOVE,
@@ -20,18 +21,27 @@ var walk_speed = 200.0
 @export_range(0.0, 1.0)
 var jump_stop_power = 0.5
 
-const WALL_JUMP_FREEZE_LENGTH := 0.1
+# TODO: time_remaining is not stored in player?
+var stamina_points: int = 0
+var round_time: int = 20
+var time_remaining: float
 
 # progress of the jump, from 0.0 to 1.0.
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
 var _wall_jump_freeze = 0.0
 var _cur_state := PlayerState.FREEMOVE
-var _tilemap: TileMapLayer
 var _temp_construction_area: Area2D
+@onready var _start_pos := position
+@onready var _tilemap: TileMapLayer = get_node("../TileMap")
 
 func _ready() -> void:
-	_tilemap = get_node("../TileMap")
+	time_remaining = round_time
+
+func game_reset():
+	position = _start_pos
+	round_time -= 1
+	time_remaining = round_time
 
 # destroy radius of blocks
 func eat() -> void:
@@ -83,13 +93,22 @@ func spit() -> void:
 
 
 func _process(_delta: float) -> void:
-	if Input.is_action_just_pressed("player_action1"):
-		eat()
+	if stamina_points > 0:
+		if Input.is_action_just_pressed("player_action1"):
+			eat()
+			stamina_points -= 1
 
-	if Input.is_action_just_pressed("player_action2"):
-		spit()
+		if Input.is_action_just_pressed("player_action2"):
+			spit()
+			stamina_points -= 1
+
+	var status_text: Label = get_node("Camera2D/Status")
+	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 
 func _physics_process(delta: float) -> void:
+	if time_remaining <= 0.0: return
+	time_remaining -= delta
+
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
 
 	if Input.is_action_just_pressed("player_jump") and can_jump:
