@@ -1,11 +1,14 @@
 extends CharacterBody2D
 
 const WALL_JUMP_FREEZE_LENGTH := 0.1
+const DAMAGE_STUN_LENGTH := 2.0
+const IFRAME_LENGTH := 2.75 # must be longer than stun length
 
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
 	WALLSLIDE, # currently wallsliding
 	WALLJUMP, # jump from a wallslide. diminished mid-air control
+	STUNNED, # control is revoked for a short time when player takes damage
 }
 
 @export_group("Normal Movement")
@@ -27,6 +30,7 @@ var stamina_points: int = 0
 # TODO: don't store time remaining in player
 var round_time: int = 20
 var time_remaining: float
+var is_taking_damage: bool = false
 
 # progress of the jump, from 0.0 to 1.0.
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
@@ -35,8 +39,12 @@ var _wall_jump_freeze = 0.0
 var _cur_state := PlayerState.FREEMOVE
 var _temp_construction_area: Area2D
 var _last_move_dir: int = 0
+var _deadly_area_count: int = 0
+var _stun_timer: float = 0.0
+var _iframe_timer: float = 0.0
 @onready var _start_pos := position
 @onready var _tilemap: TileMapLayer = get_node("../TileMap")
+# @onready var _deadly_area: Area2D = get_node("../DeadlyTiles")
 
 func _ready() -> void:
 	time_remaining = round_time
@@ -45,6 +53,20 @@ func game_reset():
 	position = _start_pos
 	round_time -= 1
 	time_remaining = round_time
+	
+func on_entered_deadly_area(_area: Area2D) -> void:
+	if _deadly_area_count == 0:
+		print("OUCH!")
+		is_taking_damage = true
+		
+	_deadly_area_count = _deadly_area_count + 1
+
+func on_exited_deadly_area(_area: Area2D) -> void:
+	_deadly_area_count = _deadly_area_count - 1
+	
+	if _deadly_area_count == 0:
+		print("no more ouchies")
+		is_taking_damage = false
 
 # destroy radius of blocks
 func eat() -> void:
@@ -112,6 +134,15 @@ func _physics_process(delta: float) -> void:
 	# For debug purposes, its better to let it not be there
 	# if time_remaining <= 0.0: return
 	time_remaining -= delta
+	
+	if is_taking_damage and _iframe_timer <= 0.0:
+		_stun_timer = DAMAGE_STUN_LENGTH
+		_iframe_timer = IFRAME_LENGTH
+		_cur_state = PlayerState.STUNNED
+		
+		velocity = Vector2(0, -200)
+	
+	_iframe_timer = move_toward(_iframe_timer, 0, delta)
 
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
 
@@ -152,7 +183,18 @@ func _physics_process(delta: float) -> void:
 			if is_on_wall_only() and move_dir != 0:
 				_jump_remaining = 0.0
 				_cur_state = PlayerState.WALLSLIDE
-
+		
+		PlayerState.STUNNED:
+			# apply gravity normally
+			velocity += get_gravity() * delta
+			
+			# damping
+			velocity.x *= speed_damping
+			
+			_stun_timer = move_toward(_stun_timer, 0, delta)
+			if _stun_timer <= 0.0:
+				_cur_state = PlayerState.FREEMOVE
+		
 		PlayerState.WALLSLIDE:
 			move_direction = 1 if get_wall_normal().x > 0.0 else -1
 
