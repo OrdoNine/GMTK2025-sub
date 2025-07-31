@@ -44,7 +44,8 @@ var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
 @onready var _start_pos := position
 @onready var _tilemap: TileMapLayer = get_node("../TileMap")
-# @onready var _deadly_area: Area2D = get_node("../DeadlyTiles")
+
+const _prefab_bomb = preload("res://Objects/bomb/bomb.tscn")
 
 func _ready() -> void:
 	time_remaining = round_time
@@ -67,21 +68,6 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
 		print("no more ouchies")
 		is_taking_damage = false
-
-# destroy radius of blocks
-func eat() -> void:
-	print("CHOMP! CHOMP!")
-
-	var origin_pos = _tilemap.local_to_map(_tilemap.to_local(global_position))
-
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
-			var pos: Vector2i = origin_pos + Vector2i(dx, dy)
-			var coords := _tilemap.get_cell_atlas_coords(pos)
-
-			# TODO: make hashset of destructible tiles (szudzik/cantor pairing function?)
-			if (coords.x == 1 and coords.y == 0) or (coords.x == 3 and coords.y == 0):
-				_tilemap.erase_cell(pos)
 
 # create a platform
 func spit() -> void:
@@ -116,17 +102,24 @@ func spit() -> void:
 						_tilemap.set_cell(pos, 1, Vector2i(3, 0))
 		)
 
-
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		# 1 key: craft bomb
+		if event.pressed and event.keycode == KEY_1:
+			var inst: Node2D = _prefab_bomb.instantiate()
+			inst.global_position = global_position
+			add_sibling(inst)
+			inst.activate()
+			# if stamina_points >= 3:
+				# eat()
+			stamina_points -= 3
+			
+		if event.pressed and event.keycode == KEY_2:
+			if stamina_points >= 3:
+				spit()
+				stamina_points -= 3
+			
 func _process(_delta: float) -> void:
-	if stamina_points > 0:
-		if Input.is_action_just_pressed("player_action1"):
-			eat()
-			stamina_points -= 1
-
-		if Input.is_action_just_pressed("player_action2"):
-			spit()
-			stamina_points -= 1
-
 	var status_text: Label = get_node("Camera2D/Status")
 	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 

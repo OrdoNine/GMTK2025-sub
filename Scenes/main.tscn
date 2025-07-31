@@ -64,6 +64,7 @@ tile_map_data = PackedByteArray("AAD7/wIAAQAAAAAAAAD8/wIAAQAAAAAAAAD9/wIAAQAAAAA
 tile_set = ExtResource("1_bo1nx")
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["players"]]
+collision_layer = 2
 script = ExtResource("2_bo1nx")
 metadata/_edit_group_ = true
 
@@ -99,6 +100,7 @@ region_rect = Rect2(0, 0, 32, 32)
 
 [node name="WinArea" type="Area2D" parent="."]
 position = Vector2(968, 16)
+collision_mask = 2
 script = ExtResource("6_21xkr")
 metadata/_edit_group_ = true
 
@@ -118,4 +120,5 @@ text = "Win"
 label_settings = SubResource("LabelSettings_6bp64")
 
 [node name="DeadlyTiles" type="Area2D" parent="."]
+collision_mask = 2
 script = SubResource("GDScript_6bp64")
