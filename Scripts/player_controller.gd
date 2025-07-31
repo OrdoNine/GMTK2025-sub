@@ -8,13 +8,23 @@ enum PlayerState {
 	WALLJUMP, # jump from a wallslide. diminished mid-air control
 }
 
-@export_range(0, 10000) var jump_power = 300
-@export_range(0.1, 10) var jump_length = 0.5
-@export_range(0, 10000) var walk_speed = 200.0
-@export_range(0.0, 1.0) var jump_stop_power = 0.5
+@export_group("Normal Movement")
+@export_range(0, 10000) var jump_power := 300.0
+@export_range(0.1, 10)  var jump_length := 0.5
+@export_range(0, 10000) var walk_acceleration := 1400.0
+@export_range(0, 1)     var speed_damping := 0.92
+@export_range(0.0, 1.0) var jump_stop_power := 0.5
 
-# TODO: time_remaining is not stored in player?
+@export_group("Wall Slide, Jump")
+@export_range(0, 10000) var wall_slide_speed = 4.0
+@export_range(0, 10000) var wall_jump_velocity = 230.0
+@export_range(0, 10000) var wall_jump_damping = 0.98
+@export_range(0, 10000) var wall_jump_control_acceleration = 450.0
+
+var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
+
+# TODO: don't store time remaining in player
 var round_time: int = 20
 var time_remaining: float
 
@@ -24,6 +34,7 @@ var _jump_remaining = 0.0
 var _wall_jump_freeze = 0.0
 var _cur_state := PlayerState.FREEMOVE
 var _temp_construction_area: Area2D
+var _last_move_dir: int = 0
 @onready var _start_pos := position
 @onready var _tilemap: TileMapLayer = get_node("../TileMap")
 
@@ -131,41 +142,57 @@ func _physics_process(delta: float) -> void:
 	
 	match _cur_state:
 		PlayerState.FREEMOVE:
-			# apply gravity normal
+			# apply gravity normally
 			velocity += get_gravity() * delta
 
 			# apply movement direction
-			velocity.x = move_dir * walk_speed
+			# velocity.x = move_toward(velocity.x, walk_speed * move_dir, walk_acceleration * delta);
+			velocity.x += walk_acceleration * move_dir * delta
+			velocity.x *= speed_damping
 
 			if is_on_wall_only() and velocity.y > 0.0:
+				_jump_remaining = 0.0
 				_cur_state = PlayerState.WALLSLIDE
 
 		PlayerState.WALLSLIDE:
+			move_direction = 1 if get_wall_normal().x > 0.0 else -1
+
 			if _jump_remaining > 0.0:
 				_cur_state = PlayerState.WALLJUMP
 				_wall_jump_freeze = WALL_JUMP_FREEZE_LENGTH
-				velocity.x = get_wall_normal().x * walk_speed
-
+				
+				velocity.x = move_direction * wall_jump_velocity
+			
 			elif not is_on_wall_only():
 				_cur_state = PlayerState.FREEMOVE
 			
 			else:
-				velocity.y = get_gravity().y * delta * 4.0
-				velocity.x = move_dir * walk_speed
+				velocity.y = get_gravity().y * delta * wall_slide_speed
+				
+				if move_dir != _last_move_dir:
+					velocity.x += walk_acceleration * move_dir * delta
+					velocity.x *= speed_damping
+				else:
+					velocity.x = -move_direction * wall_jump_velocity
 
 		PlayerState.WALLJUMP:
-			# apply gravity normal
+			# apply gravity normally
 			velocity += get_gravity() * delta
-
+			
 			# apply movement direction
 			# velocity.x = move_dir * walk_speed
-
+			
 			if is_on_wall():
 				_jump_remaining = 0.0
 				_cur_state = PlayerState.WALLSLIDE
-
+				
 			elif is_on_floor() or _wall_jump_freeze < 0.0:
 				_jump_remaining = 0.0
 				_cur_state = PlayerState.FREEMOVE
+				
+			else:
+				velocity.x += move_dir * wall_jump_control_acceleration * delta
+				velocity.x *= wall_jump_damping
 	
+	_last_move_dir = move_dir
 	move_and_slide()
