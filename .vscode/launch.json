@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Godot Launch",
+            "type": "godot",
+            "request": "launch",
+            "debug_collisions": true,
+        }
+    ]
+}

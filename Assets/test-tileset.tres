@@ -1,0 +1,16 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://bfoi1yk3rbga3"]
+
+[ext_resource type="Texture2D" uid="uid://cfetlyew4dky5" path="res://Assets/prototilemap.png" id="1_7vvqs"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vombc"]
+texture = ExtResource("1_7vvqs")
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+1:0/0 = 0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+2:0/0 = 0
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, 0, 8, 0, 8, 8, -8, 8)
+
+[resource]
+physics_layer_0/collision_layer = 1
+sources/1 = SubResource("TileSetAtlasSource_vombc")
