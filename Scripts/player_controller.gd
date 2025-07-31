@@ -1,25 +1,17 @@
 extends CharacterBody2D
 
 const WALL_JUMP_FREEZE_LENGTH := 0.1
-enum PlayerState {
-	# normal grounded/mid-air movement mode
-	FREEMOVE,
-	
-	# currently wallsliding
-	WALLSLIDE,
 
-	# jump from a wallslide. diminished mid-air control
-	WALLJUMP
+enum PlayerState {
+	FREEMOVE, # normal grounded/mid-air movement mode
+	WALLSLIDE, # currently wallsliding
+	WALLJUMP, # jump from a wallslide. diminished mid-air control
 }
 
-@export_range(0, 10000)
-var jump_power = 300
-@export_range(0.1, 10)
-var jump_length = 0.5
-@export_range(0, 10000)
-var walk_speed = 200.0
-@export_range(0.0, 1.0)
-var jump_stop_power = 0.5
+@export_range(0, 10000) var jump_power = 300
+@export_range(0.1, 10) var jump_length = 0.5
+@export_range(0, 10000) var walk_speed = 200.0
+@export_range(0.0, 1.0) var jump_stop_power = 0.5
 
 # TODO: time_remaining is not stored in player?
 var stamina_points: int = 0
@@ -106,7 +98,8 @@ func _process(_delta: float) -> void:
 	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 
 func _physics_process(delta: float) -> void:
-	if time_remaining <= 0.0: return
+	# For debug purposes, its better to let it not be there
+	# if time_remaining <= 0.0: return
 	time_remaining -= delta
 
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
