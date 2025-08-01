@@ -14,8 +14,13 @@ signal gamemode_changed(state: GameState);
 var game_state : GameState :
 	set(state):
 		game_state = state;
+		if state == GameState.PAUSE:
+			print("Switched to pause!");
+		elif state == GameState.GAMEPLAY:
+			print("Switched to gameplay!")
 		gamemode_changed.emit(state);
-		print("State changed: " + str(state))
+
+var ignore_escape: bool = false; # For PAUSE->GAMPLAY transition
 
 func _ready() -> void:
 	game_state = GameState.MAIN_MENU;

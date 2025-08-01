@@ -30,15 +30,13 @@ var construction_area: Area2D
 var should_update : bool;
 
 func _on_game_gamemode_changed(state: Global.GameState) -> void:
-	should_update = state == Global.GameState.GAMEPLAY;
-	game_reset()
+	should_update = (state == Global.GameState.GAMEPLAY);
 	
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_game_gamemode_changed)
 	time_remaining = round_time
-	should_update = false;
+	should_update = true;
 	game_reset();
-	print("On ready");
 
 func game_reset():
 	position = _start_pos
@@ -56,8 +54,6 @@ func get_destructible_tiles() -> Array:
 
 # destroy radius of blocks
 func eat() -> void:
-	print("CHOMP! CHOMP!")
-
 	var player_tile_coord = get_tiled_pos_of_player();
 	var destructible_tiles = get_destructible_tiles();
 
@@ -73,8 +69,6 @@ func eat() -> void:
 
 # create a platform
 func spit() -> void:
-	print("Spit.")
-	
 	var player_tile_coord := get_tiled_pos_of_player();
 	var player_tile_pos := get_postion_of_tile(player_tile_coord);
 
@@ -102,10 +96,13 @@ func spit() -> void:
 						tilemap.set_cell(pos, 1, Vector2i(3, 0))
 		)
 
-
 func _process(_delta: float) -> void:
-	$"../Camera2D/GamePlayUI".stamina_points = stamina_points;
-	$"../Camera2D/GamePlayUI".time_remaining = time_remaining;
+	if !should_update: return;
+	
+	if Input.is_action_just_pressed("escape"):
+		if Global.ignore_escape: Global.ignore_escape = false;
+		else: Global.game_state = Global.GameState.PAUSE;
+	
 	if stamina_points > 0:
 		if Input.is_action_just_pressed("player_action1"):
 			eat()
@@ -114,12 +111,14 @@ func _process(_delta: float) -> void:
 		if Input.is_action_just_pressed("player_action2"):
 			spit()
 			stamina_points -= 1
+	
+	$"../Camera2D/GamePlayUI".stamina_points = stamina_points;
+	$"../Camera2D/GamePlayUI".time_remaining = time_remaining;
 
 func _handle_jump(delta: float) -> void:
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
 
 	if Input.is_action_just_pressed("player_jump") and can_jump:
-		print("JUMP!")
 		_jump_remaining = 1.0
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
@@ -137,6 +136,7 @@ func _handle_jump(delta: float) -> void:
 		_jump_remaining = 0.0
 
 func _physics_process(delta: float) -> void:
+	if !should_update: return;
 	if time_remaining <= 0.0: return
 	time_remaining -= delta
 
@@ -174,3 +174,6 @@ func _physics_process(delta: float) -> void:
 				current_state = PlayerState.FREEMOVE
 	
 	move_and_slide()
+
+func kill() -> void:
+	get_tree().reload_current_scene();
