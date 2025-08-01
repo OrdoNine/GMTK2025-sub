@@ -1,5 +1,6 @@
 [gd_scene load_steps=18 format=4 uid="uid://dsd4k1sulk80x"]
 
+
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://Scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
 [ext_resource type="TileSet" uid="uid://bfoi1yk3rbga3" path="res://Assets/test-tileset.tres" id="1_bo1nx"]
@@ -8,6 +9,7 @@
 [ext_resource type="Script" uid="uid://bjgqr1qe3ylo4" path="res://Scenes/game/tile_map.gd" id="4_344ge"]
 [ext_resource type="Texture2D" uid="uid://eoynmupkcfgv" path="res://Assets/strudel.png" id="6_6bp64"]
 [ext_resource type="Script" uid="uid://hqquso563p3j" path="res://Objects/win.gd" id="6_21xkr"]
+[ext_resource type="Script" uid="uid://cnb0boxepf8j1" path="res://Scripts/mace_chain.gd" id="7_6bp64"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
 texture = ExtResource("1_21xkr")
@@ -51,6 +53,15 @@ size = Vector2(32, 32)
 
 [sub_resource type="LabelSettings" id="LabelSettings_6bp64"]
 font = ExtResource("3_kry3j")
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_21xkr"]
+size = Vector2(50, 50)
+
+[sub_resource type="Curve2D" id="Curve2D_6bp64"]
+_data = {
+"points": PackedVector2Array(0, 0, 100, -50, 0, 0, -25, -25, 50, 0, 50, -100, 0, 0, 0, 0, 100, 0, -100, -150, 0, 0, 100, 100, -50, 0, 0, 0, 150, 0)
+}
+point_count = 5
 
 [node name="Game" type="Node2D"]
 texture_filter = 1
@@ -125,3 +136,17 @@ offset_right = 24.0
 offset_bottom = 7.0
 text = "Win"
 label_settings = SubResource("LabelSettings_6bp64")
+
+[node name="Line2D" type="Line2D" parent="." node_paths=PackedStringArray("mace")]
+unique_name_in_owner = true
+script = ExtResource("7_6bp64")
+mace = NodePath("../Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_21xkr")
+
+[node name="Path2D" type="Path2D" parent="."]
+position = Vector2(-208, 0)
+curve = SubResource("Curve2D_6bp64")
+
+[connection signal="completed_loop" from="Line2D" to="Line2D" method="_on_completed_loop"]
