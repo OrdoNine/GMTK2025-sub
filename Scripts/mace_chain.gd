@@ -19,21 +19,27 @@ var completion := 0.0 #how much of the curve we completed (distance)
 var loops := 0 #how many times have we completed the same loop 
 
 func _ready() -> void:
-	changePattern(randi_range(0,1), mace_range)
+	changePattern(mace_range)
 	print("something")
 
-func changePattern(idx : int = 0, range : float = 1):
-	if Global.maceAttackPatterns:
+
+func changePattern(range : float = 1, rot_deg : float = 0, idx : int = -1):
+	#negative index picks randomly from available moves
+	if Global.maceAttackPatterns: 
+		if idx < 0:
+			idx = randi_range(0, Global.maceAttackPatterns.keys().size() - 1)
 		var next_move = Global.maceAttackPatterns.keys()[idx]
 		var pattern = Global.maceAttackPatterns[next_move]["points"]
 		curve.clear_points()
 		
+		var rot_rad = deg_to_rad(rot_deg)
 		for i in range(pattern.size()):
 			curve.add_point(
-							global_position + Vector2(pattern[i][0][0], pattern[i][0][1]) * range, 
-							Vector2(pattern[i][1][0], pattern[i][1][1]) * range,
-							global_position + Vector2(pattern[i][2][0], pattern[i][2][1]) * range
+							mace.global_position + Vector2(pattern[i][0][0], pattern[i][0][1]).rotated(rot_rad) * range, 
+							Vector2(pattern[i][1][0], pattern[i][1][1]).rotated(rot_rad) * range,
+							Vector2(pattern[i][2][0], pattern[i][2][1]).rotated(rot_rad) * range
 							)
+		curve.tessellate()
 		points = curve.get_baked_points()
 
 func reverse(kb : float):
@@ -56,4 +62,4 @@ func _process(delta: float) -> void:
 		mace.global_position = curve.sample_baked(completion)
 
 func _on_completed_loop() -> void:
-	changePattern(randi_range(0,1), mace_range)
+	changePattern(mace_range, [0,45,90,-45,-90].pick_random())

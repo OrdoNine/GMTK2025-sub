@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=16 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="TileSet" uid="uid://bfoi1yk3rbga3" path="res://Assets/test-tileset.tres" id="1_bo1nx"]
 [ext_resource type="Script" uid="uid://downf0rj4synv" path="res://Scripts/player_controller.gd" id="2_bo1nx"]
@@ -29,6 +29,12 @@ font = ExtResource("3_kry3j")
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_21xkr"]
 size = Vector2(50, 50)
+
+[sub_resource type="Curve2D" id="Curve2D_6bp64"]
+_data = {
+"points": PackedVector2Array(0, 0, 100, -50, 0, 0, -25, -25, 50, 0, 50, -100, 0, 0, 0, 0, 100, 0, -100, -150, 0, 0, 100, 100, -50, 0, 0, 0, 150, 0)
+}
+point_count = 5
 
 [node name="Game" type="Node2D"]
 texture_filter = 1
@@ -184,5 +190,9 @@ mace = NodePath("../Sprite2D")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = SubResource("PlaceholderTexture2D_21xkr")
+
+[node name="Path2D" type="Path2D" parent="."]
+position = Vector2(-208, 0)
+curve = SubResource("Curve2D_6bp64")
 
 [connection signal="completed_loop" from="Line2D" to="Line2D" method="_on_completed_loop"]
