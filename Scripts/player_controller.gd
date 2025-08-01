@@ -80,12 +80,15 @@ func deactivate_active_item():
 		_active_bridge_maker.deactivate()
 		_active_bridge_maker = null
 
+func meets_stamina_requirement(c: int) -> bool:
+	return OS.is_debug_build() or stamina_points >= c
+
 func _input(event: InputEvent) -> void:
 	if _cur_state != PlayerState.STUNNED:
 		if event is InputEventKey and not event.is_echo():
 			if _active_bridge_maker == null:
 				# 1 key: craft bomb
-				if event.pressed and event.keycode == KEY_1:
+				if event.pressed and event.keycode == KEY_1 and meets_stamina_requirement(3):
 					var inst: Node2D = _prefab_bomb.instantiate()
 					inst.global_position = global_position
 					add_sibling(inst)
@@ -93,7 +96,7 @@ func _input(event: InputEvent) -> void:
 					stamina_points -= 3
 					
 				# 2 key: slime bomb
-				if event.pressed and event.keycode == KEY_2:
+				if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
 					var inst: Node2D = _prefab_inverse_bomb.instantiate()
 							
 					inst.global_position = global_position
@@ -102,7 +105,7 @@ func _input(event: InputEvent) -> void:
 					stamina_points -= 3
 					
 				# 3 key: bridge marker (if airborne)
-				elif event.pressed and event.keycode == KEY_3 and not is_on_floor():
+				elif event.pressed and event.keycode == KEY_3 and not is_on_floor() and meets_stamina_requirement(3):
 					# place bridge maker if not on floor
 					velocity.x = 0.0
 					var inst: Node2D = _prefab_bridge_maker.instantiate()
@@ -125,8 +128,10 @@ func _process(_delta: float) -> void:
 	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 
 func _physics_process(delta: float) -> void:
-	# For debug purposes, its better to let it not be there
-	# if time_remaining <= 0.0: return
+	# lose state when player runs out of time
+	if not OS.is_debug_build():
+		if time_remaining <= 0.0: return
+	
 	time_remaining -= delta
 	
 	if _active_bridge_maker != null and not _active_bridge_maker.active:
