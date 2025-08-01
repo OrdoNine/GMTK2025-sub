@@ -2,7 +2,6 @@ extends Control
 
 func _on_gamemode_changed(state: Global.GameState) -> void:
 	self.visible = state == Global.GameState.PAUSE;
-	print("Received gamemode change!")
 
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_gamemode_changed)

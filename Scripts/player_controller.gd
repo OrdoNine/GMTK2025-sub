@@ -55,7 +55,7 @@ var _active_item_key := KEY_NONE
 var should_update : bool;
 
 func _on_game_gamemode_changed(state: Global.GameState) -> void:
-	should_update = (state == Global.GameState.GAMEPLAY);
+	get_tree().paused = (state == Global.GameState.PAUSE) or (state == Global.GameState.DEATH);
 
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_game_gamemode_changed)
@@ -328,5 +328,6 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func kill() -> void:
+	print("I'm dead!")
 	game_reset();
 	Global.game_state = Global.GameState.DEATH;
