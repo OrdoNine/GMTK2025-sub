@@ -18,6 +18,8 @@ var game_state : GameState :
 			print("Switched to pause!");
 		elif state == GameState.GAMEPLAY:
 			print("Switched to gameplay!")
+		elif state == GameState.DEATH:
+			print("Switched to death!");
 		gamemode_changed.emit(state);
 
 var ignore_escape: bool = false; # For PAUSE->GAMPLAY transition

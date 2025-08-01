@@ -15,7 +15,7 @@ enum PlayerState {
 
 # TODO: time_remaining is not stored in player?
 var stamina_points: int = 0
-var round_time: int = 200
+var round_time: int = 30
 var time_remaining: float
 
 # progress of the jump, from 0.0 to 1.0.
@@ -137,7 +137,10 @@ func _handle_jump(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	if !should_update: return;
-	if time_remaining <= 0.0: return
+	if time_remaining <= 0.0:
+		time_remaining = 0;
+		kill()
+
 	time_remaining -= delta
 
 	_handle_jump(delta);
@@ -176,4 +179,5 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func kill() -> void:
-	get_tree().reload_current_scene();
+	game_reset();
+	Global.game_state = Global.GameState.DEATH;
