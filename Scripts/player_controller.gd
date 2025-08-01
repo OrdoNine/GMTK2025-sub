@@ -28,7 +28,7 @@ var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
 
 # TODO: don't store time remaining in player
-var round_time: int = 20
+var round_time: int = 40
 var time_remaining: float
 var is_taking_damage: bool = false
 
@@ -57,7 +57,7 @@ func _ready() -> void:
 
 func game_reset():
 	position = _start_pos
-	round_time -= 1
+	round_time -= 2
 	time_remaining = round_time
 	
 func on_entered_deadly_area(_area: Area2D) -> void:
