@@ -22,4 +22,3 @@ func _ready() -> void:
 				add_child(obj)
 	
 	collectibles_tile_map.visible = false
-

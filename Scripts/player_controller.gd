@@ -36,14 +36,14 @@ var is_taking_damage: bool = false
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
 var _wall_jump_freeze = 0.0
-var _cur_state := PlayerState.FREEMOVE
-var _temp_construction_area: Area2D
+var current_state := PlayerState.FREEMOVE
+var construction_area: Area2D
 var _last_move_dir: int = 0
 var _deadly_area_count: int = 0
 var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
 @onready var _start_pos := position
-@onready var _tilemap: TileMapLayer = get_node("../TileMap")
+@onready var tilemap: TileMapLayer = get_node("../TileMap")
 
 const _prefab_bomb = preload("res://Objects/realized-items/bomb/bomb.tscn")
 const _prefab_inverse_bomb = preload("res://Objects/realized-items/inverse_bomb/inverse_bomb.tscn")
@@ -52,14 +52,41 @@ const _prefab_bridge_maker = preload("res://Objects/realized-items/bridge/bridge
 var _active_bridge_maker: Node2D = null
 var _active_item_key := KEY_NONE
 
+var should_update : bool;
+
+func _on_game_gamemode_changed(state: Global.GameState) -> void:
+	should_update = (state == Global.GameState.GAMEPLAY);
+
 func _ready() -> void:
+	Global.gamemode_changed.connect(_on_game_gamemode_changed)
 	time_remaining = round_time
+	should_update = true;
+	game_reset();
 
 func game_reset():
 	position = _start_pos
 	round_time -= 2
 	time_remaining = round_time
+
+func _process(_delta: float) -> void:
+	if !should_update: return;
 	
+	if Input.is_action_just_pressed("escape"):
+		if Global.ignore_escape: Global.ignore_escape = false;
+		else: Global.game_state = Global.GameState.PAUSE;
+	
+	if stamina_points > 0:
+		if Input.is_action_just_pressed("player_action1"):
+			eat()
+			stamina_points -= 1
+
+		if Input.is_action_just_pressed("player_action2"):
+			spit()
+			stamina_points -= 1
+	
+	$"../Camera2D/GamePlayUI".stamina_points = stamina_points;
+	$"../Camera2D/GamePlayUI".time_remaining = time_remaining;
+
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
 		print("OUCH!")
@@ -84,7 +111,7 @@ func meets_stamina_requirement(c: int) -> bool:
 	return OS.is_debug_build() or stamina_points >= c
 
 func _input(event: InputEvent) -> void:
-	if _cur_state != PlayerState.STUNNED:
+	if current_state != PlayerState.STUNNED:
 		if event is InputEventKey and not event.is_echo():
 			if _active_bridge_maker == null:
 				# 1 key: craft bomb
@@ -112,7 +139,7 @@ func _input(event: InputEvent) -> void:
 					
 					# place bridge maker on the center of the cell below the player
 					var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
-					inst.global_position = _tilemap.to_global(_tilemap.map_to_local(_tilemap.local_to_map(_tilemap.to_local(player_bottom)) + Vector2i(0, 1)))
+					inst.global_position = get_position_of_tile((get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
 					add_sibling(inst)
 					inst.activate()
 					stamina_points -= 3
@@ -122,34 +149,66 @@ func _input(event: InputEvent) -> void:
 			
 			elif _active_bridge_maker != null and event.is_released() and event.keycode == _active_item_key:
 				deactivate_active_item()
+	#var status_text: Label = get_node("Camera2D/Status")
+	#status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 
-func _process(_delta: float) -> void:
-	var status_text: Label = get_node("Camera2D/Status")
-	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
+func get_tiled_pos_of(pos: Vector2) -> Vector2i:
+	return tilemap.local_to_map(tilemap.to_local(pos))
 
-func _physics_process(delta: float) -> void:
-	# lose state when player runs out of time
-	if not OS.is_debug_build():
-		if time_remaining <= 0.0: return
-	
-	time_remaining -= delta
-	
-	if _active_bridge_maker != null and not _active_bridge_maker.active:
-		_active_bridge_maker = null
-	
-	if is_taking_damage and _iframe_timer <= 0.0:
-		_stun_timer = DAMAGE_STUN_LENGTH
-		_iframe_timer = IFRAME_LENGTH
-		_cur_state = PlayerState.STUNNED
-		velocity = Vector2(0, -200)
-		deactivate_active_item()
-	
-	_iframe_timer = move_toward(_iframe_timer, 0, delta)
+func get_position_of_tile(coord: Vector2i) -> Vector2:
+	return tilemap.to_global(tilemap.map_to_local(coord))
 
-	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
+func get_destructible_tiles() -> Array:
+	return [ Vector2i(1, 0), Vector2i(3, 0) ];
+
+# destroy radius of blocks
+func eat() -> void:
+	var player_tile_coord = get_tiled_pos_of(global_position);
+	var destructible_tiles = get_destructible_tiles();
+
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			var pos: Vector2i = player_tile_coord + Vector2i(dx, dy)
+			var coords = tilemap.get_cell_atlas_coords(pos) # Gives the coords of that tile in the spritesheet
+
+			# TODO: make hashset of destructible tiles (szudzik/cantor pairing function?)
+			# Idk bout the above, but arrays are better than what were before.
+			if coords in destructible_tiles:
+				tilemap.erase_cell(pos)
+
+# create a platform
+func spit() -> void:
+	var player_tile_coord := get_tiled_pos_of(global_position);
+	var player_tile_pos := get_position_of_tile(player_tile_coord);
+
+	var square := RectangleShape2D.new()
+	square.size = tilemap.tile_set.tile_size * 3
+	var hitbox := CollisionShape2D.new()
+	hitbox.shape = square
+
+	construction_area = Area2D.new();
+	construction_area.add_child(hitbox)
+	construction_area.position = player_tile_pos;
+	get_parent().add_child(construction_area)
+
+	# once player leaves this temporary area, the cells occupied by the
+	# area will be filled with the Goop. if the cell is empty.	
+	construction_area.body_exited.connect(func(body):
+		if body == self:
+			construction_area.queue_free()
+			for dx in range(-1, 2):
+				for dy in range(-1, 2):
+					var pos: Vector2i = player_tile_coord + Vector2i(dx, dy)
+
+					# overwrite cell if exists
+					if tilemap.get_cell_source_id(pos) == -1:
+						tilemap.set_cell(pos, 1, Vector2i(3, 0))
+		)
+
+func _handle_jump(delta: float) -> void:
+	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
 	if _active_bridge_maker != null:
 		can_jump = false
-
 	if Input.is_action_just_pressed("player_jump") and can_jump:
 		_jump_remaining = 1.0
 
@@ -167,6 +226,28 @@ func _physics_process(delta: float) -> void:
 			velocity.y *= jump_stop_power
 		_jump_remaining = 0.0
 
+func _physics_process(delta: float) -> void:
+	if !should_update: return;
+	if time_remaining <= 0.0:
+		time_remaining = 0;
+		kill()
+
+	time_remaining -= delta
+	
+	if _active_bridge_maker != null and not _active_bridge_maker.active:
+		_active_bridge_maker = null
+	
+	if is_taking_damage and _iframe_timer <= 0.0:
+		_stun_timer = DAMAGE_STUN_LENGTH
+		_iframe_timer = IFRAME_LENGTH
+		current_state = PlayerState.STUNNED
+		velocity = Vector2(0, -200)
+		deactivate_active_item()
+	
+	_iframe_timer = move_toward(_iframe_timer, 0, delta)
+
+	_handle_jump(delta);
+
 	# calculate move direction
 	var move_dir := 0
 	
@@ -176,7 +257,7 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_pressed("player_left"):
 			move_dir -= 1
 	
-	match _cur_state:
+	match current_state:
 		PlayerState.FREEMOVE:
 			# apply gravity normally
 			velocity += get_gravity() * delta
@@ -188,7 +269,7 @@ func _physics_process(delta: float) -> void:
 
 			if is_on_wall_only() and move_dir != 0:
 				_jump_remaining = 0.0
-				_cur_state = PlayerState.WALLSLIDE
+				current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.STUNNED:
 			# apply gravity normally
@@ -199,20 +280,17 @@ func _physics_process(delta: float) -> void:
 			
 			_stun_timer = move_toward(_stun_timer, 0, delta)
 			if _stun_timer <= 0.0:
-				_cur_state = PlayerState.FREEMOVE
+				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLSLIDE:
 			move_direction = 1 if get_wall_normal().x > 0.0 else -1
 
 			if _jump_remaining > 0.0:
-				_cur_state = PlayerState.WALLJUMP
+				current_state = PlayerState.WALLJUMP
 				_wall_jump_freeze = WALL_JUMP_FREEZE_LENGTH
-				
 				velocity.x = move_direction * wall_jump_velocity
-			
 			elif not is_on_wall_only():
-				_cur_state = PlayerState.FREEMOVE
-			
+				current_state = PlayerState.FREEMOVE
 			else:
 				var max_y_vel: float = get_gravity().y * delta * wall_slide_speed
 				velocity += get_gravity() * delta
@@ -235,12 +313,12 @@ func _physics_process(delta: float) -> void:
 			
 			if is_on_wall_only():
 				_jump_remaining = 0.0
-				_cur_state = PlayerState.WALLSLIDE
+				current_state = PlayerState.WALLSLIDE
 				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
 				
 			elif is_on_floor() or _wall_jump_freeze < 0.0:
 				_jump_remaining = 0.0
-				_cur_state = PlayerState.FREEMOVE
+				current_state = PlayerState.FREEMOVE
 				
 			else:
 				velocity.x += move_dir * wall_jump_control_acceleration * delta
@@ -248,3 +326,7 @@ func _physics_process(delta: float) -> void:
 	
 	_last_move_dir = move_dir
 	move_and_slide()
+
+func kill() -> void:
+	game_reset();
+	Global.game_state = Global.GameState.DEATH;
