@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=24 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://Scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://cnb0boxepf8j1" path="res://Scripts/mace_chain.gd" id="7_6bp64"]
 [ext_resource type="PackedScene" uid="uid://bkw11304evh3s" path="res://Scenes/killzone.tscn" id="9_ynf5e"]
 [ext_resource type="Script" uid="uid://dxhlmw6xjfhaw" path="res://Scripts/win.gd" id="12_fdnlq"]
+[ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://Scenes/mace.tscn" id="15_wsu2k"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
 texture = ExtResource("1_21xkr")
@@ -52,15 +53,6 @@ size = Vector2(32, 32)
 
 [sub_resource type="LabelSettings" id="LabelSettings_6bp64"]
 font = ExtResource("3_kry3j")
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_21xkr"]
-size = Vector2(50, 50)
-
-[sub_resource type="Curve2D" id="Curve2D_6bp64"]
-_data = {
-"points": PackedVector2Array(0, 0, 100, -50, 0, 0, -25, -25, 50, 0, 50, -100, 0, 0, 0, 0, 100, 0, -100, -150, 0, 0, 100, 100, -50, 0, 0, 0, 150, 0)
-}
-point_count = 5
 
 [node name="Game" type="Node2D"]
 texture_filter = 1
@@ -136,20 +128,14 @@ offset_bottom = 7.0
 text = "Win"
 label_settings = SubResource("LabelSettings_6bp64")
 
-[node name="Line2D" type="Line2D" parent="." node_paths=PackedStringArray("mace", "tilemap", "target")]
-unique_name_in_owner = true
+[node name="MaceChain" type="Line2D" parent="." node_paths=PackedStringArray("mace", "tilemap", "target")]
 width = 2.0
 script = ExtResource("7_6bp64")
-mace = NodePath("../Sprite2D")
+mace = NodePath("../Mace")
 tilemap = NodePath("../TileMap")
 target = NodePath("../Player")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(-216, -206)
-texture = SubResource("PlaceholderTexture2D_21xkr")
+[node name="Mace" parent="." instance=ExtResource("15_wsu2k")]
+position = Vector2(-300, -300)
 
-[node name="Path2D" type="Path2D" parent="."]
-position = Vector2(-208, 0)
-curve = SubResource("Curve2D_6bp64")
-
-[connection signal="completed_loop" from="Line2D" to="Line2D" method="_on_completed_loop"]
+[connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]
