@@ -25,10 +25,11 @@ offset_left = -239.0
 offset_top = -178.0
 offset_right = -96.0
 offset_bottom = -77.0
-text = "Arrow keys - move
-Z - jump
-X - Eat
-C - Spit"
+text = "Arrow keys/WASD - move
+Z/Space - jump
+1 - Bomb
+2 - Slime Bomb
+Hold 3 - Bridge (airborne)"
 label_settings = SubResource("LabelSettings_rfokx")
 
 [node name="Status" type="Label" parent="."]

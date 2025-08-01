@@ -72,6 +72,11 @@ escape={
 ]
 }
 
+[layer_names]
+
+2d_physics/layer_1="level"
+2d_physics/layer_2="entity"
+
 [physics]
 
 2d/default_gravity=1000.0

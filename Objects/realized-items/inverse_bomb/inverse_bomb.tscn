@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://qlb653dgxaa"]
+
+[ext_resource type="Script" uid="uid://ccl1pte50uuix" path="res://Objects/realized-items/inverse_bomb/inverse_bomb.gd" id="1_6ykk2"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="2_daehu"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
+size = Vector2(15, 15)
+
+[sub_resource type="QuadMesh" id="QuadMesh_bd2ok"]
+size = Vector2(16, 16)
+
+[sub_resource type="LabelSettings" id="LabelSettings_x450m"]
+font = ExtResource("2_daehu")
+
+[node name="InverseBomb" type="RigidBody2D"]
+collision_layer = 2
+can_sleep = false
+lock_rotation = true
+freeze = true
+script = ExtResource("1_6ykk2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ugmi2")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+self_modulate = Color(0.150001, 0.725064, 0.430075, 1)
+mesh = SubResource("QuadMesh_bd2ok")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 32.0
+offset_bottom = 15.0
+text = "Slime
+Bomb"
+label_settings = SubResource("LabelSettings_x450m")

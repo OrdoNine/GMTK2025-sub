@@ -1,4 +1,4 @@
 extends Camera2D
 
 func _process(delta: float) -> void:
-	$".".position = %Player.position;
+	position = get_node("../Player").position;
