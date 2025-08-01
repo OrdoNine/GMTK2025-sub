@@ -5,7 +5,7 @@ var maceAttackPatterns : Dictionary
 
 func _ready() -> void:
 	maceAttackPatterns = read_JSON("res://Resources/Components/macepatterns.json")
-  game_state = GameState.MAIN_MENU;
+	game_state = GameState.MAIN_MENU;
 
 func read_JSON(path):
 	var json = FileAccess.get_file_as_string(path)
@@ -36,4 +36,3 @@ var game_state : GameState :
 		gamemode_changed.emit(state);
 
 var ignore_escape: bool = false; # For PAUSE->GAMPLAY transition
-

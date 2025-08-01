@@ -24,7 +24,6 @@ var loops := 0 #how many times have we completed the same loop
 
 func _ready() -> void:
 	changePattern(mace_range)
-	print("something")
 
 func _process(delta: float) -> void:
 	if mace:
@@ -43,7 +42,6 @@ func _on_completed_loop() -> void:
 	var new_rot = [0,45,90,-45,-90].pick_random()
 	if target:
 		advance = mace.global_position.distance_squared_to(target.global_position) > mace_range * 200
-		print(mace.global_position.distance_squared_to(target.global_position))
 		new_rot = rad_to_deg(mace.global_position.angle_to_point(target.global_position))
 	changePattern(mace_range, new_rot)
 
