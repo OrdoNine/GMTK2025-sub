@@ -7,7 +7,6 @@ func game_reset():
 
 func on_body_entered(body: Node2D):
 	if body.is_in_group("players"):
-		print("colleect Dorito...")
 		visible = false
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)

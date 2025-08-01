@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3 uid="uid://dtffmkkwd7jot"]
+
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_dfes0"]
+[ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://Scripts/game_play_ui.gd" id="1_rfokx"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_rfokx"]
+font = ExtResource("1_dfes0")
+font_color = Color(0.300606, 0.564597, 0.439899, 1)
+outline_color = Color(0.251877, 0.487383, 0.376665, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_es0gk"]
+font = ExtResource("1_dfes0")
+font_color = Color(1, 0.39, 0.39, 1)
+
+[node name="GamePlayUI" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rfokx")
+
+[node name="Controls" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -238.0
+offset_top = -177.0
+offset_right = -56.0
+offset_bottom = -76.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "Arrow keys/WASD - move
+Z/Space - jump
+1 - Bomb
+2 - Slime Bomb
+Hold 3 - Bridge (airborne)"
+label_settings = SubResource("LabelSettings_rfokx")
+
+[node name="Status" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -239.184
+offset_top = -78.0
+offset_right = -96.1842
+offset_bottom = 23.0002
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Stamina: 0
+"
+label_settings = SubResource("LabelSettings_es0gk")
