@@ -45,7 +45,11 @@ var _iframe_timer: float = 0.0
 @onready var _start_pos := position
 @onready var _tilemap: TileMapLayer = get_node("../TileMap")
 
-const _prefab_bomb = preload("res://Objects/bomb/bomb.tscn")
+const _prefab_bomb = preload("res://Objects/realized-items/bomb/bomb.tscn")
+const _prefab_inverse_bomb = preload("res://Objects/realized-items/inverse_bomb/inverse_bomb.tscn")
+const _prefab_bridge_maker = preload("res://Objects/realized-items/bridge/bridge.tscn")
+
+var _active_bridge_maker: Node2D = null
 
 func _ready() -> void:
 	time_remaining = round_time
@@ -69,56 +73,53 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 		print("no more ouchies")
 		is_taking_damage = false
 
-# create a platform
-func spit() -> void:
-	print("Spit.")
-
-	# amazing
-	var tilemap_origin = _tilemap.local_to_map(_tilemap.to_local(global_position))
-	var origin_pos := _tilemap.to_global(_tilemap.map_to_local(tilemap_origin))
-
-	# construct temporary area
-	var area := Area2D.new()
-	var colshape := RectangleShape2D.new()
-	colshape.size = _tilemap.tile_set.tile_size * 3
-	var colshape_node := CollisionShape2D.new()
-	colshape_node.shape = colshape
-	area.add_child(colshape_node)
-	area.position = origin_pos
-	get_parent().add_child(area)
-
-	# once player leaves this temporary area, the cells occupied by the
-	# area will be filled with the Goop. if the cell is empty.
-	_temp_construction_area = area
-	_temp_construction_area.body_exited.connect(func(body):
-		if body == self:
-			_temp_construction_area.queue_free()
-			for dx in range(-1, 2):
-				for dy in range(-1, 2):
-					var pos: Vector2i = tilemap_origin + Vector2i(dx, dy)
-
-					# overwrite cell if exists
-					if _tilemap.get_cell_source_id(pos) == -1:
-						_tilemap.set_cell(pos, 1, Vector2i(3, 0))
-		)
+func deactivate_active_item():
+	if _active_bridge_maker != null:
+		print("release bridge maker")
+		_active_bridge_maker.deactivate()
+		_active_bridge_maker = null
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		# 1 key: craft bomb
-		if event.pressed and event.keycode == KEY_1:
-			var inst: Node2D = _prefab_bomb.instantiate()
-			inst.global_position = global_position
-			add_sibling(inst)
-			inst.activate()
-			# if stamina_points >= 3:
-				# eat()
-			stamina_points -= 3
-			
-		if event.pressed and event.keycode == KEY_2:
-			if stamina_points >= 3:
-				spit()
+	if _cur_state == PlayerState.FREEMOVE or _cur_state == PlayerState.WALLJUMP:
+		if event is InputEventKey and not event.is_echo():
+			# 1 key: craft bomb
+			if event.pressed and event.keycode == KEY_1:
+				var inst: Node2D = _prefab_bomb.instantiate()
+				inst.global_position = global_position
+				add_sibling(inst)
+				inst.activate()
 				stamina_points -= 3
-			
+				
+			# 2 key: slime bomb (if grounded), or bridge maker
+			if event.keycode == KEY_2:
+				if event.pressed and _active_bridge_maker == null:
+					# place bridge maker if not on floor
+					if not is_on_floor():
+						velocity.x = 0.0
+						var inst: Node2D = _prefab_bridge_maker.instantiate()
+						
+						# place bridge maker on the center of the cell below the player
+						var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
+						inst.global_position = _tilemap.to_global(_tilemap.map_to_local(_tilemap.local_to_map(_tilemap.to_local(player_bottom)) + Vector2i(0, 1)))
+						add_sibling(inst)
+						inst.activate()
+						stamina_points -= 3
+						
+						_active_bridge_maker = inst
+					
+					# place slime bomb if grounded
+					else:
+						var inst: Node2D = _prefab_inverse_bomb.instantiate()
+						
+						inst.global_position = global_position
+						add_sibling(inst)
+						inst.activate()
+						stamina_points -= 3
+						
+				# when key is released, stop the active bridge maker
+				elif not event.pressed and _active_bridge_maker != null:
+					deactivate_active_item()
+
 func _process(_delta: float) -> void:
 	var status_text: Label = get_node("Camera2D/Status")
 	status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
@@ -128,16 +129,21 @@ func _physics_process(delta: float) -> void:
 	# if time_remaining <= 0.0: return
 	time_remaining -= delta
 	
+	if _active_bridge_maker != null and not _active_bridge_maker.active:
+		_active_bridge_maker = null
+	
 	if is_taking_damage and _iframe_timer <= 0.0:
 		_stun_timer = DAMAGE_STUN_LENGTH
 		_iframe_timer = IFRAME_LENGTH
 		_cur_state = PlayerState.STUNNED
-		
 		velocity = Vector2(0, -200)
+		deactivate_active_item()
 	
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
 
 	var can_jump := (_cur_state == PlayerState.FREEMOVE and is_on_floor()) or (_cur_state == PlayerState.WALLSLIDE and is_on_wall_only())
+	if _active_bridge_maker != null:
+		can_jump = false
 
 	if Input.is_action_just_pressed("player_jump") and can_jump:
 		_jump_remaining = 1.0
@@ -158,10 +164,12 @@ func _physics_process(delta: float) -> void:
 
 	# calculate move direction
 	var move_dir := 0
-	if Input.is_action_pressed("player_right"):
-		move_dir += 1
-	if Input.is_action_pressed("player_left"):
-		move_dir -= 1
+	
+	if _active_bridge_maker == null:
+		if Input.is_action_pressed("player_right"):
+			move_dir += 1
+		if Input.is_action_pressed("player_left"):
+			move_dir -= 1
 	
 	match _cur_state:
 		PlayerState.FREEMOVE:

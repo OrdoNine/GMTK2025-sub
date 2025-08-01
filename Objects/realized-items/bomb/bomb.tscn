@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://b0abxmeyedi4a"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_u8ut4"]
-[ext_resource type="Script" uid="uid://cuvqf2my5m5g1" path="res://Objects/bomb/bomb.gd" id="1_ugmi2"]
+[ext_resource type="Script" uid="uid://cuvqf2my5m5g1" path="res://Objects/realized-items/bomb/bomb.gd" id="1_ugmi2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
 size = Vector2(15, 15)
