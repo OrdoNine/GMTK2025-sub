@@ -35,10 +35,8 @@ func explode() -> void:
 			var pos := _tilemap.map_to_local(cell_pos)
 			
 			if origin_pos.distance_squared_to(pos) < EXPLOSION_RADIUS * EXPLOSION_RADIUS:
-				var coords := _tilemap.get_cell_atlas_coords(cell_pos)
-				
-				# TODO: make hashset of destructible tiles (szudzik/cantor pairing function?)
-				if (coords.x == 1 and coords.y == 0) or (coords.x == 3 and coords.y == 0):
+				var cell_data = _tilemap.get_cell_tile_data(cell_pos)
+				if cell_data != null and not cell_data.get_custom_data("Indestructible"):
 					_tilemap.erase_cell(cell_pos)
 	
 	# detect bodies which overlapped with the explosion radius

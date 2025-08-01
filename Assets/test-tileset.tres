@@ -6,6 +6,7 @@
 texture = ExtResource("1_7vvqs")
 0:0/0 = 0
 0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+0:0/0/custom_data_1 = true
 1:0/0 = 0
 1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 2:0/0 = 0
@@ -25,4 +26,6 @@ texture = ExtResource("1_7vvqs")
 physics_layer_0/collision_layer = 1
 custom_data_layer_0/name = "Hazard"
 custom_data_layer_0/type = 1
+custom_data_layer_1/name = "Indestructible"
+custom_data_layer_1/type = 1
 sources/1 = SubResource("TileSetAtlasSource_vombc")
