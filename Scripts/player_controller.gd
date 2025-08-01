@@ -50,6 +50,7 @@ const _prefab_inverse_bomb = preload("res://Objects/realized-items/inverse_bomb/
 const _prefab_bridge_maker = preload("res://Objects/realized-items/bridge/bridge.tscn")
 
 var _active_bridge_maker: Node2D = null
+var _active_item_key := KEY_NONE
 
 func _ready() -> void:
 	time_remaining = round_time
@@ -80,45 +81,44 @@ func deactivate_active_item():
 		_active_bridge_maker = null
 
 func _input(event: InputEvent) -> void:
-	if _cur_state == PlayerState.FREEMOVE or _cur_state == PlayerState.WALLJUMP:
+	if _cur_state != PlayerState.STUNNED:
 		if event is InputEventKey and not event.is_echo():
-			# 1 key: craft bomb
-			if event.pressed and event.keycode == KEY_1:
-				var inst: Node2D = _prefab_bomb.instantiate()
-				inst.global_position = global_position
-				add_sibling(inst)
-				inst.activate()
-				stamina_points -= 3
-				
-			# 2 key: slime bomb (if grounded), or bridge maker
-			if event.keycode == KEY_2:
-				if event.pressed and _active_bridge_maker == null:
-					# place bridge maker if not on floor
-					if not is_on_floor():
-						velocity.x = 0.0
-						var inst: Node2D = _prefab_bridge_maker.instantiate()
-						
-						# place bridge maker on the center of the cell below the player
-						var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
-						inst.global_position = _tilemap.to_global(_tilemap.map_to_local(_tilemap.local_to_map(_tilemap.to_local(player_bottom)) + Vector2i(0, 1)))
-						add_sibling(inst)
-						inst.activate()
-						stamina_points -= 3
-						
-						_active_bridge_maker = inst
+			if _active_bridge_maker == null:
+				# 1 key: craft bomb
+				if event.pressed and event.keycode == KEY_1:
+					var inst: Node2D = _prefab_bomb.instantiate()
+					inst.global_position = global_position
+					add_sibling(inst)
+					inst.activate()
+					stamina_points -= 3
 					
-					# place slime bomb if grounded
-					else:
-						var inst: Node2D = _prefab_inverse_bomb.instantiate()
-						
-						inst.global_position = global_position
-						add_sibling(inst)
-						inst.activate()
-						stamina_points -= 3
-						
-				# when key is released, stop the active bridge maker
-				elif not event.pressed and _active_bridge_maker != null:
-					deactivate_active_item()
+				# 2 key: slime bomb
+				if event.pressed and event.keycode == KEY_2:
+					var inst: Node2D = _prefab_inverse_bomb.instantiate()
+							
+					inst.global_position = global_position
+					add_sibling(inst)
+					inst.activate()
+					stamina_points -= 3
+					
+				# 3 key: bridge marker (if airborne)
+				elif event.pressed and event.keycode == KEY_3 and not is_on_floor():
+					# place bridge maker if not on floor
+					velocity.x = 0.0
+					var inst: Node2D = _prefab_bridge_maker.instantiate()
+					
+					# place bridge maker on the center of the cell below the player
+					var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
+					inst.global_position = _tilemap.to_global(_tilemap.map_to_local(_tilemap.local_to_map(_tilemap.to_local(player_bottom)) + Vector2i(0, 1)))
+					add_sibling(inst)
+					inst.activate()
+					stamina_points -= 3
+					
+					_active_bridge_maker = inst
+					_active_item_key = event.keycode
+			
+			elif _active_bridge_maker != null and event.is_released() and event.keycode == _active_item_key:
+				deactivate_active_item()
 
 func _process(_delta: float) -> void:
 	var status_text: Label = get_node("Camera2D/Status")

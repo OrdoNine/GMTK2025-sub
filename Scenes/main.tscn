@@ -85,17 +85,18 @@ offset_left = -239.0
 offset_top = -178.0
 offset_right = -96.0
 offset_bottom = -77.0
-text = "Arrow keys - move
-Z - jump
-X - Eat
-C - Spit"
+text = "Arrow keys/WASD - move
+Z/Space - jump
+1 - Bomb
+2 - Slime Bomb
+Hold 3 - Bridge (airborne)"
 label_settings = SubResource("LabelSettings_21xkr")
 
 [node name="Status" type="Label" parent="Player/Camera2D"]
-offset_left = -239.184
-offset_top = -106.566
-offset_right = -96.1842
-offset_bottom = -5.5658
+offset_left = -239.518
+offset_top = -88.8482
+offset_right = -96.5182
+offset_bottom = 12.152
 text = "Stamina: 0
 "
 label_settings = SubResource("LabelSettings_kry3j")
