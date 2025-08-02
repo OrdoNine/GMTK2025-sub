@@ -77,7 +77,7 @@ func _on_game_gamemode_changed(_from_state: Global.GameState, state: Global.Game
 
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_game_gamemode_changed)
-	game_reset();
+	Global.game_new_loop.connect(game_reset)
 
 func game_reset():
 	position = _start_pos
