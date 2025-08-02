@@ -10,7 +10,7 @@
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="3_kry3j"]
 [ext_resource type="Script" uid="uid://bjgqr1qe3ylo4" path="res://Scenes/game/tile_map.gd" id="4_344ge"]
 [ext_resource type="PackedScene" uid="uid://c66bqd2v2jk0" path="res://Scenes/death_menu.tscn" id="4_d1ilt"]
-[ext_resource type="PackedScene" uid="uid://05dkkfq47rbb" path="res://Scenes/about_controls.tscn" id="4_k12tt"]
+[ext_resource type="PackedScene" path="res://Scenes/about_controls.tscn" id="4_k12tt"]
 [ext_resource type="PackedScene" uid="uid://dkmnjoqamejhy" path="res://Scenes/loop_start_wait_menu.tscn" id="4_wsu2k"]
 [ext_resource type="Texture2D" uid="uid://eoynmupkcfgv" path="res://Assets/strudel.png" id="6_6bp64"]
 [ext_resource type="Script" uid="uid://cnb0boxepf8j1" path="res://Scripts/mace_chain.gd" id="7_6bp64"]
