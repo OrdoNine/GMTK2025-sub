@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=23 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://Scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -10,9 +10,9 @@
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="3_kry3j"]
 [ext_resource type="Script" uid="uid://bjgqr1qe3ylo4" path="res://Scenes/game/tile_map.gd" id="4_344ge"]
 [ext_resource type="PackedScene" uid="uid://c66bqd2v2jk0" path="res://Scenes/death_menu.tscn" id="4_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://dkmnjoqamejhy" path="res://Scenes/loop_start_wait_menu.tscn" id="4_wsu2k"]
 [ext_resource type="Texture2D" uid="uid://eoynmupkcfgv" path="res://Assets/strudel.png" id="6_6bp64"]
 [ext_resource type="Script" uid="uid://cnb0boxepf8j1" path="res://Scripts/mace_chain.gd" id="7_6bp64"]
-[ext_resource type="PackedScene" uid="uid://bkw11304evh3s" path="res://Scenes/killzone.tscn" id="9_ynf5e"]
 [ext_resource type="Script" uid="uid://dxhlmw6xjfhaw" path="res://Scripts/win.gd" id="12_fdnlq"]
 [ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://Scenes/mace.tscn" id="15_wsu2k"]
 
@@ -43,8 +43,6 @@ func _ready():
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gbba"]
 size = Vector2(15, 15)
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_hptm8"]
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kry3j"]
 size = Vector2(32, 32)
 
@@ -67,8 +65,9 @@ scale = Vector2(0.5, 0.5)
 zoom = Vector2(2, 2)
 script = ExtResource("1_ynf5e")
 
-[node name="Node2D" type="Node2D" parent="Camera2D"]
-scale = Vector2(0.5, 0.5)
+[node name="LoopStartWaitMenu" parent="Camera2D" instance=ExtResource("4_wsu2k")]
+process_mode = 2
+visible = false
 
 [node name="GamePlayUI" parent="Camera2D" instance=ExtResource("2_344ge")]
 unique_name_in_owner = true
@@ -107,12 +106,6 @@ shape = SubResource("RectangleShape2D_8gbba")
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
 texture = ExtResource("6_6bp64")
 region_rect = Rect2(0, 0, 32, 32)
-
-[node name="Void" parent="." instance=ExtResource("9_ynf5e")]
-position = Vector2(39, 301)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Void"]
-shape = SubResource("WorldBoundaryShape2D_hptm8")
 
 [node name="WinArea" type="Area2D" parent="."]
 position = Vector2(1688, -176)

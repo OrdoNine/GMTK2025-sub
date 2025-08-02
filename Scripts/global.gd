@@ -20,7 +20,8 @@ enum GameState {
 	MAIN_MENU,
 	GAMEPLAY,
 	PAUSE,
-	DEATH
+	DEATH,
+	LOOP_START_WAIT, # the state when you are waiting after getting a win to start the next loop.
 }
 
 signal gamemode_changed(from_state: GameState, to_state: GameState);
@@ -45,8 +46,12 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 	if to_state == GameState.GAMEPLAY:
 		if from_state == GameState.DEATH:
 			# Reset game here
-			round_time -= 2
-			time_remaining = round_time
+			round_time = MAXIMUM_ROUND_TIME;
+			time_remaining = round_time;
+			round_number = 0;
+		elif from_state == GameState.LOOP_START_WAIT:
+			round_time -= 2;
+			time_remaining = round_time;
 			round_number += 1
 		elif from_state == GameState.MAIN_MENU:
 			round_time = MAXIMUM_ROUND_TIME;
