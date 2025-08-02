@@ -23,7 +23,15 @@ var completion := 0.0 #how much of the curve we completed (distance)
 var loops := 0 #how many times have we completed the same loop 
 
 func _ready() -> void:
+	Global.gamemode_changed.connect(_on_gamemode_changed);
 	changePattern(mace_range)
+
+func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
+	if from_state != Global.GameState.PAUSE and to_state == Global.GameState.GAMEPLAY:
+		game_reset();
+
+func game_reset():
+	push_error("Mace chain has no reset code!");
 
 func _process(delta: float) -> void:
 	if mace:

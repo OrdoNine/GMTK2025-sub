@@ -129,7 +129,7 @@ text = "Win"
 label_settings = SubResource("LabelSettings_6bp64")
 
 [node name="MaceChain" type="Line2D" parent="." node_paths=PackedStringArray("mace", "tilemap", "target")]
-process_mode = 4
+process_mode = 1
 width = 2.0
 script = ExtResource("7_6bp64")
 mace = NodePath("../Mace")
