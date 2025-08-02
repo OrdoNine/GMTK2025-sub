@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://sh543jbopukr"]
+
+[ext_resource type="Script" uid="uid://day6i0cjg1qx" path="res://Objects/realized-items/spring/spring.gd" id="1_hkm8b"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="2_y8mm6"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
+size = Vector2(15, 15)
+
+[sub_resource type="QuadMesh" id="QuadMesh_bd2ok"]
+size = Vector2(16, 16)
+
+[sub_resource type="LabelSettings" id="LabelSettings_x450m"]
+font = ExtResource("2_y8mm6")
+
+[node name="Spring" type="RigidBody2D"]
+collision_layer = 2
+can_sleep = false
+lock_rotation = true
+script = ExtResource("1_hkm8b")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ugmi2")
+
+[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
+editor_description = "Orange
+!"
+modulate = Color(1, 0.552, 0.16, 1)
+mesh = SubResource("QuadMesh_bd2ok")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 32.0
+offset_bottom = 15.0
+text = "Spring"
+label_settings = SubResource("LabelSettings_x450m")
+
+[node name="BounceArea" type="Area2D" parent="."]
+collision_layer = 2
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BounceArea"]
+shape = SubResource("RectangleShape2D_ugmi2")
