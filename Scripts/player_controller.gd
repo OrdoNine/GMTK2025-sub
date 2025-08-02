@@ -1,7 +1,6 @@
 extends CharacterBody2D
 class_name Player
 
-const WALL_JUMP_FREEZE_LENGTH := 0.1
 const DAMAGE_STUN_LENGTH := 2.0
 const IFRAME_LENGTH := 3.0 # must be longer than stun length
 
@@ -28,19 +27,21 @@ enum PlayerState {
 
 var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
+var facing_direction: int = 1 # 1: right, -1: left
 
 var is_taking_damage: bool = false
+
+var current_state := PlayerState.FREEMOVE
 
 # progress of the jump, from 0.0 to 1.0.
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
-var _wall_jump_freeze = 0.0
-var current_state := PlayerState.FREEMOVE
-var construction_area: Area2D
-var _last_move_dir: int = 0
-var _deadly_area_count: int = 0
+var _last_move_dir: int = 0 # for tracking if the player wants to get off of a wall slide
+var _deadly_area_count: int = 0 # for tracking if the player should be taking damage
 var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
+var _ignore_grounded_on_this_frame: bool = false
+
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../TileMap")
 
@@ -48,6 +49,7 @@ const _prefab_bomb = preload("res://Objects/realized-items/bomb/bomb.tscn")
 const _prefab_inverse_bomb = preload("res://Objects/realized-items/inverse_bomb/inverse_bomb.tscn")
 const _prefab_bridge_maker = preload("res://Objects/realized-items/bridge/bridge.tscn")
 const _prefab_spring = preload("res://Objects/realized-items/spring/spring.tscn")
+const _prefab_horiz_spring = preload("res://Objects/realized-items/horiz_spring/horiz_spring.tscn")
 
 var _item_craft_progress = null
 var _active_bridge_maker: Node2D = null
@@ -91,7 +93,6 @@ func _process(_delta: float) -> void:
 	
 	match current_state:
 		# flash red when player is stunned
-		
 		PlayerState.STUNNED:
 			var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
 			modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
@@ -106,6 +107,8 @@ func _process(_delta: float) -> void:
 			else:
 				visible = true
 			
+			# crafting animation will stretch out the player a little bit
+			# stretching increases as it gets closer to being finished
 			var sprite := $AnimatedSprite2D
 			if _item_craft_progress != null:
 				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
@@ -170,6 +173,11 @@ func _input(event: InputEvent) -> void:
 				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
 					_active_item_key = event.keycode
 					begin_item_craft(0.5, 6, _prefab_spring)
+					
+				# 5 key: horiz spring
+				elif event.pressed and event.keycode == KEY_5 and meets_stamina_requirement(6):
+					_active_item_key = event.keycode
+					begin_item_craft(0.5, 6, _prefab_horiz_spring)
 			
 			elif event.is_released() and event.keycode == _active_item_key:
 				if _active_bridge_maker != null:
@@ -257,7 +265,7 @@ func _physics_process(delta: float) -> void:
 				new_anim = "jump"			
 			
 			if move_dir != 0:
-				sprite.flip_h = move_dir < 0
+				facing_direction = move_dir
 				if is_on_wall_only():
 					_jump_remaining = 0.0
 					current_state = PlayerState.WALLSLIDE
@@ -286,12 +294,11 @@ func _physics_process(delta: float) -> void:
 			new_anim = "wallslide"
 			
 			move_direction = 1 if get_wall_normal().x > 0.0 else -1
-			sprite.flip_h = move_direction > 0.0
+			facing_direction = -move_direction
 
 			if _jump_remaining > 0.0:
 				current_state = PlayerState.WALLJUMP
-				sprite.flip_h = move_direction < 0.0
-				_wall_jump_freeze = WALL_JUMP_FREEZE_LENGTH
+				facing_direction = move_direction
 				velocity.x = move_direction * wall_jump_velocity
 			elif not is_on_wall_only():
 				current_state = PlayerState.FREEMOVE
@@ -322,7 +329,7 @@ func _physics_process(delta: float) -> void:
 				current_state = PlayerState.WALLSLIDE
 				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
 				
-			elif is_on_floor() or _wall_jump_freeze < 0.0:
+			elif is_on_floor() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.FREEMOVE
 				
@@ -333,9 +340,18 @@ func _physics_process(delta: float) -> void:
 	_last_move_dir = move_dir
 	move_and_slide()
 	
+	sprite.flip_h = facing_direction < 0
 	if sprite.animation != new_anim:
 		sprite.play(new_anim)
+		
+	_ignore_grounded_on_this_frame = false
 
+func horiz_spring_bounce_callback(bounce_power: float, side_power: float):
+	velocity.x = side_power * facing_direction
+	velocity.y = -bounce_power
+	current_state = PlayerState.WALLJUMP
+	_ignore_grounded_on_this_frame = true
+		
 func kill() -> void:
 	game_reset();
 	Global.game_state = Global.GameState.DEATH;
