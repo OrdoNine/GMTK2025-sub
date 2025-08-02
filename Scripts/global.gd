@@ -26,7 +26,6 @@ enum GameState {
 
 signal gamemode_changed(from_state: GameState, to_state: GameState);
 signal ui_update(time_remaining: float, round_number: int);
-signal game_new_loop;
 
 var game_state : GameState :
 	set(state):
@@ -57,9 +56,6 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 		elif from_state == GameState.MAIN_MENU:
 			round_time = MAXIMUM_ROUND_TIME;
 			time_remaining = round_time;
-
-func game_begin_new_loop():
-	game_new_loop.emit()
 
 func _process(delta: float):	
 	if game_state == GameState.GAMEPLAY:
