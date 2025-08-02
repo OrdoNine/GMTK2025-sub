@@ -3,7 +3,7 @@ class_name Player
 
 const WALL_JUMP_FREEZE_LENGTH := 0.1
 const DAMAGE_STUN_LENGTH := 2.0
-const IFRAME_LENGTH := 2.75 # must be longer than stun length
+const IFRAME_LENGTH := 3.0 # must be longer than stun length
 
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
