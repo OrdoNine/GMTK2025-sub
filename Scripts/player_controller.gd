@@ -56,6 +56,7 @@ var _active_item_key := KEY_NONE
 func begin_item_craft(time: float, points: int, prefab: PackedScene):
 	_item_craft_progress = {
 		time_remaining = time,
+		wait_length = time,
 		points = points,
 		prefab = prefab
 	}
@@ -105,9 +106,13 @@ func _process(_delta: float) -> void:
 			else:
 				visible = true
 			
-			var sprite := $Sprite2D
+			var sprite := $AnimatedSprite2D
 			if _item_craft_progress != null:
-				sprite.scale = Vector2(1.3, 0.7)
+				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
+				sprite.scale = Vector2(
+					pow(2, t * 0.4),
+					pow(2, -t * 0.4)
+				)
 			else:
 				sprite.scale = Vector2.ONE
 
@@ -204,6 +209,9 @@ func _handle_jump(delta: float) -> void:
 		_jump_remaining = 0.0
 
 func _physics_process(delta: float) -> void:
+	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	var new_anim := "idle"
+	
 	if _active_bridge_maker != null and not _active_bridge_maker.active:
 		_active_bridge_maker = null
 		
@@ -242,12 +250,21 @@ func _physics_process(delta: float) -> void:
 			# velocity.x = move_toward(velocity.x, walk_speed * move_dir, walk_acceleration * delta);
 			velocity.x += walk_acceleration * move_dir * delta
 			velocity.x *= speed_damping
-
-			if is_on_wall_only() and move_dir != 0:
-				_jump_remaining = 0.0
-				current_state = PlayerState.WALLSLIDE
+			
+			if is_on_floor():
+				new_anim = "idle"
+			else:
+				new_anim = "jump"			
+			
+			if move_dir != 0:
+				sprite.flip_h = move_dir < 0
+				if is_on_wall_only():
+					_jump_remaining = 0.0
+					current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.STUNNED:
+			new_anim = "hurt"
+			
 			# apply gravity normally
 			velocity += get_gravity() * delta
 			
@@ -259,15 +276,21 @@ func _physics_process(delta: float) -> void:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.CRAFTING:
+			new_anim = "hurt" # TODO: make crafting animation
+			
 			velocity = Vector2.ZERO
 			if _item_craft_progress == null:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLSLIDE:
+			new_anim = "wallslide"
+			
 			move_direction = 1 if get_wall_normal().x > 0.0 else -1
+			sprite.flip_h = move_direction > 0.0
 
 			if _jump_remaining > 0.0:
 				current_state = PlayerState.WALLJUMP
+				sprite.flip_h = move_direction < 0.0
 				_wall_jump_freeze = WALL_JUMP_FREEZE_LENGTH
 				velocity.x = move_direction * wall_jump_velocity
 			elif not is_on_wall_only():
@@ -286,6 +309,8 @@ func _physics_process(delta: float) -> void:
 					velocity.x = -move_direction * 100.0 # please stay on the wall
 
 		PlayerState.WALLJUMP:
+			new_anim = "jump"
+			
 			# apply gravity normally
 			velocity += get_gravity() * delta
 			
@@ -307,6 +332,9 @@ func _physics_process(delta: float) -> void:
 	
 	_last_move_dir = move_dir
 	move_and_slide()
+	
+	if sprite.animation != new_anim:
+		sprite.play(new_anim)
 
 func kill() -> void:
 	game_reset();
