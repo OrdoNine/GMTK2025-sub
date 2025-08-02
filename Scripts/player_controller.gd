@@ -61,8 +61,6 @@ func begin_item_craft(time: float, points: int, prefab: PackedScene):
 	}
 
 func finish_item_craft():
-	print("finish item craft")
-	
 	var inst: Node2D = _item_craft_progress.prefab.instantiate()
 	inst.global_position = global_position
 	add_sibling(inst)
@@ -72,11 +70,7 @@ func finish_item_craft():
 	_item_craft_progress = null
 	_active_item_key = KEY_NONE
 
-func _on_game_gamemode_changed(_from_state: Global.GameState, state: Global.GameState) -> void:
-	get_tree().paused = (state == Global.GameState.PAUSE) or (state == Global.GameState.DEATH);
-
 func _ready() -> void:
-	Global.gamemode_changed.connect(_on_game_gamemode_changed)
 	Global.game_new_loop.connect(game_reset)
 
 func game_reset():
@@ -119,7 +113,6 @@ func _process(_delta: float) -> void:
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
-		print("OUCH!")
 		is_taking_damage = true
 		
 	_deadly_area_count = _deadly_area_count + 1
@@ -128,12 +121,10 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
 	
 	if _deadly_area_count == 0:
-		print("no more ouchies")
 		is_taking_damage = false
 
 func deactivate_active_item():
 	if _active_bridge_maker != null:
-		print("release bridge maker")
 		_active_bridge_maker.deactivate()
 		_active_bridge_maker = null
 
@@ -180,7 +171,6 @@ func _input(event: InputEvent) -> void:
 					deactivate_active_item()
 					
 				if _item_craft_progress != null:
-					print("cancel item craft")
 					_item_craft_progress = null
 					_active_item_key = KEY_NONE
 	#var status_text: Label = get_node("Camera2D/Status")

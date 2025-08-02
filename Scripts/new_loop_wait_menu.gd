@@ -17,3 +17,6 @@ func _on_back_to_menu_pressed() -> void:
 
 func _on_exit_pressed() -> void:
 	get_tree().quit();
+
+func _on_controls_pressed() -> void:
+	Global.game_state = Global.GameState.ABOUT_CONTROLS;

@@ -13,7 +13,7 @@ func read_JSON(path):
 	var data = JSON.parse_string(json)
 	if data:
 		return data
-	print("COULD NOT READ " + str(path) + ". Please check the file for any errors.")
+	push_error("COULD NOT READ " + str(path) + ". Please check the file for any errors.")
 	return
 
 enum GameState {
@@ -21,6 +21,8 @@ enum GameState {
 	GAMEPLAY,
 	PAUSE,
 	DEATH,
+	ABOUT_CONTROLS, # the state where you would see the "About controls" section.
+					# cz you definetely should not have them in the UI.
 	LOOP_START_WAIT, # the state when you are waiting after getting a win to start the next loop.
 }
 
@@ -42,9 +44,11 @@ var round_number: int = 0
 var time_remaining: float
 
 func _on_gamemode_changed(from_state: GameState, to_state: GameState):
-	if to_state == GameState.PAUSE:
+	if to_state == GameState.PAUSE || to_state == GameState.DEATH:
+		get_tree().paused = true;
 		ui_update.emit(0, round_number);
-	if to_state == GameState.GAMEPLAY:
+	elif to_state == GameState.GAMEPLAY:
+		get_tree().paused = false;
 		if from_state == GameState.DEATH:
 			# Reset game here
 			round_time = MAXIMUM_ROUND_TIME;
