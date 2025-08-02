@@ -25,7 +25,6 @@ enum PlayerState {
 @export_range(0, 10000) var wall_jump_damping = 0.98
 @export_range(0, 10000) var wall_jump_control_acceleration = 450.0
 
-var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
 var facing_direction: int = 1 # 1: right, -1: left
 
@@ -41,6 +40,7 @@ var _deadly_area_count: int = 0 # for tracking if the player should be taking da
 var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
 var _ignore_grounded_on_this_frame: bool = false
+var _new_anim := "idle"
 
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../TileMap")
@@ -75,49 +75,26 @@ func finish_item_craft():
 
 func _ready() -> void:
 	Global.game_new_loop.connect(game_reset)
+	game_reset()
 
+# this will reset the entire player state
 func game_reset():
 	position = _start_pos
-
-func _process(_delta: float) -> void:
-	if Global.time_remaining <= 0:
-		kill();
 	
-	if Input.is_action_just_pressed("escape"):
-		if Global.ignore_escape:
-			Global.ignore_escape = false
-		else:
-			Global.game_state = Global.GameState.PAUSE
+	facing_direction = 1
+	is_taking_damage = false
+	current_state = PlayerState.FREEMOVE
 	
-	%GamePlayUI.stamina_points = stamina_points
+	_jump_remaining = 0.0
+	_last_move_dir = 1
+	_stun_timer = 0.0
+	_iframe_timer = 0.0
+	_ignore_grounded_on_this_frame = false
 	
-	match current_state:
-		# flash red when player is stunned
-		PlayerState.STUNNED:
-			var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
-			modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
-			
-		_:
-			modulate = Color(1.0, 1.0, 1.0)
-			
-			# flash visible/invisible while iframes are active
-			if _iframe_timer > 0.0:
-				var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
-				visible = t < 0.5
-			else:
-				visible = true
-			
-			# crafting animation will stretch out the player a little bit
-			# stretching increases as it gets closer to being finished
-			var sprite := $AnimatedSprite2D
-			if _item_craft_progress != null:
-				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
-				sprite.scale = Vector2(
-					pow(2, t * 0.4),
-					pow(2, -t * 0.4)
-				)
-			else:
-				sprite.scale = Vector2.ONE
+	_item_craft_progress = null
+	_active_bridge_maker = null
+	_active_item_key = KEY_NONE
+	_new_anim = "idle"
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
@@ -139,6 +116,7 @@ func deactivate_active_item():
 func meets_stamina_requirement(c: int) -> bool:
 	return stamina_points >= c
 
+# this is for crafting stuff
 func _input(event: InputEvent) -> void:
 	if current_state != PlayerState.STUNNED:
 		if event is InputEventKey and not event.is_echo():
@@ -186,8 +164,6 @@ func _input(event: InputEvent) -> void:
 				if _item_craft_progress != null:
 					_item_craft_progress = null
 					_active_item_key = KEY_NONE
-	#var status_text: Label = get_node("Camera2D/Status")
-	#status_text.text = "Stamina: %s\nTime remaining: %10.2f" % [stamina_points, time_remaining]
 
 func get_tiled_pos_of(pos: Vector2) -> Vector2i:
 	return tilemap.local_to_map(tilemap.to_local(pos))
@@ -195,7 +171,8 @@ func get_tiled_pos_of(pos: Vector2) -> Vector2i:
 func get_position_of_tile(coord: Vector2i) -> Vector2:
 	return tilemap.to_global(tilemap.map_to_local(coord))
 
-func _handle_jump(delta: float) -> void:
+func update_movement(delta: float) -> void:
+	# jumping stuff
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
 	if _active_bridge_maker != null:
 		can_jump = false
@@ -215,40 +192,18 @@ func _handle_jump(delta: float) -> void:
 		if is_jumping:
 			velocity.y *= jump_stop_power
 		_jump_remaining = 0.0
-
-func _physics_process(delta: float) -> void:
-	var sprite: AnimatedSprite2D = $AnimatedSprite2D
-	var new_anim := "idle"
 	
-	if _active_bridge_maker != null and not _active_bridge_maker.active:
-		_active_bridge_maker = null
-		
-	if _item_craft_progress != null:
-		current_state = PlayerState.CRAFTING
-		_item_craft_progress.time_remaining -= delta
-		if _item_craft_progress.time_remaining <= 0.0:
-			finish_item_craft()
-	
-	if is_taking_damage and _iframe_timer <= 0.0:
-		_stun_timer = DAMAGE_STUN_LENGTH
-		_iframe_timer = IFRAME_LENGTH
-		current_state = PlayerState.STUNNED
-		velocity = Vector2(0, -200)
-		deactivate_active_item()
-		_item_craft_progress = null
-	
-	_iframe_timer = move_toward(_iframe_timer, 0, delta)
-
-	_handle_jump(delta);
-
 	# calculate move direction
 	var move_dir := 0
-	if _active_bridge_maker == null and _item_craft_progress == null:
+	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null
+	if not is_control_revoked:
 		if Input.is_action_pressed("player_right"):
 			move_dir += 1
 		if Input.is_action_pressed("player_left"):
 			move_dir -= 1
 	
+	# update physics stuff based on current state
+	# its a basic state machine
 	match current_state:
 		PlayerState.FREEMOVE:
 			# apply gravity normally
@@ -260,9 +215,9 @@ func _physics_process(delta: float) -> void:
 			velocity.x *= speed_damping
 			
 			if is_on_floor():
-				new_anim = "idle"
+				_new_anim = "idle"
 			else:
-				new_anim = "jump"			
+				_new_anim = "jump"
 			
 			if move_dir != 0:
 				facing_direction = move_dir
@@ -271,7 +226,7 @@ func _physics_process(delta: float) -> void:
 					current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.STUNNED:
-			new_anim = "hurt"
+			_new_anim = "hurt"
 			
 			# apply gravity normally
 			velocity += get_gravity() * delta
@@ -284,39 +239,51 @@ func _physics_process(delta: float) -> void:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.CRAFTING:
-			new_anim = "hurt" # TODO: make crafting animation
-			
+			_new_anim = "hurt"
 			velocity = Vector2.ZERO
+			
 			if _item_craft_progress == null:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLSLIDE:
-			new_anim = "wallslide"
+			_new_anim = "wallslide"
 			
-			move_direction = 1 if get_wall_normal().x > 0.0 else -1
-			facing_direction = -move_direction
-
+			var wall_direction: int = 1 if get_wall_normal().x > 0.0 else -1
+			facing_direction = -wall_direction
+			
+			# transition into walljump
 			if _jump_remaining > 0.0:
 				current_state = PlayerState.WALLJUMP
-				facing_direction = move_direction
-				velocity.x = move_direction * wall_jump_velocity
+				facing_direction = wall_direction
+				velocity.x = wall_direction * wall_jump_velocity
+				
+			# no longer on wall, transition into freemove
 			elif not is_on_wall_only():
 				current_state = PlayerState.FREEMOVE
+				
+			# wall sliding
 			else:
+				# maintain maximum y velocity while wall sliding
 				var max_y_vel: float = get_gravity().y * delta * wall_slide_speed
 				velocity += get_gravity() * delta
 				
 				if velocity.y > max_y_vel:
 					velocity.y = max_y_vel
 				
+				# if player wants to move away from the wall, do so here
 				if move_dir != _last_move_dir and move_dir != 0:
 					velocity.x += walk_acceleration * move_dir * delta
 					velocity.x *= speed_damping
+					
+				# otherwise... ideally, do nothing. but for some reason i need
+				# to apply a force towards the wall to make it so it's not like 
+				# 0.0001 pixels away from the wall and thus counts it as no longer
+				# on the wall.
 				else:
-					velocity.x = -move_direction * 100.0 # please stay on the wall
+					velocity.x = -wall_direction * 100.0 # please stay on the wall
 
 		PlayerState.WALLJUMP:
-			new_anim = "jump"
+			_new_anim = "jump"
 			
 			# apply gravity normally
 			velocity += get_gravity() * delta
@@ -339,12 +306,86 @@ func _physics_process(delta: float) -> void:
 	
 	_last_move_dir = move_dir
 	move_and_slide()
+
+func _physics_process(delta: float) -> void:
+	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	_new_anim = "idle"
 	
+	# if bridge maker is no longer active, then deactivate the tracking of it
+	if _active_bridge_maker != null and not _active_bridge_maker.active:
+		_active_bridge_maker = null
+	
+	# update item craft progress
+	if _item_craft_progress != null:
+		current_state = PlayerState.CRAFTING
+		_item_craft_progress.time_remaining -= delta
+		if _item_craft_progress.time_remaining <= 0.0:
+			finish_item_craft()
+	
+	# taking damage
+	if is_taking_damage and _iframe_timer <= 0.0:
+		_stun_timer = DAMAGE_STUN_LENGTH
+		_iframe_timer = IFRAME_LENGTH
+		current_state = PlayerState.STUNNED
+		velocity = Vector2(0, -200)
+		deactivate_active_item()
+		_item_craft_progress = null
+	
+	# update iframe time
+	_iframe_timer = move_toward(_iframe_timer, 0, delta)
+
+	update_movement(delta)
+	
+	# update sprite animation
 	sprite.flip_h = facing_direction < 0
-	if sprite.animation != new_anim:
-		sprite.play(new_anim)
+	if sprite.animation != _new_anim:
+		sprite.play(_new_anim)
 		
 	_ignore_grounded_on_this_frame = false
+	
+func _process(_delta: float) -> void:
+	if Global.time_remaining <= 0:
+		kill();
+	
+	if Input.is_action_just_pressed("escape"):
+		if Global.ignore_escape:
+			Global.ignore_escape = false
+		else:
+			Global.game_state = Global.GameState.PAUSE
+	
+	%GamePlayUI.stamina_points = stamina_points
+	
+	# update some animation
+	# 1. flash red when the player is stunned
+	# 2. flash visible/invisible while iframes are active
+	# 3. crafting animation
+	match current_state:
+		# flash red when player is stunned
+		PlayerState.STUNNED:
+			var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
+			modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
+			
+		_:
+			modulate = Color(1.0, 1.0, 1.0)
+			
+			# flash visible/invisible while iframes are active
+			if _iframe_timer > 0.0:
+				var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
+				visible = t < 0.5
+			else:
+				visible = true
+			
+			# crafting animation will stretch out the player a little bit
+			# stretching increases as it gets closer to being finished
+			var sprite := $AnimatedSprite2D
+			if _item_craft_progress != null:
+				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
+				sprite.scale = Vector2(
+					pow(2, t * 0.4),
+					pow(2, -t * 0.4)
+				)
+			else:
+				sprite.scale = Vector2.ONE
 
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
