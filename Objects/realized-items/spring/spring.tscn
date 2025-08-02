@@ -14,8 +14,8 @@ font = ExtResource("2_y8mm6")
 
 [node name="Spring" type="RigidBody2D"]
 collision_layer = 2
-can_sleep = false
 lock_rotation = true
+freeze = true
 script = ExtResource("1_hkm8b")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
