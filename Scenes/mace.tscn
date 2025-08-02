@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://b2fcsh0tiky6b"]
+
+[ext_resource type="Script" uid="uid://djelxyte5egip" path="res://Scripts/mace.gd" id="1_t4b7o"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_g1jda"]
+size = Vector2(50, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t4b7o"]
+size = Vector2(50, 50)
+
+[node name="Mace" type="Node2D"]
+script = ExtResource("1_t4b7o")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_g1jda")
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_t4b7o")
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]

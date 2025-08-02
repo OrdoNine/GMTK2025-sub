@@ -10,6 +10,7 @@ outline_color = Color(0.251877, 0.487383, 0.376665, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_es0gk"]
 font = ExtResource("1_dfes0")
+font_size = 32
 font_color = Color(1, 0.39, 0.39, 1)
 
 [node name="GamePlayUI" type="Control"]
@@ -25,25 +26,27 @@ script = ExtResource("1_rfokx")
 [node name="Controls" type="Label" parent="."]
 z_index = 100
 layout_mode = 0
-offset_left = -238.0
-offset_top = -177.0
-offset_right = -56.0
-offset_bottom = -76.0
+offset_left = -472.0
+offset_top = -352.0
+offset_right = -290.0
+offset_bottom = -236.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 text = "Arrow keys/WASD - move
 Z/Space - jump
-1 - Bomb
-2 - Slime Bomb
-Hold 3 - Bridge (airborne)"
+Hold these keys to craft:
+1 - Bomb ($5)
+2 - Slime Bomb ($3)
+3 - Bridge (airborne) ($8)
+4 - Spring ($6)"
 label_settings = SubResource("LabelSettings_rfokx")
 
 [node name="Status" type="Label" parent="."]
 z_index = 100
 layout_mode = 0
-offset_left = -239.184
-offset_top = -78.0
-offset_right = -96.1842
-offset_bottom = 23.0002
+offset_left = -472.0
+offset_top = 256.0
+offset_right = -329.0
+offset_bottom = 357.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Stamina: 0
 "
