@@ -63,6 +63,7 @@ var _item_craft_progress = null
 var _active_bridge_maker: Node2D = null
 var _active_item_key := KEY_NONE
 var _crafting_sound_player: AudioStreamPlayer
+var _active_sounds: Array[AudioStreamPlayer] = []
 
 func begin_item_craft(time: float, points: int, prefab: PackedScene):
 	_crafting_sound_player.play()
@@ -103,6 +104,11 @@ func _ready() -> void:
 # this will reset the entire player state
 func game_reset():
 	position = _start_pos
+	velocity = Vector2.ZERO
+	
+	for snd in _active_sounds:
+		snd.queue_free()
+	_active_sounds = []
 	
 	facing_direction = 1
 	is_taking_damage = false
@@ -449,9 +455,13 @@ func play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	add_child(audio_source)
 	
 	audio_source.play()
+	_active_sounds.push_back(audio_source)
 	
 	audio_source.finished.connect(func():
 		audio_source.queue_free()
+		var idx = _active_sounds.find(audio_source)
+		if idx != -1:
+			_active_sounds.remove_at(idx)
 	)
 	
 	return audio_source
