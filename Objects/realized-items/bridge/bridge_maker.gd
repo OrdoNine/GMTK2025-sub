@@ -33,12 +33,14 @@ func activate() -> void:
 		_pos_left = start + Vector2i.LEFT
 		_pos_right = start + Vector2i.RIGHT
 		
+		$Sound.pitch_scale = 1.0
+		$Sound.play()
+		
 		_expansion_wait = EXPANSION_WAIT
 
 func deactivate() -> void:
 	left_active = false
 	right_active = false
-	queue_free()
 
 func _physics_process(delta: float) -> void:
 	if not active: return
@@ -68,6 +70,7 @@ func _physics_process(delta: float) -> void:
 			
 		if _right_dist > MAX_BRIDGE_RADIUS:
 			right_active = false
-	
-	if not active:
-		queue_free()
+			
+		var dist = max(_left_dist, _right_dist)
+		$Sound.pitch_scale = 1.0 + dist * 0.1
+		$Sound.play()

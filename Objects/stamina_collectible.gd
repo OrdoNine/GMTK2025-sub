@@ -10,6 +10,9 @@ func on_body_entered(body: Node2D):
 		visible = false
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)
+		
+		$CollectSound.pitch_scale = 1.0 + randf() * 0.3
+		$CollectSound.play()
 
 		body.stamina_points += 1
 

@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://belsygxt1sd7w"]
+[gd_scene load_steps=7 format=3 uid="uid://belsygxt1sd7w"]
 
 [ext_resource type="Script" uid="uid://dtd1pjflcwata" path="res://Objects/realized-items/bridge/bridge_maker.gd" id="1_dvluc"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="2_dquhu"]
+[ext_resource type="AudioStream" uid="uid://e34ja2hr7lnn" path="res://Assets/sounds/bridge.wav" id="3_dquhu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
 size = Vector2(15, 15)
@@ -34,3 +35,6 @@ offset_bottom = 15.0
 text = "Brdige-
 Maker"
 label_settings = SubResource("LabelSettings_x450m")
+
+[node name="Sound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_dquhu")

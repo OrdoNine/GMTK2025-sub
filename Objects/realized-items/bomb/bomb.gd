@@ -43,6 +43,13 @@ func explode() -> void:
 	for body in _explosion_area.get_overlapping_bodies():
 		if body is CharacterBody2D:
 			body.velocity = (body.global_position - global_position).normalized() * 300.0
+	
+	$ExplosionSound.play()
+	$IgnitionSound.stop()
+	
+	visible = false
+	await get_tree().create_timer(2.0).timeout
+	queue_free()
 
 func activate():
 	_timer = 1.0
@@ -53,4 +60,3 @@ func _physics_process(delta: float) -> void:
 	_timer -= delta
 	if _timer <= 0.0:
 		explode()
-		queue_free()

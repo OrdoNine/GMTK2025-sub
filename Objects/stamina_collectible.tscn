@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://c4cpj05jgvt5r"]
+[gd_scene load_steps=9 format=3 uid="uid://c4cpj05jgvt5r"]
 
 [ext_resource type="Script" uid="uid://bbavvpocpo7jh" path="res://Objects/stamina_collectible.gd" id="1_ewfak"]
 [ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://Assets/dorito16x16.png" id="1_wyrne"]
+[ext_resource type="AudioStream" uid="uid://c8ar4vgoxs31m" path="res://Assets/sounds/collect_slime.wav" id="3_w8hpb"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ewfak"]
 size = Vector2(12, 12)
@@ -47,3 +48,6 @@ shape = SubResource("RectangleShape2D_ewfak")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_r61k4")
 autoplay = "default"
+
+[node name="CollectSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_w8hpb")

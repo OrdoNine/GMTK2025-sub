@@ -1,7 +1,9 @@
-[gd_scene load_steps=13 format=3 uid="uid://b0abxmeyedi4a"]
+[gd_scene load_steps=15 format=3 uid="uid://b0abxmeyedi4a"]
 
 [ext_resource type="Script" uid="uid://cuvqf2my5m5g1" path="res://Objects/realized-items/bomb/bomb.gd" id="1_ugmi2"]
 [ext_resource type="Texture2D" uid="uid://d17gatr7svhx6" path="res://Assets/items-Sheet.png" id="3_fe53p"]
+[ext_resource type="AudioStream" uid="uid://j27ats7uyblu" path="res://Assets/sounds/explosion.wav" id="3_k8anl"]
+[ext_resource type="AudioStream" uid="uid://cx52c1i85pqyr" path="res://Assets/sounds/ignition.wav" id="4_k8anl"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
 size = Vector2(15, 15)
@@ -83,3 +85,12 @@ shape = SubResource("RectangleShape2D_ugmi2")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_p6u0s")
 autoplay = "default"
+
+[node name="ExplosionSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_k8anl")
+volume_db = -8.0
+
+[node name="IgnitionSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("4_k8anl")
+volume_db = -9.0
+autoplay = true

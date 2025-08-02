@@ -25,6 +25,13 @@ enum PlayerState {
 @export_range(0, 10000) var wall_jump_damping = 0.98
 @export_range(0, 10000) var wall_jump_control_acceleration = 450.0
 
+const jump_sound := preload("res://Assets/sounds/jump.wav")
+const landing_sound := preload("res://Assets/sounds/land.wav")
+const hurt_sound := preload("res://Assets/sounds/hurt.wav")
+const crafting_sound := preload("res://Assets/sounds/crafting.wav")
+const building_place_sound := preload("res://Assets/sounds/building_place.wav")
+const boost_sound := preload("res://Assets/sounds/boost.wav")
+
 var stamina_points: int = 0
 var facing_direction: int = 1 # 1: right, -1: left
 
@@ -41,6 +48,7 @@ var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
 var _ignore_grounded_on_this_frame: bool = false
 var _new_anim := "idle"
+var _was_on_floor := true
 
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../TileMap")
@@ -54,8 +62,11 @@ const _prefab_horiz_spring = preload("res://Objects/realized-items/horiz_spring/
 var _item_craft_progress = null
 var _active_bridge_maker: Node2D = null
 var _active_item_key := KEY_NONE
+var _crafting_sound_player: AudioStreamPlayer
 
 func begin_item_craft(time: float, points: int, prefab: PackedScene):
+	_crafting_sound_player.play()
+	
 	_item_craft_progress = {
 		time_remaining = time,
 		wait_length = time,
@@ -72,10 +83,22 @@ func finish_item_craft():
 	
 	_item_craft_progress = null
 	_active_item_key = KEY_NONE
+	play_sound(building_place_sound)
+	_crafting_sound_player.stop()
+
+func deactivate_item_craft():
+	_item_craft_progress = null
+	_active_item_key = KEY_NONE
+	_crafting_sound_player.stop()
 
 func _ready() -> void:
 	Global.game_new_loop.connect(game_reset)
 	game_reset()
+	
+	# create crafting sound player
+	_crafting_sound_player = AudioStreamPlayer.new()
+	_crafting_sound_player.stream = crafting_sound
+	add_child(_crafting_sound_player)
 
 # this will reset the entire player state
 func game_reset():
@@ -95,6 +118,7 @@ func game_reset():
 	_active_bridge_maker = null
 	_active_item_key = KEY_NONE
 	_new_anim = "idle"
+	_was_on_floor = true
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
@@ -162,8 +186,7 @@ func _input(event: InputEvent) -> void:
 					deactivate_active_item()
 					
 				if _item_craft_progress != null:
-					_item_craft_progress = null
-					_active_item_key = KEY_NONE
+					deactivate_item_craft()
 
 func get_tiled_pos_of(pos: Vector2) -> Vector2i:
 	return tilemap.local_to_map(tilemap.to_local(pos))
@@ -172,11 +195,14 @@ func get_position_of_tile(coord: Vector2i) -> Vector2:
 	return tilemap.to_global(tilemap.map_to_local(coord))
 
 func update_movement(delta: float) -> void:
-	# jumping stuff
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
 	if _active_bridge_maker != null:
 		can_jump = false
+		
+	# begin jump
 	if Input.is_action_just_pressed("player_jump") and can_jump:
+		var sound := play_sound(jump_sound)
+		sound.pitch_scale = 1.0 + randf() * 0.1
 		_jump_remaining = 1.0
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
@@ -216,6 +242,11 @@ func update_movement(delta: float) -> void:
 			
 			if is_on_floor():
 				_new_anim = "idle"
+				
+				if not _was_on_floor:
+					var sound := play_sound(landing_sound)
+					if sound:
+						sound.pitch_scale = 1.0 + randf() * 0.2
 			else:
 				_new_anim = "jump"
 			
@@ -299,12 +330,17 @@ func update_movement(delta: float) -> void:
 			elif is_on_floor() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.FREEMOVE
+				var sound := play_sound(landing_sound)
+				if sound:
+					sound.pitch_scale = 1.0 + randf() * 0.2
 				
 			else:
 				velocity.x += move_dir * wall_jump_control_acceleration * delta
 				velocity.x *= wall_jump_damping
 	
 	_last_move_dir = move_dir
+	_was_on_floor = is_on_floor()
+	
 	move_and_slide()
 
 func _physics_process(delta: float) -> void:
@@ -330,6 +366,7 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2(0, -200)
 		deactivate_active_item()
 		_item_craft_progress = null
+		play_sound(hurt_sound)
 	
 	# update iframe time
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
@@ -391,13 +428,30 @@ func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
 	_ignore_grounded_on_this_frame = true
+	play_sound(boost_sound)
 	
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.WALLJUMP
 	_ignore_grounded_on_this_frame = true
+	play_sound(boost_sound)
 		
 func kill() -> void:
 	game_reset();
-	Global.game_state = Global.GameState.DEATH;
+	Global.game_state = Global.GameState.DEATH
+
+func play_sound(stream: AudioStream) -> AudioStreamPlayer:
+	if stream == null: return
+	
+	var audio_source := AudioStreamPlayer.new()
+	audio_source.stream = stream
+	add_child(audio_source)
+	
+	audio_source.play()
+	
+	audio_source.finished.connect(func():
+		audio_source.queue_free()
+	)
+	
+	return audio_source
