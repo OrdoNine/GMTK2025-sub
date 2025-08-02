@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b7qcbfueopawi"]
+[gd_scene load_steps=21 format=3 uid="uid://b7qcbfueopawi"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_bthaf"]
 [ext_resource type="Script" uid="uid://br3gsokp76xid" path="res://Scripts/pause_ui.gd" id="1_srqh7"]
@@ -36,6 +36,30 @@ corner_radius_bottom_left = 16
 anti_aliasing = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_srqh7"]
+bg_color = Color(0.375594, 0.671851, 0.530431, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uu8f0"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eqqw8"]
+bg_color = Color(0.297792, 0.56028, 0.436331, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mtrm7"]
 bg_color = Color(0.375594, 0.671851, 0.530431, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -137,9 +161,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -127.5
-offset_top = -80.5
+offset_top = -107.2
 offset_right = 127.5
-offset_bottom = 80.5
+offset_bottom = 107.2
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
@@ -161,6 +185,23 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_ywlh3")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_w3mym")
 theme_override_styles/normal = SubResource("StyleBoxFlat_srqh7")
 text = "Resume"
+
+[node name="Controls" type="Button" parent="Buttons"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_bthaf")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/focus = SubResource("StyleBoxFlat_uu8f0")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_uu8f0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_eqqw8")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_uu8f0")
+theme_override_styles/normal = SubResource("StyleBoxFlat_mtrm7")
+text = "Controls
+"
 
 [node name="Back to Menu" type="Button" parent="Buttons"]
 layout_mode = 2
@@ -199,5 +240,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_cf5hy")
 text = "Exit"
 
 [connection signal="pressed" from="Buttons/Resume" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="Buttons/Controls" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="Buttons/Back to Menu" to="." method="_on_back_to_menu_pressed"]
 [connection signal="pressed" from="Buttons/Exit" to="." method="_on_exit_pressed"]

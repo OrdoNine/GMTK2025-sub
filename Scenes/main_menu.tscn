@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://cwt0bjtkqn86k"]
+[gd_scene load_steps=7 format=3 uid="uid://cwt0bjtkqn86k"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_28flt"]
 [ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://Scripts/main_menu.gd" id="1_48xlc"]
+[ext_resource type="PackedScene" uid="uid://05dkkfq47rbb" path="res://Scenes/about_controls.tscn" id="3_1ehe0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ce3w2"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
@@ -65,7 +66,7 @@ anchor_bottom = 0.5
 offset_left = -147.5
 offset_top = 26.0
 offset_right = 147.5
-offset_bottom = 152.0
+offset_bottom = 215.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
@@ -87,6 +88,23 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_ce3w2")
 theme_override_styles/normal = SubResource("StyleBoxFlat_48xlc")
 text = "Start Game"
 
+[node name="Controls" type="Button" parent="Buttons"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_28flt")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/focus = SubResource("StyleBoxFlat_ce3w2")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_ce3w2")
+theme_override_styles/hover = SubResource("StyleBoxFlat_1ehe0")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ce3w2")
+theme_override_styles/normal = SubResource("StyleBoxFlat_48xlc")
+text = "Controls
+"
+
 [node name="ExitButton" type="Button" parent="Buttons"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -105,5 +123,11 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_ce3w2")
 theme_override_styles/normal = SubResource("StyleBoxFlat_48xlc")
 text = "Exit"
 
+[node name="AboutControls" parent="." instance=ExtResource("3_1ehe0")]
+process_mode = 2
+visible = false
+layout_mode = 1
+
 [connection signal="pressed" from="Buttons/StartGameButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="Buttons/Controls" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="Buttons/ExitButton" to="." method="_on_exit_button_pressed"]
