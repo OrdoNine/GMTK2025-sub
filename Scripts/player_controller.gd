@@ -29,9 +29,11 @@ enum PlayerState {
 var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
 
-# TODO: don't store time remaining in player
-var round_time: int = 40
+# TODO: don't store this data in the player class
+var round_time: int = 52 # why does the first round subtract 2 seconds?
+var round_number: int = 0
 var time_remaining: float
+
 var is_taking_damage: bool = false
 
 # progress of the jump, from 0.0 to 1.0.
@@ -90,16 +92,21 @@ func game_reset():
 	position = _start_pos
 	round_time -= 2
 	time_remaining = round_time
+	round_number += 1
 
 func _process(_delta: float) -> void:
-	if !should_update: return;
+	if !should_update: return
 	
 	if Input.is_action_just_pressed("escape"):
-		if Global.ignore_escape: Global.ignore_escape = false;
-		else: Global.game_state = Global.GameState.PAUSE;
+		if Global.ignore_escape:
+			Global.ignore_escape = false
+		else:
+			Global.game_state = Global.GameState.PAUSE
 	
-	$"../Camera2D/GamePlayUI".stamina_points = stamina_points;
-	$"../Camera2D/GamePlayUI".time_remaining = time_remaining;
+	var ui = $"../Camera2D/GamePlayUI"
+	ui.stamina_points = stamina_points
+	ui.time_remaining = time_remaining
+	ui.round_number = round_number
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
@@ -122,16 +129,16 @@ func deactivate_active_item():
 		_active_bridge_maker = null
 
 func meets_stamina_requirement(c: int) -> bool:
-	return OS.is_debug_build() or stamina_points >= c
+	return stamina_points >= c
 
 func _input(event: InputEvent) -> void:
 	if current_state != PlayerState.STUNNED:
 		if event is InputEventKey and not event.is_echo():
 			if _active_bridge_maker == null and _item_craft_progress == null:
 				# 1 key: craft bomb
-				if event.pressed and event.keycode == KEY_1 and meets_stamina_requirement(3):
+				if event.pressed and event.keycode == KEY_1 and meets_stamina_requirement(5):
 					_active_item_key = event.keycode
-					begin_item_craft(0.5, 3, _prefab_bomb)
+					begin_item_craft(0.5, 5, _prefab_bomb)
 					
 				# 2 key: slime bomb
 				if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
@@ -139,7 +146,7 @@ func _input(event: InputEvent) -> void:
 					begin_item_craft(0.5, 3, _prefab_inverse_bomb)
 					
 				# 3 key: bridge marker (if airborne)
-				elif event.pressed and event.keycode == KEY_3 and not is_on_floor() and meets_stamina_requirement(3):
+				elif event.pressed and event.keycode == KEY_3 and not is_on_floor() and meets_stamina_requirement(8):
 					# place bridge maker if not on floor
 					velocity.x = 0.0
 					var inst: Node2D = _prefab_bridge_maker.instantiate()
@@ -149,15 +156,15 @@ func _input(event: InputEvent) -> void:
 					inst.global_position = get_position_of_tile((get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
 					add_sibling(inst)
 					inst.activate()
-					stamina_points -= 3
+					stamina_points -= 8
 					
 					_active_bridge_maker = inst
 					_active_item_key = event.keycode
 				
 				# 4 key: spring
-				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(3):
+				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
 					_active_item_key = event.keycode
-					begin_item_craft(0.5, 3, _prefab_spring)
+					begin_item_craft(0.5, 6, _prefab_spring)
 			
 			elif event.is_released() and event.keycode == _active_item_key:
 				if _active_bridge_maker != null:

@@ -201,7 +201,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_7u7fb")
 theme_override_styles/normal = SubResource("StyleBoxFlat_2e6b5")
 text = "Exit"
 
-[connection signal="pressed" from="Buttons/Restart" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="Buttons/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="Buttons/Restart" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="Buttons/Back to Menu" to="." method="_on_back_to_menu_pressed"]
 [connection signal="pressed" from="Buttons/Exit" to="." method="_on_exit_pressed"]

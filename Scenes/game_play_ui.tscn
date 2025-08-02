@@ -32,18 +32,20 @@ offset_bottom = -76.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 text = "Arrow keys/WASD - move
 Z/Space - jump
-1 - Bomb
-2 - Slime Bomb
-Hold 3 - Bridge (airborne)"
+Hold these keys to craft:
+1 - Bomb ($5)
+2 - Slime Bomb ($3)
+3 - Bridge (airborne) ($8)
+4 - Spring ($6)"
 label_settings = SubResource("LabelSettings_rfokx")
 
 [node name="Status" type="Label" parent="."]
 z_index = 100
 layout_mode = 0
-offset_left = -239.184
-offset_top = -78.0
-offset_right = -96.1842
-offset_bottom = 23.0002
+offset_left = -240.0
+offset_top = -56.0
+offset_right = -97.0002
+offset_bottom = 45.0002
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Stamina: 0
 "
