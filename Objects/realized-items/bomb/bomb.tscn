@@ -1,16 +1,74 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0abxmeyedi4a"]
+[gd_scene load_steps=13 format=3 uid="uid://b0abxmeyedi4a"]
 
-[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_u8ut4"]
 [ext_resource type="Script" uid="uid://cuvqf2my5m5g1" path="res://Objects/realized-items/bomb/bomb.gd" id="1_ugmi2"]
+[ext_resource type="Texture2D" uid="uid://d17gatr7svhx6" path="res://Assets/items-Sheet.png" id="3_fe53p"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
 size = Vector2(15, 15)
 
-[sub_resource type="QuadMesh" id="QuadMesh_bd2ok"]
-size = Vector2(16, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_k8anl"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(0, 0, 32, 32)
 
-[sub_resource type="LabelSettings" id="LabelSettings_x450m"]
-font = ExtResource("1_u8ut4")
+[sub_resource type="AtlasTexture" id="AtlasTexture_yeiqy"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yvlns"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h3dsf"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xry45"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jeo65"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iqn6g"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bkejm"]
+atlas = ExtResource("3_fe53p")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_p6u0s"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k8anl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yeiqy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yvlns")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h3dsf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xry45")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jeo65")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iqn6g")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_bkejm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 8.0
+}]
 
 [node name="Bomb" type="RigidBody2D"]
 collision_layer = 2
@@ -22,14 +80,6 @@ script = ExtResource("1_ugmi2")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_ugmi2")
 
-[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
-self_modulate = Color(0.166552, 0.116661, 0.139633, 1)
-mesh = SubResource("QuadMesh_bd2ok")
-
-[node name="Label" type="Label" parent="."]
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 32.0
-offset_bottom = 15.0
-text = "Bomb"
-label_settings = SubResource("LabelSettings_x450m")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_p6u0s")
+autoplay = "default"

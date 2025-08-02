@@ -54,7 +54,7 @@ func fill_radius(radius: float) -> void:
 			body.velocity = (body.global_position - global_position).normalized() * 300.0
 
 func activate():
-	_timer = 0.2
+	_timer = 0.5
 
 func _physics_process(delta: float) -> void:
 	if _is_exploding:
