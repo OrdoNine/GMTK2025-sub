@@ -61,6 +61,8 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 		elif from_state == GameState.MAIN_MENU:
 			round_time = MAXIMUM_ROUND_TIME;
 			time_remaining = round_time;
+	elif to_state == GameState.MAIN_MENU:
+		get_tree().paused = false;
 
 func game_begin_new_loop():
 	game_new_loop.emit()
