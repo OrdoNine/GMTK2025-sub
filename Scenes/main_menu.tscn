@@ -2,7 +2,7 @@
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_28flt"]
 [ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://Scripts/main_menu.gd" id="1_48xlc"]
-[ext_resource type="PackedScene" path="res://Scenes/about_controls.tscn" id="3_1ehe0"]
+[ext_resource type="PackedScene" uid="uid://05dkkfq47rbb" path="res://Scenes/about_controls.tscn" id="3_1ehe0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ce3w2"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
