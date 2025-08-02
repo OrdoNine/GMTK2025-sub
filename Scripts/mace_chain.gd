@@ -1,6 +1,10 @@
 extends Line2D
 class_name MaceChain
 
+const DEFAULT_RANGE := 100.0
+const MID_RANGE := 200.0
+const RANGE_TO_WORLD := 100.0 
+
 @export var mace : Node2D #the object that is chained to this.
 @export var tilemap : TileMapLayer  #the tilemap as a reference for path pixelization. doesnt pixelize if null.
 @export var target : Node2D
@@ -8,12 +12,13 @@ class_name MaceChain
 signal knocked_back()
 signal completed_loop()
 
-var mace_speed := 2.0 
-var mace_accel := 1.0
-var mace_vel := Vector2()
-var mace_range := 100.0
+var mace_speed := 2.1
+var mace_accel := 0.6
+var mace_vel := 0.0 
+var mace_range := DEFAULT_RANGE
 
 var reversed := false #whether the mace will move backwards 
+var braking := false #whether reversal was for the mace to change pattern smoothly
 var current_loop = true #whether the mace is following the current pattern
 var cur_pattern := {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced" : false} 
 var last_pattern := {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced": false} 
@@ -27,14 +32,25 @@ var loops := 0 #how many times have we completed the same loop
 
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_gamemode_changed);
-	changePattern(mace_range)
+	emit_signal("completed_loop")
 
 func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
 	if from_state != Global.GameState.PAUSE and to_state == Global.GameState.GAMEPLAY:
 		game_reset();
 
 func game_reset():
-	push_error("Mace chain has no reset code!");
+	mace.global_position = Vector2()
+	mace_vel = 0.0
+	mace_range = DEFAULT_RANGE
+	current_loop = true
+	reversed = false
+	braking = false
+	knockback = 0.0
+	completion = 0.0
+	loops = 0
+	cur_pattern = {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced" : false} 
+	last_pattern = {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced": false} 
+	emit_signal("completed_loop")
 
 func _process(delta: float) -> void:
 	if mace:
@@ -52,15 +68,14 @@ func _process(delta: float) -> void:
 				completion = 0
 		
 		if knockback > 0:
-			mace_vel.x = move_toward(mace_vel.x, -mace_speed, knockback/mace_accel * delta)
+			mace_vel = move_toward(mace_vel, -mace_speed, knockback/mace_accel * delta)
 		else:
 			if reversed:
 				print("stopped kno")
 				reversed = false
-			mace_vel.x = move_toward(mace_vel.x, mace_speed, mace_accel * delta)
-		#mace_vel.y = move_toward(mace_vel.x, mace_speed, delta*mace_accel)
+			mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
 		
-		var dist = mace_vel.x
+		var dist = mace_vel
 		completion += dist
 		if reversed:
 			knockback = max(0, knockback - max(0, abs(dist)))
@@ -73,12 +88,35 @@ func _on_completed_loop() -> void:
 	else:
 		current_loop = true
 	
+	#settings for the next targeting move
 	var new_rot = [0,45,90,-45,-90].pick_random()
+	var new_pattern = ""
 	var advance = false
+	
 	if target:
-		advance = mace.global_position.distance_squared_to(target.global_position) > mace_range * 200
+		var tolerance = 10.0
+		var actual_dist = mace.global_position.distance_to(target.global_position)
+		var actual_range = mace.global_position.distance_to(target.global_position)
+		if actual_range <= DEFAULT_RANGE:
+			mace_range = actual_range
+		elif actual_range <= MID_RANGE + tolerance:
+			mace_range = DEFAULT_RANGE
+			advance = true
+		else:
+			mace_range = actual_range - MID_RANGE
+			new_pattern = "line"
+		
+		print("actual distance:", actual_dist)
+		print("needed range:", actual_range)
+		print("current range:", mace_range)
+		print("----------------") 
 		new_rot = rad_to_deg(mace.global_position.angle_to_point(target.global_position))
-	changePattern(mace_range, new_rot, "", advance)
+	
+	
+	if last_pattern.move and angle_difference(last_pattern.rotation, new_rot) > deg_to_rad(15):
+		braking = true
+		reverse(10.0)
+	changePattern(mace_range, new_rot, new_pattern, advance)
 
 func changePattern(range : float = 1, rot_deg : float = 0, move_name : String = "", advance : bool = false, pos_override : Vector2 = Vector2()):
 	#unset move_name will pick a random move
@@ -87,12 +125,13 @@ func changePattern(range : float = 1, rot_deg : float = 0, move_name : String = 
 		curve.clear_points()
 		
 		#select pattern
+		move_name = move_name.to_lower()
 		var valid_move = move_name.is_empty() or Global.maceAttackPatterns.has(move_name) 
 		if move_name.is_empty() or not valid_move:
 			if not valid_move:
 				printerr("Error: Given undefined (", move_name , ") pattern. Selecting random instead.")
 				
-			var idx = randi_range(0, Global.maceAttackPatterns.keys().size() - 1)
+			var idx = randi_range(1, Global.maceAttackPatterns.keys().size() - 1)
 			move_name = Global.maceAttackPatterns.keys()[idx]
 		
 		var pattern = Global.maceAttackPatterns[move_name]["points"]
@@ -113,14 +152,14 @@ func changePattern(range : float = 1, rot_deg : float = 0, move_name : String = 
 							Vector2(pattern[i][1][0], pattern[i][1][1]).rotated(rot_rad) * range,
 							Vector2(pattern[i][2][0], pattern[i][2][1]).rotated(rot_rad) * range
 							)
-		
-		curve.tessellate()
-		points = curve.get_baked_points()
-		
 		#get the distance required to complete the loop
 		loop_dist = curve.get_baked_length()
+		var loop_perc = 1
 		if advance:
-			loop_dist *= Global.maceAttackPatterns[move_name]["advance"]
+			loop_perc = Global.maceAttackPatterns[move_name]["advance"]
+		
+		loop_dist *= loop_perc
+		points = curve.get_baked_points().slice(0, (len(curve.get_baked_points()) -1) * loop_perc)
 		
 		#save the current move settings (will not save if the position was overriden)
 		if not pos_override:

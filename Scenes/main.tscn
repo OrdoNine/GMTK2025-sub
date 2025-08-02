@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=23 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://Scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -95,7 +95,7 @@ script = SubResource("GDScript_6bp64")
 [node name="Player" type="CharacterBody2D" parent="." groups=["players"]]
 unique_name_in_owner = true
 process_mode = 1
-position = Vector2(-1208, -248)
+position = Vector2(-1208, -250)
 collision_layer = 2
 script = ExtResource("2_bo1nx")
 metadata/_edit_group_ = true
@@ -136,6 +136,5 @@ tilemap = NodePath("../TileMap")
 target = NodePath("../Player")
 
 [node name="Mace" parent="." instance=ExtResource("15_wsu2k")]
-position = Vector2(-1032, -352)
 
 [connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]
