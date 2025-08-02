@@ -3,7 +3,7 @@ class_name Player
 
 const WALL_JUMP_FREEZE_LENGTH := 0.1
 const DAMAGE_STUN_LENGTH := 2.0
-const IFRAME_LENGTH := 2.75 # must be longer than stun length
+const IFRAME_LENGTH := 3.0 # must be longer than stun length
 
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
@@ -28,9 +28,6 @@ enum PlayerState {
 
 var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
-
-# TODO: don't store this data in the player class
-
 
 var is_taking_damage: bool = false
 
@@ -74,7 +71,7 @@ func finish_item_craft():
 	_active_item_key = KEY_NONE
 
 func _ready() -> void:
-	game_reset();
+	Global.game_new_loop.connect(game_reset)
 
 func game_reset():
 	position = _start_pos
