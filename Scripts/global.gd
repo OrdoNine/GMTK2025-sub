@@ -50,10 +50,7 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 	elif to_state == GameState.GAMEPLAY:
 		get_tree().paused = false;
 		if from_state == GameState.DEATH:
-			# Reset game here
-			round_time = MAXIMUM_ROUND_TIME;
-			time_remaining = round_time;
-			round_number = 0;
+			on_game_restart();
 		elif from_state == GameState.LOOP_START_WAIT:
 			round_time -= 2;
 			time_remaining = round_time;
@@ -61,8 +58,17 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 		elif from_state == GameState.MAIN_MENU:
 			round_time = MAXIMUM_ROUND_TIME;
 			time_remaining = round_time;
+		elif from_state == GameState.PAUSE:
+			if PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
+				game_begin_new_loop()
+				on_game_restart();
 	elif to_state == GameState.MAIN_MENU:
 		get_tree().paused = false;
+
+func on_game_restart() -> void:
+	round_time = MAXIMUM_ROUND_TIME;
+	time_remaining = round_time;
+	round_number = 0;
 
 func game_begin_new_loop():
 	game_new_loop.emit()
