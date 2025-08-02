@@ -107,6 +107,29 @@ func _process(_delta: float) -> void:
 	ui.stamina_points = stamina_points
 	ui.time_remaining = time_remaining
 	ui.round_number = round_number
+	
+	match current_state:
+		# flash red when player is stunned
+		
+		PlayerState.STUNNED:
+			var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
+			modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
+			
+		_:
+			modulate = Color(1.0, 1.0, 1.0)
+			
+			# flash visible/invisible while iframes are active
+			if _iframe_timer > 0.0:
+				var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
+				visible = t < 0.5
+			else:
+				visible = true
+			
+			var sprite := $Sprite2D
+			if _item_craft_progress != null:
+				sprite.scale = Vector2(1.3, 0.7)
+			else:
+				sprite.scale = Vector2.ONE
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
