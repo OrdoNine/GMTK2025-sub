@@ -12,13 +12,13 @@ const RANGE_TO_WORLD := 100.0
 signal knocked_back()
 signal completed_loop()
 
-var mace_speed := 2.1
-var mace_accel := 0.6
+var mace_speed := 2.2
+var mace_accel := 0.67
 var mace_vel := 0.0 
 var mace_range := DEFAULT_RANGE
+var mace_start := Vector2()
 
 var reversed := false #whether the mace will move backwards 
-var braking := false #whether reversal was for the mace to change pattern smoothly
 var current_loop = true #whether the mace is following the current pattern
 var cur_pattern := {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced" : false} 
 var last_pattern := {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced": false} 
@@ -31,8 +31,9 @@ var completion := 0.0 #how much of the curve we completed (distance)
 var loops := 0 #how many times have we completed the same loop 
 
 func _ready() -> void:
+	mace_start = mace.global_position
 	Global.gamemode_changed.connect(_on_gamemode_changed);
-	emit_signal("completed_loop")
+	game_reset()
 
 func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
 	if to_state == Global.GameState.GAMEPLAY:
@@ -40,12 +41,11 @@ func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameSta
 			game_reset();
 
 func game_reset():
-	mace.global_position = Vector2()
+	mace.global_position = mace_start
 	mace_vel = 0.0
 	mace_range = DEFAULT_RANGE
 	current_loop = true
 	reversed = false
-	braking = false
 	knockback = 0.0
 	completion = 0.0
 	loops = 0
@@ -70,16 +70,16 @@ func _process(delta: float) -> void:
 		
 		if knockback > 0:
 			mace_vel = move_toward(mace_vel, -mace_speed, knockback/mace_accel * delta)
+			knockback = move_toward(knockback, 0, mace_accel)
 		else:
 			if reversed:
 				print("stopped kno")
+				print(loops)
 				reversed = false
 			mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
 		
 		var dist = mace_vel
 		completion += dist
-		if reversed:
-			knockback = max(0, knockback - max(0, abs(dist)))
 		
 		mace.global_position = curve.sample_baked(completion)
 
@@ -106,17 +106,16 @@ func _on_completed_loop() -> void:
 		else:
 			mace_range = actual_range - MID_RANGE
 			new_pattern = "line"
-		
-		print("actual distance:", actual_dist)
-		print("needed range:", actual_range)
-		print("current range:", mace_range)
-		print("----------------") 
+		 
 		new_rot = rad_to_deg(mace.global_position.angle_to_point(target.global_position))
 	
+	if loop_dist > 0:
+		var p0 = curve.sample_baked(loop_dist - 1.0)
+		var p1 = curve.sample_baked(loop_dist)
+		var last_tan = (p1 - p0).normalized().angle()
 	
-	if last_pattern.move and angle_difference(last_pattern.rotation, new_rot) > deg_to_rad(15):
-		braking = true
-		reverse(10.0)
+		if angle_difference(last_tan, deg_to_rad(new_rot)) > PI/6:
+			reverse(6.0)
 	changePattern(mace_range, new_rot, new_pattern, advance)
 
 func changePattern(range : float = 1, rot_deg : float = 0, move_name : String = "", advance : bool = false, pos_override : Vector2 = Vector2()):
