@@ -1,12 +1,11 @@
 extends RigidBody2D
 
-@export var BOUNCE_POWER := 540.0
-@onready var _bounce_area := $BounceArea
+@export var bounce_power := 540.0
 
 func on_body_entered(body: Node):
-	if body is CharacterBody2D:
-		body.velocity.y = -BOUNCE_POWER
+	if body.has_method("spring_bounce_callback"):
+		body.spring_bounce_callback(bounce_power)
 		
 func activate():
 	await get_tree().create_timer(0.1).timeout
-	_bounce_area.body_entered.connect(on_body_entered)
+	$BounceArea.body_entered.connect(on_body_entered)

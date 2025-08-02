@@ -346,7 +346,12 @@ func _physics_process(delta: float) -> void:
 		
 	_ignore_grounded_on_this_frame = false
 
-func horiz_spring_bounce_callback(bounce_power: float, side_power: float):
+func spring_bounce_callback(bounce_power: float) -> void:
+	_jump_remaining = 0.0
+	velocity.y = -bounce_power
+	_ignore_grounded_on_this_frame = true
+	
+func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.WALLJUMP
