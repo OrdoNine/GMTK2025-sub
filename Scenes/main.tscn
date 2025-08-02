@@ -16,7 +16,7 @@
 [ext_resource type="Script" uid="uid://dxhlmw6xjfhaw" path="res://Scripts/win.gd" id="12_fdnlq"]
 [ext_resource type="Texture2D" uid="uid://c3ncuyamidcqv" path="res://Assets/strudel-sheet.png" id="12_k12tt"]
 [ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://Scenes/mace.tscn" id="15_wsu2k"]
-[ext_resource type="PackedScene" uid="uid://bkrpoiofmvlxq" path="res://Scenes/mace_2.tscn" id="17_h1bgf"]
+[ext_resource type="PackedScene" path="res://Scenes/mace_2.tscn" id="17_h1bgf"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
 texture = ExtResource("1_21xkr")

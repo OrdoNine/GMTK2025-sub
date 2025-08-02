@@ -80,4 +80,4 @@ func _process(delta: float):
 		if time_remaining <= 0.0:
 			time_remaining = 0;
 		
-		time_remaining -= delta
+		# time_remaining -= delta

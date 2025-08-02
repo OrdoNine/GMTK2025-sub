@@ -4,6 +4,10 @@ class_name MaceChain
 const DEFAULT_RANGE := 100.0
 const MID_RANGE := 200.0
 const RANGE_TO_WORLD := 100.0 
+const INITIAL_MACE_SPEED := 2.1
+const MACE_SPEED_INCREASE := 0.16
+const INITIAL_MACE_ACCEL := 0.67
+const MACE_ACCEL_INCREASE := 0.01
 
 @export var mace : Node2D #the object that is chained to this.
 @export var tilemap : TileMapLayer  #the tilemap as a reference for path pixelization. doesnt pixelize if null.
@@ -32,15 +36,18 @@ var loops := 0 #how many times have we completed the same loop
 
 func _ready() -> void:
 	mace_start = mace.global_position
-	Global.gamemode_changed.connect(_on_gamemode_changed);
+	Global.game_new_loop.connect(game_reset)
 	game_reset()
 
-func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
-	if to_state == Global.GameState.GAMEPLAY:
-		if from_state != Global.GameState.PAUSE or PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
-			game_reset();
+# func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
+# 	if to_state == Global.GameState.GAMEPLAY:
+# 		if from_state != Global.GameState.PAUSE or PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
+# 			game_reset();
 
 func game_reset():
+	mace_speed = INITIAL_MACE_SPEED + Global.round_number * MACE_SPEED_INCREASE
+	mace_accel = INITIAL_MACE_ACCEL + Global.round_number * MACE_ACCEL_INCREASE
+
 	mace.global_position = mace_start
 	mace_vel = 0.0
 	mace_range = DEFAULT_RANGE
