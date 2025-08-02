@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://bkrpoiofmvlxq"]
 
-[ext_resource type="Script" uid="uid://vuyx14fhvgam" path="res://Scenes/mace_2.gd" id="1_aqjo5"]
+[ext_resource type="Script" uid="uid://vuyx14fhvgam" path="res://mace_2.gd" id="1_aqjo5"]
 [ext_resource type="Texture2D" uid="uid://r40lqyylnnhj" path="res://Assets/macey.png" id="2_5y6sm"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_txu5n"]

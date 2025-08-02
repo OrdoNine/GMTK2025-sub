@@ -12,7 +12,7 @@ const RANGE_TO_WORLD := 100.0
 signal knocked_back()
 signal completed_loop()
 
-var mace_speed := 2.2
+var mace_speed := 2.1
 var mace_accel := 0.67
 var mace_vel := 0.0 
 var mace_range := DEFAULT_RANGE
