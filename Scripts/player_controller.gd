@@ -30,9 +30,7 @@ var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
 
 # TODO: don't store this data in the player class
-var round_time: int = 52 # why does the first round subtract 2 seconds?
-var round_number: int = 0
-var time_remaining: float
+
 
 var is_taking_damage: bool = false
 
@@ -77,25 +75,19 @@ func finish_item_craft():
 	_item_craft_progress = null
 	_active_item_key = KEY_NONE
 
-var should_update : bool;
-
-func _on_game_gamemode_changed(state: Global.GameState) -> void:
+func _on_game_gamemode_changed(_from_state: Global.GameState, state: Global.GameState) -> void:
 	get_tree().paused = (state == Global.GameState.PAUSE) or (state == Global.GameState.DEATH);
 
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_game_gamemode_changed)
-	time_remaining = round_time
-	should_update = true;
 	game_reset();
 
 func game_reset():
 	position = _start_pos
-	round_time -= 2
-	time_remaining = round_time
-	round_number += 1
 
 func _process(_delta: float) -> void:
-	if !should_update: return
+	if Global.time_remaining <= 0:
+		kill();
 	
 	if Input.is_action_just_pressed("escape"):
 		if Global.ignore_escape:
@@ -103,10 +95,7 @@ func _process(_delta: float) -> void:
 		else:
 			Global.game_state = Global.GameState.PAUSE
 	
-	var ui = $"../Camera2D/GamePlayUI"
-	ui.stamina_points = stamina_points
-	ui.time_remaining = time_remaining
-	ui.round_number = round_number
+	%GamePlayUI.stamina_points = stamina_points
 	
 	match current_state:
 		# flash red when player is stunned
@@ -228,13 +217,6 @@ func _handle_jump(delta: float) -> void:
 		_jump_remaining = 0.0
 
 func _physics_process(delta: float) -> void:
-	if !should_update: return;
-	if time_remaining <= 0.0:
-		time_remaining = 0;
-		kill()
-
-	time_remaining -= delta
-	
 	if _active_bridge_maker != null and not _active_bridge_maker.active:
 		_active_bridge_maker = null
 		
@@ -340,6 +322,5 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func kill() -> void:
-	print("I'm dead!")
 	game_reset();
 	Global.game_state = Global.GameState.DEATH;

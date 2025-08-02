@@ -1,6 +1,6 @@
 extends Control
 
-func _on_gamemode_changed(state: Global.GameState) -> void:
+func _on_gamemode_changed(_from_state: Global.GameState, state: Global.GameState) -> void:
 	self.visible = state == Global.GameState.DEATH;
 	print("Received gamemode change for Death!")
 

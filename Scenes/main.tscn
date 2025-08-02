@@ -71,6 +71,7 @@ script = ExtResource("1_ynf5e")
 scale = Vector2(0.5, 0.5)
 
 [node name="GamePlayUI" parent="Camera2D" instance=ExtResource("2_344ge")]
+unique_name_in_owner = true
 
 [node name="PauseUI" parent="Camera2D" instance=ExtResource("3_hptm8")]
 unique_name_in_owner = true
