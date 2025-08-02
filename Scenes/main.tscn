@@ -98,6 +98,8 @@ process_mode = 1
 position = Vector2(-1656, -128)
 collision_layer = 2
 script = ExtResource("2_bo1nx")
+walk_acceleration = 3800.0
+speed_damping = 0.8
 metadata/_edit_group_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
