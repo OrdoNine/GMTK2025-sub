@@ -29,9 +29,6 @@ enum PlayerState {
 var move_direction: int = 1 # 1: right, -1: left
 var stamina_points: int = 0
 
-# TODO: don't store this data in the player class
-
-
 var is_taking_damage: bool = false
 
 # progress of the jump, from 0.0 to 1.0.
