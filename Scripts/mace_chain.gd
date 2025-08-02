@@ -35,8 +35,9 @@ func _ready() -> void:
 	emit_signal("completed_loop")
 
 func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
-	if from_state != Global.GameState.PAUSE and to_state == Global.GameState.GAMEPLAY:
-		game_reset();
+	if to_state == Global.GameState.GAMEPLAY:
+		if from_state != Global.GameState.PAUSE or PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
+			game_reset();
 
 func game_reset():
 	mace.global_position = Vector2()

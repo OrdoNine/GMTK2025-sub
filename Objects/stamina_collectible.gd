@@ -15,3 +15,4 @@ func on_body_entered(body: Node2D):
 
 func _ready() -> void:
 	body_entered.connect(on_body_entered)
+	Global.game_new_loop.connect(game_reset)

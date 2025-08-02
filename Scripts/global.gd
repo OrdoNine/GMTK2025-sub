@@ -13,7 +13,7 @@ func read_JSON(path):
 	var data = JSON.parse_string(json)
 	if data:
 		return data
-	print("COULD NOT READ " + str(path) + ". Please check the file for any errors.")
+	push_error("COULD NOT READ " + str(path) + ". Please check the file for any errors.")
 	return
 
 enum GameState {
@@ -21,11 +21,14 @@ enum GameState {
 	GAMEPLAY,
 	PAUSE,
 	DEATH,
+	ABOUT_CONTROLS, # the state where you would see the "About controls" section.
+					# cz you definetely should not have them in the UI.
 	LOOP_START_WAIT, # the state when you are waiting after getting a win to start the next loop.
 }
 
 signal gamemode_changed(from_state: GameState, to_state: GameState);
 signal ui_update(time_remaining: float, round_number: int);
+signal game_new_loop;
 
 var game_state : GameState :
 	set(state):
@@ -41,14 +44,13 @@ var round_number: int = 0
 var time_remaining: float
 
 func _on_gamemode_changed(from_state: GameState, to_state: GameState):
-	if to_state == GameState.PAUSE:
+	if to_state == GameState.PAUSE || to_state == GameState.DEATH:
+		get_tree().paused = true;
 		ui_update.emit(0, round_number);
-	if to_state == GameState.GAMEPLAY:
+	elif to_state == GameState.GAMEPLAY:
+		get_tree().paused = false;
 		if from_state == GameState.DEATH:
-			# Reset game here
-			round_time = MAXIMUM_ROUND_TIME;
-			time_remaining = round_time;
-			round_number = 0;
+			on_game_restart();
 		elif from_state == GameState.LOOP_START_WAIT:
 			round_time -= 2;
 			time_remaining = round_time;
@@ -56,6 +58,20 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 		elif from_state == GameState.MAIN_MENU:
 			round_time = MAXIMUM_ROUND_TIME;
 			time_remaining = round_time;
+		elif from_state == GameState.PAUSE:
+			if PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
+				game_begin_new_loop()
+				on_game_restart();
+	elif to_state == GameState.MAIN_MENU:
+		get_tree().paused = false;
+
+func on_game_restart() -> void:
+	round_time = MAXIMUM_ROUND_TIME;
+	time_remaining = round_time;
+	round_number = 0;
+
+func game_begin_new_loop():
+	game_new_loop.emit()
 
 func _process(delta: float):	
 	if game_state == GameState.GAMEPLAY:

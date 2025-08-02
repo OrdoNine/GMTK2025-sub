@@ -1,0 +1,111 @@
+[gd_scene load_steps=9 format=3 uid="uid://05dkkfq47rbb"]
+
+[ext_resource type="Script" uid="uid://dcujvwntg438j" path="res://Scripts/about_controls.gd" id="1_3pnk1"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_307ue"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_3pnk1"]
+font = ExtResource("1_307ue")
+font_color = Color(0.300606, 0.564597, 0.439899, 1)
+outline_color = Color(0.251877, 0.487383, 0.376665, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1tkab"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qm0tj"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pne40"]
+bg_color = Color(0.297792, 0.56028, 0.436331, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oyedn"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fe7aw"]
+bg_color = Color(0.375594, 0.671851, 0.530431, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[node name="AboutControls" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3pnk1")
+
+[node name="Controls" type="Label" parent="."]
+z_index = 100
+offset_left = 223.0
+offset_top = 193.0
+offset_right = 405.0
+offset_bottom = 309.0
+scale = Vector2(2.74146, 2.85139)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 64
+text = "Arrow keys/WASD - move
+Z/Space - jump
+Hold these keys to craft:
+1 - Bomb ($5)
+2 - Slime Bomb ($3)
+3 - Bridge (airborne) ($8)
+4 - Spring ($6)"
+label_settings = SubResource("LabelSettings_3pnk1")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+z_index = 99
+layout_mode = 0
+offset_left = -775.0
+offset_top = -368.0
+offset_right = -243.0
+offset_bottom = -160.0
+scale = Vector2(4.8141, 7.47664)
+color = Color(0.0218276, 0.0788314, 0.0508523, 1)
+
+[node name="Back" type="Button" parent="."]
+z_index = 101
+offset_left = 384.0
+offset_top = 616.0
+offset_right = 538.0
+offset_bottom = 651.0
+size_flags_vertical = 3
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("1_307ue")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/focus = SubResource("StyleBoxFlat_1tkab")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_qm0tj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pne40")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_oyedn")
+theme_override_styles/normal = SubResource("StyleBoxFlat_fe7aw")
+text = "Back"
+
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
