@@ -350,6 +350,20 @@ func update_movement(delta: float) -> void:
 	move_and_slide()
 
 func _physics_process(delta: float) -> void:
+	# debug fly
+	if OS.is_debug_build() and Input.is_key_pressed(KEY_SHIFT):
+		const fly_speed := 1200.0
+		if Input.is_action_pressed("player_right"):
+			position.x += fly_speed * delta
+		if Input.is_action_pressed("player_left"):
+			position.x -= fly_speed * delta
+		if Input.is_action_pressed("player_up"):
+			position.y -= fly_speed * delta
+		if Input.is_action_pressed("player_down"):
+			position.y += fly_speed * delta
+		
+		return
+	
 	var sprite: AnimatedSprite2D = $AnimatedSprite2D
 	_new_anim = "idle"
 	
