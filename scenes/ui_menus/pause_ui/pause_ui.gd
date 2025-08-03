@@ -12,6 +12,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("escape") and Global.game_state == Global.GameState.PAUSE:
 		Global.ignore_escape = true;
+		Global.reason_to_gameplay = Global.GameplaySwitchReason.RESUME;
 		Global.game_state = Global.GameState.GAMEPLAY;
 
 func _on_resume_button_pressed() -> void:

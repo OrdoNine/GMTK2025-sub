@@ -348,6 +348,7 @@ offset_left = -16.0
 offset_right = 24.0
 
 [node name="GameOver" parent="Camera2D" instance=ExtResource("11_pdsj5")]
+process_mode = 2
 visible = false
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["players"]]
