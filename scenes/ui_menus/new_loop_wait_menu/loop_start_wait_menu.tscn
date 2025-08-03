@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://dkmnjoqamejhy"]
+
+[ext_resource type="Script" uid="uid://b1tm4rea8e2fe" path="res://scenes/ui_menus/new_loop_wait_menu/new_loop_wait_menu.gd" id="2_jw2p1"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_srsp8"]
+
+[node name="LoopStartWaitMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_jw2p1")
+
+[node name="StartNewLoop" parent="." instance=ExtResource("2_srsp8")]
+z_index = 100
+position = Vector2(24, -72)
+label_text = "Start new Loop"
+
+[node name="Controls" parent="." instance=ExtResource("2_srsp8")]
+z_index = 100
+position = Vector2(24, -12)
+label_text = "Controls"
+
+[node name="BackToMenu" parent="." instance=ExtResource("2_srsp8")]
+z_index = 100
+position = Vector2(24, 48)
+label_text = "Back to Menu"
+
+[node name="Exit" parent="." instance=ExtResource("2_srsp8")]
+z_index = 100
+position = Vector2(24, 108)
+label_text = "Exit"
+
+[connection signal="button_pressed" from="StartNewLoop" to="." method="_on_start_new_loop_button_pressed"]
+[connection signal="button_pressed" from="Controls" to="." method="_on_controls_button_pressed"]
+[connection signal="button_pressed" from="BackToMenu" to="." method="_on_back_to_menu_button_pressed"]
+[connection signal="button_pressed" from="Exit" to="." method="_on_exit_button_pressed"]

@@ -1,0 +1,50 @@
+[gd_scene load_steps=7 format=3 uid="uid://cwt0bjtkqn86k"]
+
+[ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://scenes/ui_menus/main_menu/main_menu.gd" id="1_48xlc"]
+[ext_resource type="Texture2D" uid="uid://cojfngcyykh7e" path="res://assets/macey&strudel logo.png" id="2_u772s"]
+[ext_resource type="PackedScene" uid="uid://brdx2088afirh" path="res://scenes/ui_menus/about_controls/about_controls.tscn" id="3_1ehe0"]
+[ext_resource type="Script" uid="uid://ciqkd1jfahav3" path="res://scenes/ui_menus/main_menu/logo.gd" id="3_cbupj"]
+[ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="4_illhk"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="6_cbupj"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_48xlc")
+
+[node name="Logo" type="Sprite2D" parent="."]
+position = Vector2(480, 200)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("2_u772s")
+script = ExtResource("3_cbupj")
+
+[node name="AboutControls" parent="." instance=ExtResource("3_1ehe0")]
+process_mode = 2
+visible = false
+layout_mode = 1
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+process_mode = 3
+stream = ExtResource("4_illhk")
+volume_db = -15.0
+autoplay = true
+
+[node name="StartGame" parent="." instance=ExtResource("6_cbupj")]
+position = Vector2(480, 420)
+label_text = "Play"
+
+[node name="Controls" parent="." instance=ExtResource("6_cbupj")]
+position = Vector2(480, 480)
+label_text = "Controls"
+
+[node name="Exit" parent="." instance=ExtResource("6_cbupj")]
+position = Vector2(480, 540)
+label_text = "Exit"
+
+[connection signal="button_pressed" from="StartGame" to="." method="_on_start_game_button_pressed"]
+[connection signal="button_pressed" from="Controls" to="." method="_on_controls_button_pressed"]
+[connection signal="button_pressed" from="Exit" to="." method="_on_exit_button_pressed"]

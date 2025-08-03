@@ -1,0 +1,33 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://bfoi1yk3rbga3"]
+
+[ext_resource type="Texture2D" uid="uid://cfetlyew4dky5" path="res://assets/prototilemap.png" id="1_7vvqs"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vombc"]
+texture = ExtResource("1_7vvqs")
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+0:0/0/custom_data_1 = true
+1:0/0 = 0
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+2:0/0 = 0
+2:0/0/custom_data_0 = true
+3:0/0 = 0
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
+1:1/0 = 0
+1:1/0/custom_data_0 = true
+2:1/0 = 0
+2:1/0/custom_data_0 = true
+3:1/0 = 0
+3:1/0/custom_data_0 = true
+0:1/0 = 0
+0:1/0/custom_data_0 = true
+1:2/0 = 0
+0:2/0 = 0
+
+[resource]
+physics_layer_0/collision_layer = 1
+custom_data_layer_0/name = "Hazard"
+custom_data_layer_0/type = 1
+custom_data_layer_1/name = "Indestructible"
+custom_data_layer_1/type = 1
+sources/1 = SubResource("TileSetAtlasSource_vombc")

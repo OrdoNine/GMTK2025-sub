@@ -1,0 +1,87 @@
+[gd_scene load_steps=16 format=3 uid="uid://dnhexewq1iydd"]
+
+[ext_resource type="Texture2D" uid="uid://b0ik8r1wiflnu" path="res://assets/button-Sheet.png" id="1_346rr"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="2_enkb2"]
+[ext_resource type="Script" uid="uid://d2l5y0usak5fc" path="res://objects/button/button.gd" id="2_vv14d"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vv14d"]
+atlas = ExtResource("1_346rr")
+region = Rect2(128, 0, 128, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6f2e"]
+atlas = ExtResource("1_346rr")
+region = Rect2(0, 0, 128, 24)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_rmxkf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vv14d")
+}],
+"loop": true,
+"name": &"clicked",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6f2e")
+}],
+"loop": true,
+"name": &"unclicked",
+"speed": 5.0
+}]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0nwgb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ynfi3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lpou5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_viiup"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nln7u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ygh71"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hjy7e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1afar"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k2eaw"]
+
+[node name="Button" type="AnimatedSprite2D"]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_rmxkf")
+animation = &"unclicked"
+autoplay = "unclicked"
+script = ExtResource("2_vv14d")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -64.0
+offset_top = -16.0
+offset_right = 64.0
+offset_bottom = 16.0
+theme_override_fonts/font = ExtResource("2_enkb2")
+theme_override_font_sizes/font_size = 16
+text = "Play"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Button" type="Button" parent="."]
+offset_left = -64.0
+offset_top = -12.0
+offset_right = 64.0
+offset_bottom = 12.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_0nwgb")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ynfi3")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_lpou5")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_viiup")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_nln7u")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_ygh71")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_hjy7e")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_1afar")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_k2eaw")
+
+[connection signal="button_down" from="Button" to="." method="_on_button_button_down"]
+[connection signal="button_up" from="Button" to="." method="_on_button_button_up"]
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid="uid://dtffmkkwd7jot"]
+
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="1_dfes0"]
+[ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://scenes/ui_menus/game_play_ui/game_play_ui.gd" id="1_rfokx"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_es0gk"]
+font = ExtResource("1_dfes0")
+font_size = 32
+font_color = Color(1, 0.39, 0.39, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rfokx"]
+font = ExtResource("1_dfes0")
+font_size = 32
+
+[node name="GamePlayUI" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rfokx")
+
+[node name="Status" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -472.0
+offset_top = 256.0
+offset_right = -329.0
+offset_bottom = 357.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Stamina: 0
+"
+label_settings = SubResource("LabelSettings_es0gk")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = -464.0
+offset_top = -344.0
+offset_right = -100.0
+offset_bottom = -231.0
+text = "1 - Bomb ($5)
+2 - Bridge (airborne) ($8)
+3 - Spring ($6)
+4 - Booster ($6)"
+label_settings = SubResource("LabelSettings_rfokx")

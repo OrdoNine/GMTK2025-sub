@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3 uid="uid://c66bqd2v2jk0"]
+
+[ext_resource type="Script" uid="uid://t65hwr5rbj0f" path="res://scenes/ui_menus/death_menu/death_menu.gd" id="1_ipdme"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_16em0"]
+
+[node name="DeathMenu" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_ipdme")
+
+[node name="Restart" parent="." instance=ExtResource("2_16em0")]
+z_index = 100
+position = Vector2(24, -72)
+label_text = "Restart"
+
+[node name="Controls" parent="." instance=ExtResource("2_16em0")]
+z_index = 100
+position = Vector2(24, -12)
+label_text = "Controls"
+
+[node name="BackToMenu" parent="." instance=ExtResource("2_16em0")]
+z_index = 100
+position = Vector2(24, 48)
+label_text = "Back to Menu"
+
+[node name="Exit" parent="." instance=ExtResource("2_16em0")]
+z_index = 100
+position = Vector2(24, 108)
+label_text = "Exit"
+
+[connection signal="button_pressed" from="Restart" to="." method="_on_restart_button_pressed"]
+[connection signal="button_pressed" from="Controls" to="." method="_on_controls_button_pressed"]
+[connection signal="button_pressed" from="BackToMenu" to="." method="_on_back_to_menu_button_pressed"]
+[connection signal="button_pressed" from="Exit" to="." method="_on_exit_button_pressed"]
