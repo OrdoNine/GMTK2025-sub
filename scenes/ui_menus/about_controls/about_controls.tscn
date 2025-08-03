@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://brdx2088afirh"]
+[gd_scene load_steps=6 format=3 uid="uid://brdx2088afirh"]
 
 [ext_resource type="Script" uid="uid://dcujvwntg438j" path="res://scenes/ui_menus/about_controls/about_controls.gd" id="1_3pnk1"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="1_307ue"]
 [ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_dmxsn"]
+[ext_resource type="PackedScene" uid="uid://dfgljper65nl0" path="res://objects/overlay/overlay.tscn" id="2_mcrb5"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_3pnk1"]
 font = ExtResource("1_307ue")
@@ -19,6 +20,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3pnk1")
 
+[node name="Overlay" parent="." instance=ExtResource("2_mcrb5")]
+
 [node name="Controls" type="Label" parent="."]
 z_index = 100
 layout_mode = 0
@@ -34,16 +37,6 @@ Z/Space - jump
 Hold the number keys to
 craft items"
 label_settings = SubResource("LabelSettings_3pnk1")
-
-[node name="ColorRect" type="ColorRect" parent="."]
-z_index = 99
-layout_mode = 0
-offset_left = -775.0
-offset_top = -368.0
-offset_right = -243.0
-offset_bottom = -160.0
-scale = Vector2(4.8141, 7.47664)
-color = Color(0.0218276, 0.0788314, 0.0508523, 1)
 
 [node name="Back" parent="." instance=ExtResource("2_dmxsn")]
 z_index = 101

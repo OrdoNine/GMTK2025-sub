@@ -1,0 +1,84 @@
+[gd_scene load_steps=7 format=3 uid="uid://bijma4oxrj1e"]
+
+[ext_resource type="Script" uid="uid://cj7b16e4o3gnj" path="res://scenes/ui_menus/win_menu/win_menu.gd" id="1_8amk6"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="1_j8bup"]
+[ext_resource type="PackedScene" uid="uid://dfgljper65nl0" path="res://objects/overlay/overlay.tscn" id="2_ds7dj"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="3_mqr25"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ds7dj"]
+font = ExtResource("3_mqr25")
+font_size = 128
+
+[sub_resource type="LabelSettings" id="LabelSettings_1hw3m"]
+font = ExtResource("3_mqr25")
+font_size = 32
+
+[node name="WinMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_8amk6")
+
+[node name="Overlay" parent="." instance=ExtResource("2_ds7dj")]
+
+[node name="ContinueToNextLoop" parent="." instance=ExtResource("1_j8bup")]
+z_index = 100
+position = Vector2(0, 24)
+label_text = "Start new loop"
+
+[node name="Restart" parent="." instance=ExtResource("1_j8bup")]
+z_index = 100
+position = Vector2(0, 84)
+label_text = "Restart"
+
+[node name="Controls" parent="." instance=ExtResource("1_j8bup")]
+z_index = 100
+position = Vector2(0, 144)
+label_text = "Controls"
+
+[node name="BackToMenu" parent="." instance=ExtResource("1_j8bup")]
+z_index = 100
+position = Vector2(0, 204)
+label_text = "Back to Menu"
+
+[node name="Exit" parent="." instance=ExtResource("1_j8bup")]
+z_index = 100
+position = Vector2(0, 264)
+label_text = "Exit"
+
+[node name="YOU WIN" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -256.0
+offset_top = -320.0
+offset_right = 264.0
+offset_bottom = -64.0
+text = "YOU WON"
+label_settings = SubResource("LabelSettings_ds7dj")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Rounds" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -72.0
+offset_top = -120.0
+offset_right = 68.0
+offset_bottom = -94.0
+text = "Rounds: 10"
+label_settings = SubResource("LabelSettings_1hw3m")
+
+[node name="Slimes" type="Label" parent="."]
+z_index = 100
+layout_mode = 0
+offset_left = -72.0
+offset_top = -80.0
+offset_right = 68.0
+offset_bottom = -54.0
+text = "Slimes: 10"
+label_settings = SubResource("LabelSettings_1hw3m")
+
+[connection signal="button_pressed" from="ContinueToNextLoop" to="." method="_on_continue_to_next_loop_button_pressed"]
+[connection signal="button_pressed" from="Restart" to="." method="_on_restart_button_pressed"]
+[connection signal="button_pressed" from="Controls" to="." method="_on_controls_button_pressed"]
+[connection signal="button_pressed" from="BackToMenu" to="." method="_on_back_to_menu_button_pressed"]
+[connection signal="button_pressed" from="Exit" to="." method="_on_exit_button_pressed"]

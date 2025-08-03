@@ -1,12 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://b7qcbfueopawi"]
+[gd_scene load_steps=4 format=3 uid="uid://b7qcbfueopawi"]
 
 [ext_resource type="Script" uid="uid://br3gsokp76xid" path="res://scenes/ui_menus/pause_ui/pause_ui.gd" id="1_srqh7"]
+[ext_resource type="PackedScene" uid="uid://dfgljper65nl0" path="res://objects/overlay/overlay.tscn" id="3_jfond"]
 [ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="3_v4qvo"]
 
 [node name="PauseUI" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_srqh7")
+
+[node name="Overlay" parent="." instance=ExtResource("3_jfond")]
+process_mode = 2
 
 [node name="Resume" parent="." instance=ExtResource("3_v4qvo")]
 z_index = 100

@@ -21,6 +21,7 @@ enum GameState {
 	GAMEPLAY,
 	PAUSE,
 	DEATH,
+	WIN_STATE, # A temporary state of reaching 10 rounds where you are considered to be a winner.
 	ABOUT_CONTROLS, # the state where you would see the "About controls" section.
 					# cz you definetely should not have them in the UI.
 	LOOP_START_WAIT, # the state when you are waiting after getting a win to start the next loop.
@@ -41,7 +42,7 @@ var ignore_escape: bool = false; # For PAUSE->GAMPLAY transition
 
 const MAXIMUM_ROUND_TIME = 50;
 var round_time: int = MAXIMUM_ROUND_TIME;
-var round_number: int = 0
+var round_number: int = 1
 var time_remaining: float
 
 func _on_gamemode_changed(from_state: GameState, to_state: GameState):
@@ -63,7 +64,17 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 			round_time = MAXIMUM_ROUND_TIME;
 			time_remaining = round_time;
 		elif from_state == GameState.PAUSE:
-			if PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
+			if reason_to_gameplay == GameplaySwitchReason.RESTART:
+				game_begin_new_loop()
+				on_game_restart();
+				reset_tilemap.emit();
+		elif from_state == GameState.WIN_STATE:
+			if reason_to_gameplay == GameplaySwitchReason.START_LOOP:
+				Global.game_begin_new_loop()
+				round_time -= 2;
+				time_remaining = round_time;
+				round_number += 1
+			elif reason_to_gameplay == GameplaySwitchReason.RESTART:
 				game_begin_new_loop()
 				on_game_restart();
 				reset_tilemap.emit();
@@ -73,7 +84,7 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 func on_game_restart() -> void:
 	round_time = MAXIMUM_ROUND_TIME;
 	time_remaining = round_time;
-	round_number = 0;
+	round_number = 1;
 
 func game_begin_new_loop():
 	game_new_loop.emit()
@@ -81,8 +92,14 @@ func game_begin_new_loop():
 func _process(_delta: float):	
 	if game_state == GameState.GAMEPLAY:
 		ui_update.emit(time_remaining, round_number)
-		
 		if time_remaining <= 0.0:
 			time_remaining = 0;
-		
 		# time_remaining -= delta
+
+enum GameplaySwitchReason {
+	RESUME,
+	RESTART,
+	START_LOOP,
+}
+
+var reason_to_gameplay : GameplaySwitchReason;

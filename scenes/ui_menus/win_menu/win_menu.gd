@@ -1,21 +1,18 @@
 extends Control
 
-class_name PauseUI;
-
-func _on_gamemode_changed(_from_state: Global.GameState, state: Global.GameState) -> void:
-	self.visible = state == Global.GameState.PAUSE;
-
 func _ready() -> void:
-	Global.gamemode_changed.connect(_on_gamemode_changed)
-	self.visible = false;
+	Global.gamemode_changed.connect(_on_gamemode_changed);
 
-func _process(_delta: float) -> void:
-	if Input.is_action_just_pressed("escape") and Global.game_state == Global.GameState.PAUSE:
-		Global.ignore_escape = true;
-		Global.game_state = Global.GameState.GAMEPLAY;
+func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState) -> void:
+	self.visible = to_state == Global.GameState.WIN_STATE;
+	if self.visible:
+		$Rounds.text = "Rounds: " + str(Global.round_number)
+		var player = get_node("../../Player");
+		$Slimes.text = "Slimes: " + str(player.stamina_points);
 
-func _on_resume_button_pressed() -> void:
-	Global.reason_to_gameplay = Global.GameplaySwitchReason.RESUME;
+func _on_continue_to_next_loop_button_pressed() -> void:
+	Global.reason_to_gameplay = Global.GameplaySwitchReason.START_LOOP;
+	get_tree().paused = false;
 	Global.game_state = Global.GameState.GAMEPLAY;
 
 func _on_back_to_menu_button_pressed() -> void:
