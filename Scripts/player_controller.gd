@@ -260,7 +260,7 @@ func update_movement(delta: float) -> void:
 			
 			if is_on_floor():
 				_wall_direction = 0
-				_new_anim = "idle"
+				_new_anim = "idle" if move_dir == 0 else "run"
 				
 				if not _was_on_floor:
 					var sound := play_sound(landing_sound)

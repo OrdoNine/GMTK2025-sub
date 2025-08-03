@@ -347,8 +347,7 @@ shape = SubResource("RectangleShape2D_8gbba")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Player"]
 sprite_frames = SubResource("SpriteFrames_s8vy0")
-animation = &"hurt"
-frame_progress = 0.444445
+animation = &"run"
 
 [node name="WinArea" type="Area2D" parent="."]
 position = Vector2(1688, -176)
@@ -381,9 +380,9 @@ target = NodePath("../Player")
 position = Vector2(-1784, -192)
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
+process_mode = 3
 stream = ExtResource("16_k12tt")
 volume_db = -15.0
 autoplay = true
-bus = &"Music"
 
 [connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]
