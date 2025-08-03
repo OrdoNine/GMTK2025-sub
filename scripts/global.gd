@@ -68,6 +68,7 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 		elif from_state == GameState.PAUSE:
 			if reason_to_gameplay == GameplaySwitchReason.RESTART:
 				game_begin_new_loop(true)
+				completely_clear_game_data()
 				on_game_restart();
 				reset_tilemap.emit();
 		elif from_state == GameState.WIN_STATE:
