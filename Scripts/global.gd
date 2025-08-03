@@ -78,7 +78,7 @@ func on_game_restart() -> void:
 func game_begin_new_loop():
 	game_new_loop.emit()
 
-func _process(delta: float):	
+func _process(_delta: float):	
 	if game_state == GameState.GAMEPLAY:
 		ui_update.emit(time_remaining, round_number)
 		

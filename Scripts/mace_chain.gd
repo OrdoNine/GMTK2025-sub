@@ -103,7 +103,7 @@ func _on_completed_loop() -> void:
 	
 	if target:
 		var tolerance = 10.0
-		var actual_dist = mace.global_position.distance_to(target.global_position)
+		# var actual_dist = mace.global_position.distance_to(target.global_position)
 		var actual_range = mace.global_position.distance_to(target.global_position)
 		if actual_range <= DEFAULT_RANGE:
 			mace_range = actual_range

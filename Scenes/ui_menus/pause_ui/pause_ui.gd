@@ -27,7 +27,7 @@ func _on_resume_pressed() -> void:
 
 func _on_back_to_menu_pressed() -> void:
 	Global.game_state = Global.GameState.MAIN_MENU;
-	get_tree().change_scene_to_file("res://Scenes/main_menu.tscn")
+	get_tree().change_scene_to_file("res://Scenes/ui_menus/main_menu/main_menu.tscn")
 
 func _on_exit_pressed() -> void:
 	get_tree().quit();
