@@ -1,6 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://05dkkfq47rbb"]
+[gd_scene load_steps=9 format=3 uid="uid://brdx2088afirh"]
 
-[ext_resource type="Script" uid="uid://dcujvwntg438j" path="res://Scripts/about_controls.gd" id="1_3pnk1"]
+[ext_resource type="Script" path="res://Scripts/about_controls.gd" id="1_3pnk1"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_307ue"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_3pnk1"]
@@ -60,6 +60,7 @@ script = ExtResource("1_3pnk1")
 
 [node name="Controls" type="Label" parent="."]
 z_index = 100
+layout_mode = 0
 offset_left = 223.0
 offset_top = 193.0
 offset_right = 405.0
@@ -69,11 +70,8 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 64
 text = "Arrow keys/WASD - move
 Z/Space - jump
-Hold these keys to craft:
-1 - Bomb ($5)
-2 - Slime Bomb ($3)
-3 - Bridge (airborne) ($8)
-4 - Spring ($6)"
+Hold the number keys to
+craft items"
 label_settings = SubResource("LabelSettings_3pnk1")
 
 [node name="ColorRect" type="ColorRect" parent="."]
@@ -88,6 +86,7 @@ color = Color(0.0218276, 0.0788314, 0.0508523, 1)
 
 [node name="Back" type="Button" parent="."]
 z_index = 101
+layout_mode = 0
 offset_left = 384.0
 offset_top = 616.0
 offset_right = 538.0

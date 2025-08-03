@@ -159,13 +159,13 @@ func _input(event: InputEvent) -> void:
 					_active_item_key = event.keycode
 					begin_item_craft(0.5, 5, _prefab_bomb)
 					
-				# 2 key: slime bomb
-				if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
-					_active_item_key = event.keycode
-					begin_item_craft(0.5, 3, _prefab_inverse_bomb)
+				# slime bomb
+				# if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
+				# 	_active_item_key = event.keycode
+				# 	begin_item_craft(0.5, 3, _prefab_inverse_bomb)
 					
-				# 3 key: bridge marker (if airborne)
-				elif event.pressed and event.keycode == KEY_3 and not is_on_floor() and meets_stamina_requirement(8):
+				# 2 key: bridge marker (if airborne)
+				elif event.pressed and event.keycode == KEY_2 and not is_on_floor() and meets_stamina_requirement(8):
 					# place bridge maker if not on floor
 					velocity.x = 0.0
 					var inst: Node2D = _prefab_bridge_maker.instantiate()
@@ -180,13 +180,13 @@ func _input(event: InputEvent) -> void:
 					_active_bridge_maker = inst
 					_active_item_key = event.keycode
 				
-				# 4 key: spring
-				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
+				# 3 key: spring
+				elif event.pressed and event.keycode == KEY_3 and meets_stamina_requirement(6):
 					_active_item_key = event.keycode
 					begin_item_craft(0.5, 6, _prefab_spring)
 					
-				# 5 key: horiz spring
-				elif event.pressed and event.keycode == KEY_5 and meets_stamina_requirement(6):
+				# 4 key: horiz spring
+				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
 					_active_item_key = event.keycode
 					begin_item_craft(0.5, 6, _prefab_horiz_spring)
 			
