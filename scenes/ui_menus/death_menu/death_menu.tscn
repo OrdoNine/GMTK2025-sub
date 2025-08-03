@@ -19,7 +19,7 @@ script = ExtResource("1_ipdme")
 [node name="Restart" parent="." instance=ExtResource("2_16em0")]
 z_index = 100
 position = Vector2(24, -72)
-label_text = "Continue"
+label_text = "Respawn"
 
 [node name="Controls" parent="." instance=ExtResource("2_16em0")]
 z_index = 100
