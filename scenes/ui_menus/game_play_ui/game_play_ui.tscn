@@ -112,10 +112,10 @@ script = ExtResource("1_rfokx")
 unique_name_in_owner = true
 z_index = 100
 layout_mode = 0
-offset_left = -472.0
-offset_top = -344.0
-offset_right = -360.0
-offset_bottom = -317.0
+offset_left = -488.0
+offset_top = -360.0
+offset_right = -354.0
+offset_bottom = -322.0
 scale = Vector2(1.5, 1.5)
 text = "Round: 0"
 label_settings = SubResource("LabelSettings_r44wp")
@@ -129,7 +129,7 @@ offset_left = -480.0
 offset_top = 312.0
 offset_right = 512.0
 offset_bottom = 360.0
-color = Color(0.0352941, 0.568627, 0.231373, 0.603922)
+color = Color(0.0509804, 0.372549, 0.211765, 1)
 
 [node name="Slimes" type="Label" parent="."]
 unique_name_in_owner = true
@@ -179,3 +179,11 @@ z_index = 100
 position = Vector2(456, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_88lhp")
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+z_index = 99
+offset_left = -488.0
+offset_top = -360.0
+offset_right = -288.0
+offset_bottom = -304.0
+color = Color(0.0509804, 0.372549, 0.211765, 1)
