@@ -8,7 +8,6 @@ func _on_gamemode_changed(_from_state: Global.GameState, state: Global.GameState
 
 func _on_start_new_loop_pressed() -> void:
 	get_tree().paused = false;
-	Global.game_begin_new_loop()
 	Global.game_state = Global.GameState.GAMEPLAY;
 
 func _on_back_to_menu_pressed() -> void:

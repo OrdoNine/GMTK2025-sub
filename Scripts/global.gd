@@ -29,6 +29,7 @@ enum GameState {
 signal gamemode_changed(from_state: GameState, to_state: GameState);
 signal ui_update(time_remaining: float, round_number: int);
 signal game_new_loop;
+signal reset_tilemap;
 
 var game_state : GameState :
 	set(state):
@@ -50,8 +51,11 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 	elif to_state == GameState.GAMEPLAY:
 		get_tree().paused = false;
 		if from_state == GameState.DEATH:
+			game_begin_new_loop()
 			on_game_restart();
+			reset_tilemap.emit();
 		elif from_state == GameState.LOOP_START_WAIT:
+			Global.game_begin_new_loop()
 			round_time -= 2;
 			time_remaining = round_time;
 			round_number += 1
@@ -62,6 +66,7 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 			if PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
 				game_begin_new_loop()
 				on_game_restart();
+				reset_tilemap.emit();
 	elif to_state == GameState.MAIN_MENU:
 		get_tree().paused = false;
 
