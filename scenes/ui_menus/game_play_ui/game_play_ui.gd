@@ -17,6 +17,7 @@ func _on_ui_update(new_time_remaining: float, new_round_number: int):
 func _process(_delta: float) -> void:
 	%RoundNumber.text = "Round: " + str(round_number)
 	%Slimes.text = "x" + str(stamina_points)
+	%Lives.text = "x" + str(Global.player_lives)
 	
 	if stamina_points >= 5:
 		%CanCreateSlimeBomb.modulate = can_use_color;

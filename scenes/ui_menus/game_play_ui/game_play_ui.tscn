@@ -1,9 +1,10 @@
-[gd_scene load_steps=18 format=3 uid="uid://dtffmkkwd7jot"]
+[gd_scene load_steps=23 format=3 uid="uid://dtffmkkwd7jot"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="1_dfes0"]
 [ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://scenes/ui_menus/game_play_ui/game_play_ui.gd" id="1_rfokx"]
 [ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://assets/dorito16x16.png" id="3_72vjj"]
 [ext_resource type="Texture2D" uid="uid://4cev5fx10su3" path="res://assets/item icons.png" id="4_1qw6s"]
+[ext_resource type="Texture2D" uid="uid://dqrg66a4g1d4o" path="res://assets/heart16x16.png" id="4_ssq1o"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_r44wp"]
 font = ExtResource("1_dfes0")
@@ -32,6 +33,35 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ssq1o")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_571aq"]
+atlas = ExtResource("4_ssq1o")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lk847"]
+atlas = ExtResource("4_ssq1o")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x55rh"]
+atlas = ExtResource("4_ssq1o")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_tqwpt"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_571aq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lk847")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x55rh")
 }],
 "loop": true,
 "name": &"default",
@@ -144,6 +174,19 @@ label_settings = SubResource("LabelSettings_r44wp")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Lives" type="Label" parent="."]
+unique_name_in_owner = true
+z_index = 100
+layout_mode = 0
+offset_left = -272.0
+offset_top = 312.0
+offset_right = -230.0
+offset_bottom = 360.0
+text = "x32"
+label_settings = SubResource("LabelSettings_r44wp")
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="SlimeCount" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
@@ -152,31 +195,39 @@ scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_ssq1o")
 autoplay = "default"
 
+[node name="LifeCount" type="AnimatedSprite2D" parent="."]
+unique_name_in_owner = true
+z_index = 100
+position = Vector2(-312, 320)
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_tqwpt")
+autoplay = "default"
+
 [node name="CanCreateSlimeBomb" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(184, 320)
+position = Vector2(192, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_571aq")
 
 [node name="CanCreateSpring" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(264, 320)
+position = Vector2(349, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_lk847")
 
 [node name="CanCreateBooster" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(344, 320)
+position = Vector2(427, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_x55rh")
 
 [node name="CanCreateMidAirBridge" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(424, 320)
+position = Vector2(272, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_88lhp")
 
