@@ -3,6 +3,7 @@ class_name Player
 
 const DAMAGE_STUN_LENGTH := 2.0
 const IFRAME_LENGTH := 3.0 # must be longer than stun length
+const COYOTE_JUMP_TIME := 0.13
 
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
@@ -43,6 +44,8 @@ var current_state := PlayerState.FREEMOVE
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
 var _last_move_dir: int = 0 # for tracking if the player wants to get off of a wall slide
+var _coyote_jump_timer := 0.0
+var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
 var _deadly_area_count: int = 0 # for tracking if the player should be taking damage
 var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
@@ -204,12 +207,21 @@ func update_movement(delta: float) -> void:
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
 	if _active_bridge_maker != null:
 		can_jump = false
+	
+	if can_jump:
+		_coyote_jump_timer = COYOTE_JUMP_TIME
 		
 	# begin jump
-	if Input.is_action_just_pressed("player_jump") and can_jump:
+	if Input.is_action_just_pressed("player_jump") and _coyote_jump_timer > 0.0:
 		var sound := play_sound(jump_sound)
 		sound.pitch_scale = 1.0 + randf() * 0.1
 		_jump_remaining = 1.0
+		
+		if _wall_direction != 0:
+			current_state = PlayerState.WALLJUMP
+			facing_direction = _wall_direction
+			velocity.x = _wall_direction * wall_jump_velocity
+			_ignore_grounded_on_this_frame = true
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
 	# tapering off the longer the jump button is held.
@@ -247,6 +259,7 @@ func update_movement(delta: float) -> void:
 			velocity.x *= speed_damping
 			
 			if is_on_floor():
+				_wall_direction = 0
 				_new_anim = "idle"
 				
 				if not _was_on_floor:
@@ -285,17 +298,12 @@ func update_movement(delta: float) -> void:
 		PlayerState.WALLSLIDE:
 			_new_anim = "wallslide"
 			
-			var wall_direction: int = 1 if get_wall_normal().x > 0.0 else -1
-			facing_direction = -wall_direction
-			
-			# transition into walljump
-			if _jump_remaining > 0.0:
-				current_state = PlayerState.WALLJUMP
-				facing_direction = wall_direction
-				velocity.x = wall_direction * wall_jump_velocity
+			_wall_direction = sign(get_wall_normal().x)
+			facing_direction = -_wall_direction
+			_coyote_jump_timer = COYOTE_JUMP_TIME
 				
 			# no longer on wall, transition into freemove
-			elif not is_on_wall_only():
+			if not is_on_wall_only():
 				current_state = PlayerState.FREEMOVE
 				
 			# wall sliding
@@ -317,7 +325,7 @@ func update_movement(delta: float) -> void:
 				# 0.0001 pixels away from the wall and thus counts it as no longer
 				# on the wall.
 				else:
-					velocity.x = -wall_direction * 100.0 # please stay on the wall
+					velocity.x = -_wall_direction * 100.0 # please stay on the wall
 
 		PlayerState.WALLJUMP:
 			_new_anim = "jump"
@@ -328,7 +336,7 @@ func update_movement(delta: float) -> void:
 			# apply movement direction
 			# velocity.x = move_dir * walk_speed
 			
-			if is_on_wall_only():
+			if is_on_wall_only() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.WALLSLIDE
 				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
@@ -346,6 +354,7 @@ func update_movement(delta: float) -> void:
 	
 	_last_move_dir = move_dir
 	_was_on_floor = is_on_floor()
+	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
 	
 	move_and_slide()
 
