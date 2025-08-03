@@ -267,7 +267,7 @@ func update_movement(delta: float) -> void:
 					if sound:
 						sound.pitch_scale = 1.0 + randf() * 0.2
 			else:
-				_new_anim = "jump"
+				_new_anim = "jump" if velocity.y > 0 else "fall"
 			
 			if move_dir != 0:
 				facing_direction = move_dir
