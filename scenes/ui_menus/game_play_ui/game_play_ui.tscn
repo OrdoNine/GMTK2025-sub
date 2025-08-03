@@ -155,33 +155,34 @@ autoplay = "default"
 [node name="CanCreateSlimeBomb" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(216, 320)
+position = Vector2(192, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_571aq")
 
 [node name="CanCreateSpring" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(296, 320)
+position = Vector2(348, 321)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_lk847")
 
 [node name="CanCreateBooster" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(376, 320)
+position = Vector2(420, 321)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_x55rh")
 
 [node name="CanCreateMidAirBridge" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(456, 320)
+position = Vector2(272, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_88lhp")
 
 [node name="ColorRect2" type="ColorRect" parent="."]
 z_index = 99
+layout_mode = 0
 offset_left = -488.0
 offset_top = -360.0
 offset_right = -288.0
