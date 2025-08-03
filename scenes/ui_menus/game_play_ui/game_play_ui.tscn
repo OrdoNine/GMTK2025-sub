@@ -213,21 +213,21 @@ sprite_frames = SubResource("SpriteFrames_571aq")
 [node name="CanCreateSpring" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(272, 320)
+position = Vector2(349, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_lk847")
 
 [node name="CanCreateBooster" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(352, 320)
+position = Vector2(427, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_x55rh")
 
 [node name="CanCreateMidAirBridge" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(432, 320)
+position = Vector2(272, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_88lhp")
 
