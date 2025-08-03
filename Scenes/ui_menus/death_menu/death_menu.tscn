@@ -1,9 +1,9 @@
-[gd_scene load_steps=26 format=3 uid="uid://b7qcbfueopawi"]
+[gd_scene load_steps=21 format=3 uid="uid://c66bqd2v2jk0"]
 
-[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_bthaf"]
-[ext_resource type="Script" uid="uid://br3gsokp76xid" path="res://Scripts/pause_ui.gd" id="1_srqh7"]
+[ext_resource type="Script" uid="uid://t65hwr5rbj0f" path="res://Scenes/ui_menus/death_menu/death_menu.gd" id="1_ipdme"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="2_bsx7a"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2xxc1"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_esewy"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -11,7 +11,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uvi5b"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jtv3m"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -19,7 +19,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ywlh3"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gconw"]
 bg_color = Color(0.297792, 0.56028, 0.436331, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -27,7 +27,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w3mym"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rygrg"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -35,7 +35,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_srqh7"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wiiab"]
 bg_color = Color(0.375594, 0.671851, 0.530431, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -43,7 +43,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r8fmr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipdme"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -51,15 +51,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yx2bn"]
-bg_color = Color(0.251877, 0.487383, 0.376665, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6y6vx"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bsx7a"]
 bg_color = Color(0.297792, 0.56028, 0.436331, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -67,15 +59,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_554wf"]
-bg_color = Color(0.251877, 0.487383, 0.376665, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wjxjj"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg0h1"]
 bg_color = Color(0.375594, 0.671851, 0.530431, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -83,7 +67,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uu8f0"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fq3qd"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -91,7 +75,15 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eqqw8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5rwkj"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b3l60"]
 bg_color = Color(0.297792, 0.56028, 0.436331, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -99,7 +91,15 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mtrm7"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g84a4"]
+bg_color = Color(0.251877, 0.487383, 0.376665, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j8t5x"]
 bg_color = Color(0.375594, 0.671851, 0.530431, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -107,7 +107,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vpay5"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cusx6"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -115,7 +115,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s1pxl"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rpk3b"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -123,7 +123,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipnwg"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vj242"]
 bg_color = Color(0.297792, 0.56028, 0.436331, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -131,7 +131,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_36amk"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7u7fb"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -139,7 +139,7 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dj8ul"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2e6b5"]
 bg_color = Color(0.375594, 0.671851, 0.530431, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
@@ -147,50 +147,13 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iksgo"]
-bg_color = Color(0.251877, 0.487383, 0.376665, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a0l0k"]
-bg_color = Color(0.251877, 0.487383, 0.376665, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_043jw"]
-bg_color = Color(0.297792, 0.56028, 0.436331, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_knkv6"]
-bg_color = Color(0.251877, 0.487383, 0.376665, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cf5hy"]
-bg_color = Color(0.375594, 0.671851, 0.530431, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-anti_aliasing = false
-
-[node name="PauseUI" type="Control"]
+[node name="DeathMenu" type="Control"]
+z_index = 100
 layout_mode = 3
 anchors_preset = 0
-script = ExtResource("1_srqh7")
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_ipdme")
 
 [node name="Buttons" type="VBoxContainer" parent="."]
 z_index = 100
@@ -201,30 +164,13 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -127.5
-offset_top = -134.0
+offset_top = -107.2
 offset_right = 127.5
-offset_bottom = 134.0
+offset_bottom = 107.2
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
 alignment = 1
-
-[node name="Resume" type="Button" parent="Buttons"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
-theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("1_bthaf")
-theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_2xxc1")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_uvi5b")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ywlh3")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_w3mym")
-theme_override_styles/normal = SubResource("StyleBoxFlat_srqh7")
-text = "Resume"
 
 [node name="Restart" type="Button" parent="Buttons"]
 layout_mode = 2
@@ -234,13 +180,13 @@ theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("1_bthaf")
+theme_override_fonts/font = ExtResource("2_bsx7a")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_r8fmr")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_yx2bn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_6y6vx")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_554wf")
-theme_override_styles/normal = SubResource("StyleBoxFlat_wjxjj")
+theme_override_styles/focus = SubResource("StyleBoxFlat_esewy")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_jtv3m")
+theme_override_styles/hover = SubResource("StyleBoxFlat_gconw")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_rygrg")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wiiab")
 text = "Restart"
 
 [node name="Controls" type="Button" parent="Buttons"]
@@ -250,13 +196,13 @@ theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("1_bthaf")
+theme_override_fonts/font = ExtResource("2_bsx7a")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_uu8f0")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_uu8f0")
-theme_override_styles/hover = SubResource("StyleBoxFlat_eqqw8")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_uu8f0")
-theme_override_styles/normal = SubResource("StyleBoxFlat_mtrm7")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ipdme")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_ipdme")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bsx7a")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ipdme")
+theme_override_styles/normal = SubResource("StyleBoxFlat_bg0h1")
 text = "Controls
 "
 
@@ -269,13 +215,13 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("1_bthaf")
+theme_override_fonts/font = ExtResource("2_bsx7a")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_vpay5")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_s1pxl")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ipnwg")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_36amk")
-theme_override_styles/normal = SubResource("StyleBoxFlat_dj8ul")
+theme_override_styles/focus = SubResource("StyleBoxFlat_fq3qd")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_5rwkj")
+theme_override_styles/hover = SubResource("StyleBoxFlat_b3l60")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_g84a4")
+theme_override_styles/normal = SubResource("StyleBoxFlat_j8t5x")
 text = "Back to Menu"
 
 [node name="Exit" type="Button" parent="Buttons"]
@@ -287,16 +233,15 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("1_bthaf")
+theme_override_fonts/font = ExtResource("2_bsx7a")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_iksgo")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_a0l0k")
-theme_override_styles/hover = SubResource("StyleBoxFlat_043jw")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_knkv6")
-theme_override_styles/normal = SubResource("StyleBoxFlat_cf5hy")
+theme_override_styles/focus = SubResource("StyleBoxFlat_cusx6")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_rpk3b")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vj242")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7u7fb")
+theme_override_styles/normal = SubResource("StyleBoxFlat_2e6b5")
 text = "Exit"
 
-[connection signal="pressed" from="Buttons/Resume" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="Buttons/Restart" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="Buttons/Controls" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="Buttons/Back to Menu" to="." method="_on_back_to_menu_pressed"]

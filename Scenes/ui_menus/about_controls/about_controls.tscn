@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://brdx2088afirh"]
 
-[ext_resource type="Script" path="res://Scripts/about_controls.gd" id="1_3pnk1"]
+[ext_resource type="Script" uid="uid://dcujvwntg438j" path="res://Scenes/ui_menus/about_controls/about_controls.gd" id="1_3pnk1"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_307ue"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_3pnk1"]

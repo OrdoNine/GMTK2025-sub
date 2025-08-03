@@ -1,22 +1,22 @@
 [gd_scene load_steps=9 format=3 uid="uid://c4cpj05jgvt5r"]
 
-[ext_resource type="Script" uid="uid://bbavvpocpo7jh" path="res://Objects/stamina_collectible.gd" id="1_ewfak"]
-[ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://Assets/dorito16x16.png" id="1_wyrne"]
-[ext_resource type="AudioStream" uid="uid://c8ar4vgoxs31m" path="res://Assets/sounds/collect_slime.wav" id="3_w8hpb"]
+[ext_resource type="Script" uid="uid://bbavvpocpo7jh" path="res://Objects/realized-items/stamina_collectable/stamina_collectable.gd" id="1_sbnew"]
+[ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://Assets/dorito16x16.png" id="2_x0s8r"]
+[ext_resource type="AudioStream" uid="uid://c8ar4vgoxs31m" path="res://Assets/sounds/collect_slime.wav" id="3_ex8wj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ewfak"]
 size = Vector2(12, 12)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ewfak"]
-atlas = ExtResource("1_wyrne")
+atlas = ExtResource("2_x0s8r")
 region = Rect2(0, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w8hpb"]
-atlas = ExtResource("1_wyrne")
+atlas = ExtResource("2_x0s8r")
 region = Rect2(16, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_natto"]
-atlas = ExtResource("1_wyrne")
+atlas = ExtResource("2_x0s8r")
 region = Rect2(32, 0, 16, 16)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_r61k4"]
@@ -39,7 +39,7 @@ animations = [{
 [node name="Area2D" type="Area2D" groups=["collectibles"]]
 collision_layer = 0
 collision_mask = 2
-script = ExtResource("1_ewfak")
+script = ExtResource("1_sbnew")
 metadata/_edit_group_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -50,4 +50,4 @@ sprite_frames = SubResource("SpriteFrames_r61k4")
 autoplay = "default"
 
 [node name="CollectSound" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_w8hpb")
+stream = ExtResource("3_ex8wj")

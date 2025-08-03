@@ -1,7 +1,7 @@
 [gd_scene load_steps=21 format=3 uid="uid://dkmnjoqamejhy"]
 
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="1_b3rd3"]
-[ext_resource type="Script" uid="uid://b1tm4rea8e2fe" path="res://Scripts/new_loop_wait_menu.gd" id="2_jw2p1"]
+[ext_resource type="Script" uid="uid://b1tm4rea8e2fe" path="res://Scenes/ui_menus/new_loop_wait_menu/new_loop_wait_menu.gd" id="2_jw2p1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jw2p1"]
 bg_color = Color(0.251877, 0.487383, 0.376665, 1)
