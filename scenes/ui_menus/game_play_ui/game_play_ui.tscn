@@ -182,6 +182,7 @@ sprite_frames = SubResource("SpriteFrames_88lhp")
 
 [node name="ColorRect2" type="ColorRect" parent="."]
 z_index = 99
+layout_mode = 0
 offset_left = -496.0
 offset_top = -360.0
 offset_right = -280.0
