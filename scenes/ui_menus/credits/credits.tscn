@@ -10,6 +10,7 @@ font_color = Color(0.300606, 0.564597, 0.439899, 1)
 outline_color = Color(0.251877, 0.487383, 0.376665, 1)
 
 [node name="Credits" type="Control"]
+process_mode = 3
 z_index = 100
 layout_mode = 3
 anchors_preset = 15
@@ -46,7 +47,6 @@ Playtested by EryFluffy"
 label_settings = SubResource("LabelSettings_3pnk1")
 
 [node name="Back" parent="." instance=ExtResource("3_f03ns")]
-z_index = 101
 position = Vector2(464, 672)
 label_text = "Back"
 
