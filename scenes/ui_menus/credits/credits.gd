@@ -6,11 +6,10 @@ func _ready() -> void:
 func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
 	self.visible = to_state == Global.GameState.CREDITS;
 	
-	# WHY DO YOU HAVE TO PAUSE THE GAME SO THAT THE BACK BUTTON WORKS 
+	# WHY DO YOU HAVE TO PAUSE THE GAME SO THAT THE BACK BUTTON WORKS
+	# WHY WHY WHY WHY WHY WHY WHY WHY WHY
 	if to_state == Global.GameState.CREDITS:
 		get_tree().paused = true
-	else:
-		get_tree().paused = false
 
 func _on_back_button_pressed() -> void:
 	Global.game_state = Global.GameState.MAIN_MENU
