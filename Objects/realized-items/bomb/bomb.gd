@@ -2,7 +2,7 @@ extends RigidBody2D
 
 const EXPLOSION_RADIUS: float = 54 # in pixels
 
-@onready var _tilemap: TileMapLayer = get_node("../TileMap")
+@onready var _tilemap: TileMapLayer = get_node("../Map")
 var _timer := -1.0
 var _explosion_area: Area2D
 

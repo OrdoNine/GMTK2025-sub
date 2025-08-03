@@ -54,7 +54,7 @@ var _new_anim := "idle"
 var _was_on_floor := true
 
 @onready var _start_pos := position
-@onready var tilemap: TileMapLayer = get_node("../TileMap")
+@onready var tilemap: TileMapLayer = get_node("../Map")
 
 const _prefab_bomb = preload("res://Objects/realized-items/bomb/bomb.tscn")
 const _prefab_inverse_bomb = preload("res://Objects/realized-items/inverse_bomb/inverse_bomb.tscn")

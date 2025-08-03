@@ -31,4 +31,4 @@ func _ready():
 # but for some reason, the game state tracking system is not allowing me to
 # do that. will have to do this instead:
 func game_full_reset() -> void:
-	push_error("Supposedly reset the tilemap!")
+	get_tree().reload_current_scene();
