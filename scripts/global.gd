@@ -82,6 +82,8 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 				reset_tilemap.emit();
 	elif to_state == GameState.MAIN_MENU:
 		get_tree().paused = false;
+	elif to_state == GameState.CREDITS:
+		get_tree().paused = false;
 
 func on_game_restart() -> void:
 	round_time = MAXIMUM_ROUND_TIME;

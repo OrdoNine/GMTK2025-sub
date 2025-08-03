@@ -9,6 +9,7 @@ static var select_player: AudioStreamPlayer = null
 		$Label.text = new_label
 
 signal button_pressed;
+signal button_released;
 
 func _ready():
 	if click_player == null:
@@ -40,6 +41,8 @@ func _on_button_button_up() -> void:
 func _on_button_mouse_entered() -> void:
 	# select_player.play()
 	modulate = Color(0.8, 0.8, 0.8)
+	await get_tree().create_timer(0.1).timeout;
+	button_released.emit()
 	
 func _on_button_mouse_exited() -> void:
 	modulate = Color(1.0, 1.0, 1.0)

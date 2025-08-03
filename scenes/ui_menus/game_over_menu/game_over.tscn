@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://ec3cv7kedtud"]
+[gd_scene load_steps=6 format=3 uid="uid://ec3cv7kedtud"]
 
 [ext_resource type="Script" uid="uid://cdik6b4i1l6rk" path="res://scenes/ui_menus/game_over_menu/game_over.gd" id="1_kn8kc"]
+[ext_resource type="PackedScene" uid="uid://dfgljper65nl0" path="res://objects/overlay/overlay.tscn" id="2_ql8ix"]
 [ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_skb2b"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="3_kn8kc"]
 
@@ -16,11 +17,14 @@ offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("1_kn8kc")
 
+[node name="Overlay" parent="." instance=ExtResource("2_ql8ix")]
+
 [node name="BackToMenu" parent="." instance=ExtResource("2_skb2b")]
 z_index = 100
 label_text = "Back to Menu"
 
 [node name="Label" type="Label" parent="."]
+z_index = 100
 layout_mode = 0
 offset_left = -127.0
 offset_top = -180.0
