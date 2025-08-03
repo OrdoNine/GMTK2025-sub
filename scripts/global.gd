@@ -25,6 +25,7 @@ enum GameState {
 	WIN_STATE, # A temporary state of reaching 10 rounds where you are considered to be a winner.
 	ABOUT_CONTROLS, # the state where you would see the "About controls" section.
 					# cz you definetely should not have them in the UI.
+	CREDITS,
 	LOOP_START_WAIT, # the state when you are waiting after getting a win to start the next loop.
 }
 

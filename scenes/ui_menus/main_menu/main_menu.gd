@@ -13,3 +13,6 @@ func _on_exit_button_pressed() -> void:
 
 func _on_controls_button_pressed() -> void:
 	Global.game_state = Global.GameState.ABOUT_CONTROLS;
+
+func _on_credits_button_pressed() -> void:
+	Global.game_state = Global.GameState.CREDITS
