@@ -2,6 +2,13 @@ extends Control
 
 class_name PauseUI;
 
+enum GameplaySwitchReason {
+	RESUME,
+	RESTART
+}
+
+static var reason_to_gameplay : GameplaySwitchReason;
+
 func _on_gamemode_changed(_from_state: Global.GameState, state: Global.GameState) -> void:
 	self.visible = state == Global.GameState.PAUSE;
 
@@ -15,7 +22,7 @@ func _process(_delta: float) -> void:
 		Global.game_state = Global.GameState.GAMEPLAY;
 
 func _on_resume_button_pressed() -> void:
-	Global.reason_to_gameplay = Global.GameplaySwitchReason.RESUME;
+	reason_to_gameplay = GameplaySwitchReason.RESUME;
 	Global.game_state = Global.GameState.GAMEPLAY;
 
 func _on_back_to_menu_button_pressed() -> void:
@@ -29,5 +36,5 @@ func _on_controls_button_pressed() -> void:
 	Global.game_state = Global.GameState.ABOUT_CONTROLS;
 
 func _on_restart_button_pressed() -> void:
-	Global.reason_to_gameplay = Global.GameplaySwitchReason.RESTART;
+	reason_to_gameplay = GameplaySwitchReason.RESTART;
 	Global.game_state = Global.GameState.GAMEPLAY;

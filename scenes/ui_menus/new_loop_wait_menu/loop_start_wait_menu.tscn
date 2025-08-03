@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=3 uid="uid://dkmnjoqamejhy"]
+[gd_scene load_steps=3 format=3 uid="uid://dkmnjoqamejhy"]
 
-[ext_resource type="PackedScene" uid="uid://dfgljper65nl0" path="res://objects/overlay/overlay.tscn" id="2_6id4a"]
 [ext_resource type="Script" uid="uid://b1tm4rea8e2fe" path="res://scenes/ui_menus/new_loop_wait_menu/new_loop_wait_menu.gd" id="2_jw2p1"]
 [ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_srsp8"]
 
@@ -12,8 +11,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_jw2p1")
-
-[node name="Overlay" parent="." instance=ExtResource("2_6id4a")]
 
 [node name="StartNewLoop" parent="." instance=ExtResource("2_srsp8")]
 z_index = 100
