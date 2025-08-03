@@ -129,7 +129,7 @@ offset_left = -480.0
 offset_top = 312.0
 offset_right = 512.0
 offset_bottom = 360.0
-color = Color(0.0352941, 0.568627, 0.231373, 0.603922)
+color = Color(0.0509804, 0.372549, 0.211765, 1)
 
 [node name="Slimes" type="Label" parent="."]
 unique_name_in_owner = true
@@ -155,27 +155,35 @@ autoplay = "default"
 [node name="CanCreateSlimeBomb" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(216, 320)
+position = Vector2(184, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_571aq")
 
 [node name="CanCreateSpring" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(296, 320)
+position = Vector2(264, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_lk847")
 
 [node name="CanCreateBooster" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(376, 320)
+position = Vector2(344, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_x55rh")
 
 [node name="CanCreateMidAirBridge" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
 z_index = 100
-position = Vector2(456, 320)
+position = Vector2(424, 320)
 scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_88lhp")
+
+[node name="ColorRect2" type="ColorRect" parent="."]
+z_index = 99
+offset_left = -496.0
+offset_top = -360.0
+offset_right = -280.0
+offset_bottom = -296.0
+color = Color(0.0509804, 0.372549, 0.211765, 1)
