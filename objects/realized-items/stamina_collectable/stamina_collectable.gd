@@ -1,9 +1,10 @@
 extends Area2D
 
-func game_reset():
-	visible = true
-	set_deferred("monitorable", true)
-	set_deferred("monitoring", true)
+func game_reset(new_round: bool):
+	if new_round:
+		visible = true
+		set_deferred("monitorable", true)
+		set_deferred("monitoring", true)
 
 func on_body_entered(body: Node2D):
 	if body.is_in_group("players"):

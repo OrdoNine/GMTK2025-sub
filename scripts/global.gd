@@ -21,6 +21,7 @@ enum GameState {
 	GAMEPLAY,
 	PAUSE,
 	DEATH,
+	GAME_OVER,
 	WIN_STATE, # A temporary state of reaching 10 rounds where you are considered to be a winner.
 	ABOUT_CONTROLS, # the state where you would see the "About controls" section.
 					# cz you definetely should not have them in the UI.
@@ -29,7 +30,7 @@ enum GameState {
 
 signal gamemode_changed(from_state: GameState, to_state: GameState);
 signal ui_update(time_remaining: float, round_number: int);
-signal game_new_loop;
+signal game_new_loop(new_round: bool);
 signal reset_tilemap;
 
 var game_state : GameState :
@@ -44,19 +45,19 @@ const MAXIMUM_ROUND_TIME = 50;
 var round_time: int = MAXIMUM_ROUND_TIME;
 var round_number: int = 1
 var time_remaining: float
+var player_lives: int = 3
 
+# help me
 func _on_gamemode_changed(from_state: GameState, to_state: GameState):
-	if to_state == GameState.PAUSE || to_state == GameState.DEATH:
+	if to_state == GameState.PAUSE || to_state == GameState.DEATH || to_state == GameState.GAME_OVER:
 		get_tree().paused = true;
 		ui_update.emit(0, round_number);
 	elif to_state == GameState.GAMEPLAY:
 		get_tree().paused = false;
 		if from_state == GameState.DEATH:
-			game_begin_new_loop()
-			on_game_restart();
-			reset_tilemap.emit();
+			game_begin_new_loop(false)
 		elif from_state == GameState.LOOP_START_WAIT:
-			Global.game_begin_new_loop()
+			game_begin_new_loop(true)
 			round_time -= 2;
 			time_remaining = round_time;
 			round_number += 1
@@ -65,17 +66,17 @@ func _on_gamemode_changed(from_state: GameState, to_state: GameState):
 			time_remaining = round_time;
 		elif from_state == GameState.PAUSE:
 			if reason_to_gameplay == GameplaySwitchReason.RESTART:
-				game_begin_new_loop()
+				game_begin_new_loop(true)
 				on_game_restart();
 				reset_tilemap.emit();
 		elif from_state == GameState.WIN_STATE:
 			if reason_to_gameplay == GameplaySwitchReason.START_LOOP:
-				Global.game_begin_new_loop()
+				game_begin_new_loop(true)
 				round_time -= 2;
 				time_remaining = round_time;
 				round_number += 1
 			elif reason_to_gameplay == GameplaySwitchReason.RESTART:
-				game_begin_new_loop()
+				game_begin_new_loop(true)
 				on_game_restart();
 				reset_tilemap.emit();
 	elif to_state == GameState.MAIN_MENU:
@@ -86,8 +87,14 @@ func on_game_restart() -> void:
 	time_remaining = round_time;
 	round_number = 1;
 
-func game_begin_new_loop():
-	game_new_loop.emit()
+func game_begin_new_loop(new_round: bool):
+	game_new_loop.emit(new_round)
+
+# im confused how do i know that the game is fully over?
+# i'm just going to do this.
+func completely_clear_game_data() -> void:
+	player_lives = 3
+	round_number = 1
 
 func _process(_delta: float):	
 	if game_state == GameState.GAMEPLAY:

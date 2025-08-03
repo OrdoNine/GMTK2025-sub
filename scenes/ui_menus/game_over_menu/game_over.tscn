@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://ec3cv7kedtud"]
+
+[ext_resource type="Script" uid="uid://cdik6b4i1l6rk" path="res://scenes/ui_menus/game_over_menu/game_over.gd" id="1_kn8kc"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_skb2b"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="3_kn8kc"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ql8ix"]
+font = ExtResource("3_kn8kc")
+font_size = 64
+
+[node name="GameOver" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_kn8kc")
+
+[node name="BackToMenu" parent="." instance=ExtResource("2_skb2b")]
+z_index = 100
+label_text = "Back to Menu"
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = -127.0
+offset_top = -180.0
+offset_right = 125.0
+offset_bottom = -128.0
+text = "Game Over"
+label_settings = SubResource("LabelSettings_ql8ix")
+horizontal_alignment = 1
+
+[connection signal="button_pressed" from="BackToMenu" to="." method="_on_back_to_menu_button_pressed"]

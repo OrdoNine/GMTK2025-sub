@@ -97,7 +97,7 @@ func deactivate_item_craft():
 
 func _ready() -> void:
 	Global.game_new_loop.connect(game_reset)
-	game_reset()
+	game_reset(true)
 	
 	# create crafting sound player
 	_crafting_sound_player = AudioStreamPlayer.new()
@@ -105,7 +105,7 @@ func _ready() -> void:
 	add_child(_crafting_sound_player)
 
 # this will reset the entire player state
-func game_reset():
+func game_reset(_new_round: bool):
 	position = _start_pos
 	velocity = Vector2.ZERO
 	
@@ -467,8 +467,15 @@ func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> voi
 	play_sound(boost_sound)
 		
 func kill() -> void:
-	game_reset();
-	Global.game_state = Global.GameState.DEATH
+	Global.player_lives -= 1
+	
+	if Global.player_lives == 0:
+		print("Game over")
+		Global.game_state = Global.GameState.GAME_OVER
+		
+	else:
+		print("Normal death")
+		Global.game_state = Global.GameState.DEATH
 
 func play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	if stream == null: return

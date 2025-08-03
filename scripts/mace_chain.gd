@@ -37,14 +37,14 @@ var loops := 0 #how many times have we completed the same loop
 func _ready() -> void:
 	mace_start = mace.global_position
 	Global.game_new_loop.connect(game_reset)
-	game_reset()
+	game_reset(true)
 
 # func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState):
 # 	if to_state == Global.GameState.GAMEPLAY:
 # 		if from_state != Global.GameState.PAUSE or PauseUI.reason_to_gameplay == PauseUI.GameplaySwitchReason.RESTART:
 # 			game_reset();
 
-func game_reset():
+func game_reset(_new_round: bool):
 	mace_speed = INITIAL_MACE_SPEED + Global.round_number * MACE_SPEED_INCREASE
 	mace_accel = INITIAL_MACE_ACCEL + Global.round_number * MACE_ACCEL_INCREASE
 
