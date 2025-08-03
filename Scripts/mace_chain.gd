@@ -4,8 +4,8 @@ class_name MaceChain
 const DEFAULT_RANGE := 100.0
 const MID_RANGE := 200.0
 const RANGE_TO_WORLD := 100.0 
-const INITIAL_MACE_SPEED := 2.1
-const MACE_SPEED_INCREASE := 0.16
+const INITIAL_MACE_SPEED := 1.5
+const MACE_SPEED_INCREASE := 0.21
 const INITIAL_MACE_ACCEL := 0.67
 const MACE_ACCEL_INCREASE := 0.01
 
