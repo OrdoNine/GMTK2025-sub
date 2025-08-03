@@ -28,7 +28,6 @@ func _ready():
 
 func _on_button_pressed() -> void:
 	click_player.play()
-	print(label_text, " pressed!")
 	button_pressed.emit()
 
 func _on_button_button_down() -> void:

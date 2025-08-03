@@ -80,8 +80,6 @@ func _process(delta: float) -> void:
 			knockback = move_toward(knockback, 0, mace_accel)
 		else:
 			if reversed:
-				print("stopped kno")
-				print(loops)
 				reversed = false
 			mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
 		
