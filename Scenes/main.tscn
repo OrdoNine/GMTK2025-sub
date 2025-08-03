@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=56 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://Scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://Assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" uid="uid://dxhlmw6xjfhaw" path="res://Scripts/win.gd" id="12_fdnlq"]
 [ext_resource type="Texture2D" uid="uid://c3ncuyamidcqv" path="res://Assets/strudel-sheet.png" id="12_k12tt"]
 [ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://Objects/realized-items/mace/mace.tscn" id="15_wsu2k"]
+[ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://Assets/music/rushed.ogg" id="16_k12tt"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
 texture = ExtResource("1_21xkr")
@@ -378,5 +379,11 @@ target = NodePath("../Player")
 
 [node name="Mace" parent="." instance=ExtResource("15_wsu2k")]
 position = Vector2(-1784, -192)
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("16_k12tt")
+volume_db = -15.0
+autoplay = true
+bus = &"Music"
 
 [connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]
