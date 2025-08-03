@@ -18,8 +18,7 @@ var active : bool :
 		return left_active or right_active
 
 func _ready():
-	_tilemap = get_node("../Map") 
-	pass
+	_tilemap = get_node("../Map")
 
 func activate() -> void:
 	var start = _tilemap.local_to_map(_tilemap.to_local(global_position))

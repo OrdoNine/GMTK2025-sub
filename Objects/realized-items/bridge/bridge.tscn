@@ -1,17 +1,26 @@
 [gd_scene load_steps=7 format=3 uid="uid://belsygxt1sd7w"]
 
 [ext_resource type="Script" uid="uid://dtd1pjflcwata" path="res://Objects/realized-items/bridge/bridge_maker.gd" id="1_dvluc"]
-[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://Assets/Fonts/ProggyClean.ttf" id="2_dquhu"]
 [ext_resource type="AudioStream" uid="uid://e34ja2hr7lnn" path="res://Assets/sounds/bridge.wav" id="3_dquhu"]
+[ext_resource type="Texture2D" uid="uid://cfetlyew4dky5" path="res://Assets/prototilemap.png" id="3_lo6fy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]
 size = Vector2(15, 15)
 
-[sub_resource type="QuadMesh" id="QuadMesh_bd2ok"]
-size = Vector2(16, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_wur8e"]
+atlas = ExtResource("3_lo6fy")
+region = Rect2(48, 0, 16, 16)
 
-[sub_resource type="LabelSettings" id="LabelSettings_x450m"]
-font = ExtResource("2_dquhu")
+[sub_resource type="SpriteFrames" id="SpriteFrames_budd7"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wur8e")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
 
 [node name="Bridge" type="RigidBody2D"]
 collision_layer = 2
@@ -23,18 +32,9 @@ script = ExtResource("1_dvluc")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_ugmi2")
 
-[node name="MeshInstance2D" type="MeshInstance2D" parent="."]
-modulate = Color(0.3, 1, 0.591667, 1)
-mesh = SubResource("QuadMesh_bd2ok")
-
-[node name="Label" type="Label" parent="."]
-offset_left = -8.0
-offset_top = -8.0
-offset_right = 32.0
-offset_bottom = 15.0
-text = "Brdige-
-Maker"
-label_settings = SubResource("LabelSettings_x450m")
-
 [node name="Sound" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_dquhu")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_budd7")
+autoplay = "default"
