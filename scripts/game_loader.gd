@@ -1,7 +1,7 @@
 extends Node2D
 
 const collectibles: Dictionary[Vector2i, Resource] = {
-	Vector2i(0, 0): preload("res://objects/realized-items/stamina_collectable/stamina_collectable.tscn")
+	Vector2i(0, 0): preload("res://objects/stamina_collectible/stamina_collectible.tscn")
 }
 
 func _ready() -> void:

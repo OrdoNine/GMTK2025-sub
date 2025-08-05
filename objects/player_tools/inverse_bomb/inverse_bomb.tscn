@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://qlb653dgxaa"]
 
-[ext_resource type="Script" uid="uid://ccl1pte50uuix" path="res://objects/realized-items/inverse_bomb/inverse_bomb.gd" id="1_6ykk2"]
+[ext_resource type="Script" uid="uid://ccl1pte50uuix" path="res://objects/player_tools/inverse_bomb/inverse_bomb.gd" id="1_6ykk2"]
 [ext_resource type="Texture2D" uid="uid://d17gatr7svhx6" path="res://assets/items-Sheet.png" id="2_bjxfa"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]

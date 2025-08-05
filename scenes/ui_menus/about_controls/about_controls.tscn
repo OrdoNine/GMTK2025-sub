@@ -1,16 +1,15 @@
 [gd_scene load_steps=5 format=3 uid="uid://brdx2088afirh"]
 
 [ext_resource type="Script" uid="uid://dcujvwntg438j" path="res://scenes/ui_menus/about_controls/about_controls.gd" id="1_3pnk1"]
-[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="1_307ue"]
-[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_dmxsn"]
+[ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="2_o5f25"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_3pnk1"]
-font = ExtResource("1_307ue")
-font_color = Color(0.300606, 0.564597, 0.439899, 1)
-outline_color = Color(0.251877, 0.487383, 0.376665, 1)
+[sub_resource type="LabelSettings" id="LabelSettings_dmxsn"]
+font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_mcrb5"]
+font_size = 32
 
 [node name="AboutControls" type="Control"]
-z_index = 100
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,36 +18,38 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_3pnk1")
 
-[node name="Controls" type="Label" parent="."]
-z_index = 100
-layout_mode = 0
-offset_left = 223.0
-offset_top = 193.0
-offset_right = 405.0
-offset_bottom = 309.0
-scale = Vector2(2.74146, 2.85139)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 64
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="Header" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Controls"
+label_settings = SubResource("LabelSettings_dmxsn")
+horizontal_alignment = 1
+
+[node name="Text" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
 text = "Arrow keys/WASD - move
 Z/Space - jump
-Hold the number keys to
-craft items"
-label_settings = SubResource("LabelSettings_3pnk1")
+Hold the number keys to craft items"
+label_settings = SubResource("LabelSettings_mcrb5")
+horizontal_alignment = 1
 
-[node name="ColorRect" type="ColorRect" parent="."]
-z_index = 99
-layout_mode = 0
-offset_left = -775.0
-offset_top = -368.0
-offset_right = -243.0
-offset_bottom = -160.0
-scale = Vector2(4.8141, 7.47664)
-color = Color(0.0218276, 0.0788314, 0.0508523, 1)
+[node name="Back" type="Button" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "OK"
+script = ExtResource("2_o5f25")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
-[node name="Back" parent="." instance=ExtResource("2_dmxsn")]
-z_index = 101
-position = Vector2(480, 568)
-scale = Vector2(1.5, 1.5)
-label_text = "Back"
-
-[connection signal="button_pressed" from="Back" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/Back" to="." method="_on_back_pressed"]

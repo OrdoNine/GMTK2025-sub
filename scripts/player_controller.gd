@@ -56,11 +56,11 @@ var _was_on_floor := true
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../Map")
 
-const _prefab_bomb = preload("res://objects/realized-items/bomb/bomb.tscn")
-const _prefab_inverse_bomb = preload("res://objects/realized-items/inverse_bomb/inverse_bomb.tscn")
-const _prefab_bridge_maker = preload("res://objects/realized-items/bridge/bridge.tscn")
-const _prefab_spring = preload("res://objects/realized-items/spring/spring.tscn")
-const _prefab_horiz_spring = preload("res://objects/realized-items/horiz_spring/horiz_spring.tscn")
+const _prefab_bomb = preload("res://objects/player_tools/bomb/bomb.tscn")
+const _prefab_inverse_bomb = preload("res://objects/player_tools/inverse_bomb/inverse_bomb.tscn")
+const _prefab_bridge_maker = preload("res://objects/player_tools/bridge/bridge.tscn")
+const _prefab_spring = preload("res://objects/player_tools/spring/spring.tscn")
+const _prefab_horiz_spring = preload("res://objects/player_tools/horiz_spring/horiz_spring.tscn")
 
 var _item_craft_progress = null
 var _active_bridge_maker: Node2D = null

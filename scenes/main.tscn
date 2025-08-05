@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://c3ncuyamidcqv" path="res://assets/strudel-sheet.png" id="12_k12tt"]
 [ext_resource type="Texture2D" uid="uid://cyshaitips887" path="res://assets/maceartifact.png" id="13_0ld40"]
 [ext_resource type="Texture2D" uid="uid://tj3y8eqp11a4" path="res://assets/spark.png" id="14_gqmmt"]
-[ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://objects/realized-items/mace/mace.tscn" id="15_wsu2k"]
+[ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://objects/mace/mace.tscn" id="15_wsu2k"]
 [ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="16_k12tt"]
 [ext_resource type="Texture2D" uid="uid://bpegee8ggqnhy" path="res://assets/maceybg.png" id="17_muem4"]
 

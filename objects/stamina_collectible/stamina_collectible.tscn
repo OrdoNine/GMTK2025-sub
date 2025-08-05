@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://c4cpj05jgvt5r"]
 
-[ext_resource type="Script" uid="uid://bbavvpocpo7jh" path="res://objects/realized-items/stamina_collectable/stamina_collectable.gd" id="1_sbnew"]
+[ext_resource type="Script" uid="uid://bbavvpocpo7jh" path="res://objects/stamina_collectible/stamina_collectible.gd" id="1_sbnew"]
 [ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://assets/dorito16x16.png" id="2_x0s8r"]
 [ext_resource type="AudioStream" uid="uid://c8ar4vgoxs31m" path="res://assets/sounds/collect_slime.wav" id="3_ex8wj"]
 

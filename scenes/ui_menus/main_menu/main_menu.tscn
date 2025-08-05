@@ -1,12 +1,18 @@
-[gd_scene load_steps=8 format=3 uid="uid://cwt0bjtkqn86k"]
+[gd_scene load_steps=10 format=3 uid="uid://cwt0bjtkqn86k"]
 
 [ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://scenes/ui_menus/main_menu/main_menu.gd" id="1_48xlc"]
-[ext_resource type="PackedScene" uid="uid://04g4g3k3j6gn" path="res://scenes/ui_menus/credits/credits.tscn" id="2_4l22p"]
 [ext_resource type="Texture2D" uid="uid://cojfngcyykh7e" path="res://assets/macey&strudel logo.png" id="2_u772s"]
 [ext_resource type="PackedScene" uid="uid://brdx2088afirh" path="res://scenes/ui_menus/about_controls/about_controls.tscn" id="3_1ehe0"]
 [ext_resource type="Script" uid="uid://ciqkd1jfahav3" path="res://scenes/ui_menus/main_menu/logo.gd" id="3_cbupj"]
 [ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="4_illhk"]
-[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="6_cbupj"]
+[ext_resource type="Theme" uid="uid://c4rwjj76oefeo" path="res://theme.tres" id="7_4l22p"]
+[ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="8_lu6sk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_lu6sk"]
+font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_4l22p"]
+font_size = 32
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -16,17 +22,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_48xlc")
-
-[node name="Logo" type="Sprite2D" parent="."]
-position = Vector2(480, 200)
-scale = Vector2(2.5, 2.5)
-texture = ExtResource("2_u772s")
-script = ExtResource("3_cbupj")
-
-[node name="AboutControls" parent="." instance=ExtResource("3_1ehe0")]
-process_mode = 2
-visible = false
-layout_mode = 1
+metadata/_custom_type_script = "uid://btyqrdhbher3c"
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 process_mode = 3
@@ -34,34 +30,116 @@ stream = ExtResource("4_illhk")
 volume_db = -15.0
 autoplay = true
 
-[node name="StartGame" parent="." instance=ExtResource("6_cbupj")]
-process_mode = 1
-position = Vector2(480, 420)
-label_text = "Play"
-
-[node name="Controls" parent="." instance=ExtResource("6_cbupj")]
-process_mode = 1
-position = Vector2(480, 480)
-label_text = "Controls"
-
-[node name="Credits" parent="." instance=ExtResource("6_cbupj")]
-process_mode = 1
-position = Vector2(480, 540)
-label_text = "Credits"
-
-[node name="Exit" parent="." instance=ExtResource("6_cbupj")]
-process_mode = 1
-position = Vector2(480, 600)
-label_text = "Exit"
-
-[node name="CreditsMenu" parent="." instance=ExtResource("2_4l22p")]
-process_mode = 2
-process_priority = 100
-process_physics_priority = 100
+[node name="AboutControls" parent="." instance=ExtResource("3_1ehe0")]
 visible = false
 layout_mode = 1
 
-[connection signal="button_pressed" from="StartGame" to="." method="_on_start_game_button_pressed"]
-[connection signal="button_pressed" from="Controls" to="." method="_on_controls_button_pressed"]
-[connection signal="button_pressed" from="Credits" to="." method="_on_credits_button_pressed"]
-[connection signal="button_pressed" from="Exit" to="." method="_on_exit_button_pressed"]
+[node name="CreditsMenu" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="CreditsMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CreditsMenu/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="Header" type="Label" parent="CreditsMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Credits"
+label_settings = SubResource("LabelSettings_lu6sk")
+horizontal_alignment = 1
+
+[node name="Credits" type="Label" parent="CreditsMenu/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "A Game by Team Captain Mace:
+***
+Cpt. Summerling - Design/Art
+Pkhead - Dev/Music
+DaKeypunchAr (dkp) - Dev
+Ordoniner - Dev/Art
+***
+Playtested by EryFluffy"
+label_settings = SubResource("LabelSettings_4l22p")
+
+[node name="CreditsBack" type="Button" parent="CreditsMenu/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Back"
+script = ExtResource("8_lu6sk")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="MainMenu" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_top = 236.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_4l22p")
+theme_override_constants/separation = 10
+
+[node name="Play" type="Button" parent="MainMenu/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("7_4l22p")
+text = "Play"
+script = ExtResource("8_lu6sk")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="Controls" type="Button" parent="MainMenu/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("7_4l22p")
+text = "Controls"
+script = ExtResource("8_lu6sk")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="Credits" type="Button" parent="MainMenu/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("7_4l22p")
+text = "Credits"
+script = ExtResource("8_lu6sk")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="Quit" type="Button" parent="MainMenu/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("7_4l22p")
+text = "Quit"
+script = ExtResource("8_lu6sk")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="Logo" type="Sprite2D" parent="MainMenu"]
+position = Vector2(480, 200)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("2_u772s")
+script = ExtResource("3_cbupj")
+
+[connection signal="menu_exited" from="AboutControls" to="." method="go_back"]
+[connection signal="pressed" from="CreditsMenu/CenterContainer/VBoxContainer/CreditsBack" to="." method="go_back"]
+[connection signal="pressed" from="MainMenu/VBoxContainer/Play" to="." method="_on_play_pressed"]
+[connection signal="pressed" from="MainMenu/VBoxContainer/Controls" to="." method="_on_controls_pressed"]
+[connection signal="pressed" from="MainMenu/VBoxContainer/Credits" to="." method="_on_credits_pressed"]
+[connection signal="pressed" from="MainMenu/VBoxContainer/Quit" to="." method="_on_quit_pressed"]

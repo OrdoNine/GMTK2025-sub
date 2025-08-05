@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dkmnjoqamejhy"]
 
 [ext_resource type="Script" uid="uid://b1tm4rea8e2fe" path="res://scenes/ui_menus/new_loop_wait_menu/new_loop_wait_menu.gd" id="2_jw2p1"]
-[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/button/button.tscn" id="2_srsp8"]
+[ext_resource type="PackedScene" uid="uid://dnhexewq1iydd" path="res://objects/ui_button/sprite_based_button.tscn" id="2_srsp8"]
 
 [node name="LoopStartWaitMenu" type="Control"]
 layout_mode = 3

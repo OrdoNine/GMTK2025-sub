@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://belsygxt1sd7w"]
 
-[ext_resource type="Script" uid="uid://dtd1pjflcwata" path="res://objects/realized-items/bridge/bridge_maker.gd" id="1_dvluc"]
+[ext_resource type="Script" uid="uid://dtd1pjflcwata" path="res://objects/player_tools/bridge/bridge_maker.gd" id="1_dvluc"]
 [ext_resource type="AudioStream" uid="uid://e34ja2hr7lnn" path="res://assets/sounds/bridge.wav" id="3_dquhu"]
 [ext_resource type="Texture2D" uid="uid://cfetlyew4dky5" path="res://assets/prototilemap.png" id="3_lo6fy"]
 

@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://b0ik8r1wiflnu" path="res://assets/button-Sheet.png" id="1_346rr"]
 [ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="2_enkb2"]
-[ext_resource type="Script" uid="uid://d2l5y0usak5fc" path="res://objects/button/button.gd" id="2_vv14d"]
+[ext_resource type="Script" uid="uid://d2l5y0usak5fc" path="res://objects/ui_button/sprite_based_button.gd" id="2_vv14d"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vv14d"]
 atlas = ExtResource("1_346rr")
