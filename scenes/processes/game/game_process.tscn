@@ -20,15 +20,15 @@ script = ExtResource("1_882wm")
 [node name="Game" parent="." instance=ExtResource("1_n0kln")]
 process_mode = 1
 
-[node name="GameUILayer" type="CanvasLayer" parent="."]
+[node name="HUDLayer" type="CanvasLayer" parent="."]
 process_mode = 1
 
-[node name="GameplayUI" parent="GameUILayer" instance=ExtResource("2_0jm6c")]
+[node name="GameplayUI" parent="HUDLayer" instance=ExtResource("2_0jm6c")]
 
-[node name="MenuLayer" type="CanvasLayer" parent="."]
+[node name="UILayer" type="CanvasLayer" parent="."]
 process_mode = 3
 
-[node name="PauseUI" type="Control" parent="MenuLayer"]
+[node name="PauseUI" type="Control" parent="UILayer"]
 unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 15
@@ -37,7 +37,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="MenuLayer/PauseUI"]
+[node name="PanelContainer" type="PanelContainer" parent="UILayer/PauseUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -46,33 +46,33 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_q1tbv")
 
-[node name="CenterContainer" type="CenterContainer" parent="MenuLayer/PauseUI/PanelContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="UILayer/PauseUI/PanelContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PauseUI/PanelContainer/CenterContainer"]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Paused"
 label_settings = SubResource("LabelSettings_gsata")
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="ResumeButton" type="Button" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Resume"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
-[node name="ExitButton" type="Button" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="ExitButton" type="Button" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Exit To Menu"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
-[node name="Label2" type="Label" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="Label2" type="Label" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "TODO: add the rest of the buttons"
 label_settings = SubResource("LabelSettings_q1tbv")
@@ -80,5 +80,5 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [connection signal="round_ended" from="Game" to="." method="_on_game_round_ended"]
-[connection signal="pressed" from="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
+[connection signal="pressed" from="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]

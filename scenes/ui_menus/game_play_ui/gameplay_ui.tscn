@@ -1,11 +1,15 @@
-[gd_scene load_steps=25 format=3 uid="uid://dtffmkkwd7jot"]
+[gd_scene load_steps=26 format=3 uid="uid://dtffmkkwd7jot"]
 
 [ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.gd" id="1_dymph"]
+[ext_resource type="Texture2D" uid="uid://o0kxyy6y38sn" path="res://assets/m&sbar.png" id="2_dymph"]
 [ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://assets/dorito16x16.png" id="3_an0os"]
 [ext_resource type="Texture2D" uid="uid://dqrg66a4g1d4o" path="res://assets/heart16x16.png" id="4_tbl42"]
 [ext_resource type="Texture2D" uid="uid://4cev5fx10su3" path="res://assets/item icons.png" id="5_78jyq"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qo1c4"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dw4im"]
+texture = ExtResource("2_dymph")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_1qw6s"]
 atlas = ExtResource("3_an0os")
@@ -38,6 +42,9 @@ animations = [{
 
 [sub_resource type="LabelSettings" id="LabelSettings_dymph"]
 font_size = 32
+shadow_size = 0
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_571aq"]
 atlas = ExtResource("4_tbl42")
@@ -144,7 +151,6 @@ grow_vertical = 2
 script = ExtResource("1_dymph")
 
 [node name="BottomPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(0, 64)
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -152,13 +158,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxEmpty_qo1c4")
+theme_override_styles/panel = SubResource("StyleBoxTexture_dw4im")
 
 [node name="MarginContainer" type="MarginContainer" parent="BottomPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 5
 
 [node name="StatusDisplay" type="HBoxContainer" parent="BottomPanel/MarginContainer"]
 layout_mode = 2
