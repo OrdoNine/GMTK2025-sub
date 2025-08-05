@@ -96,7 +96,7 @@ func deactivate_item_craft():
 	_crafting_sound_player.stop()
 
 func _ready() -> void:
-	Global.get_game().new_loop.connect(game_reset)
+	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
 	
 	# create crafting sound player

@@ -36,7 +36,7 @@ var loops := 0 #how many times have we completed the same loop
 
 func _ready() -> void:
 	mace_start = mace.global_position
-	Global.get_game().new_loop.connect(game_reset)
+	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
 
 func game_reset(_new_round: bool):

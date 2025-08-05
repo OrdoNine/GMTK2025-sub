@@ -1,16 +1,33 @@
-[gd_scene load_steps=3 format=3 uid="uid://da5g5immlawvn"]
+[gd_scene load_steps=6 format=3 uid="uid://da5g5immlawvn"]
 
+[ext_resource type="Script" uid="uid://df0211nygnxti" path="res://scenes/processes/game/game_process.gd" id="1_882wm"]
 [ext_resource type="PackedScene" uid="uid://dsd4k1sulk80x" path="res://scenes/processes/game/game.tscn" id="1_n0kln"]
 [ext_resource type="PackedScene" uid="uid://dtffmkkwd7jot" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.tscn" id="2_0jm6c"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q1tbv"]
+bg_color = Color(0, 0, 0, 0.376471)
+
+[sub_resource type="LabelSettings" id="LabelSettings_gsata"]
+font_size = 64
+
 [node name="GameProcess" type="Node2D"]
+process_mode = 3
+script = ExtResource("1_882wm")
 
 [node name="Game" parent="." instance=ExtResource("1_n0kln")]
+process_mode = 1
 
-[node name="UILayer" type="CanvasLayer" parent="."]
+[node name="GameUILayer" type="CanvasLayer" parent="."]
+process_mode = 1
+
+[node name="GameplayUI" parent="GameUILayer" instance=ExtResource("2_0jm6c")]
+
+[node name="MenuLayer" type="CanvasLayer" parent="."]
 process_mode = 3
 
-[node name="GameUI" type="Control" parent="UILayer"]
+[node name="PauseUI" type="Control" parent="MenuLayer"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,11 +35,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GameplayUI" parent="UILayer/GameUI" instance=ExtResource("2_0jm6c")]
+[node name="PanelContainer" type="PanelContainer" parent="MenuLayer/PauseUI"]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_q1tbv")
 
-[node name="Label" type="Label" parent="UILayer/GameUI"]
-layout_mode = 0
-offset_right = 105.0
-offset_bottom = 14.0
-text = "ASDJAIOSDJASODI"
+[node name="CenterContainer" type="CenterContainer" parent="MenuLayer/PauseUI/PanelContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuLayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Paused"
+label_settings = SubResource("LabelSettings_gsata")
+
+[connection signal="round_ended" from="Game" to="." method="_on_game_round_ended"]

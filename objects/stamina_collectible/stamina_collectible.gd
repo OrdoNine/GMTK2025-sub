@@ -19,4 +19,4 @@ func on_body_entered(body: Node2D):
 
 func _ready() -> void:
 	body_entered.connect(on_body_entered)
-	Global.get_game().new_loop.connect(game_reset)
+	Global.get_game().round_started.connect(game_reset)

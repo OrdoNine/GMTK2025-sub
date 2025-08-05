@@ -8,13 +8,18 @@ const collectibles: Dictionary[Vector2i, Resource] = {
 var round_number: int = 1
 var stamina_points: int = 0
 var player_lives: int = 3
-signal new_loop(new_round: bool);
+signal round_started(new_round: bool)
+signal round_ended
 
 func _ready() -> void:
 	setup_level()
 	
-func begin_new_loop(new_round: bool):
-	new_loop.emit(new_round)
+func next_round():
+	round_number += 1
+	round_started.emit(true)
+
+func reset_round():
+	round_started.emit(false)
 
 func setup_level() -> void:
 	var collectibles_tile_map: TileMapLayer = $CollectiblesTileMap
@@ -37,3 +42,4 @@ func setup_level() -> void:
 
 func end_round() -> void:
 	print("round ended")
+	round_ended.emit()
