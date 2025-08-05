@@ -10,30 +10,24 @@ atlas = ExtResource("1_e1x85")
 region = Rect2(0, 0, 128, 24)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_62e2m"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
 texture = SubResource("AtlasTexture_0fbet")
-texture_margin_left = 15.0
-texture_margin_top = 8.0
-texture_margin_right = 14.0
-texture_margin_bottom = 6.0
 modulate_color = Color(1, 0.7, 0.7, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qtu10"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
 texture = SubResource("AtlasTexture_0fbet")
-texture_margin_left = 15.0
-texture_margin_top = 8.0
-texture_margin_right = 14.0
-texture_margin_bottom = 6.0
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qtu10"]
 atlas = ExtResource("1_e1x85")
 region = Rect2(128, 0, 128, 24)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ee4bf"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
 texture = SubResource("AtlasTexture_qtu10")
-texture_margin_left = 15.0
-texture_margin_top = 9.0
-texture_margin_right = 14.0
-texture_margin_bottom = 5.0
 modulate_color = Color(1, 0.7, 0.7, 1)
 
 [resource]
