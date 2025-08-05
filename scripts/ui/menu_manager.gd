@@ -1,3 +1,17 @@
+# this class is used to manage menus. Duh!
+# it assumes that each menu is a child of this MenuManager node.
+#
+# example structure:
+#	MainMenuManager (UiMenuManager)
+#		ControlsMenu (Control)
+#		CreditsMenu (Control)
+#		MainMenu (Control)
+#
+# MainMenu has a Credits button, which when pressed will call switch_to_menu($CreditsMenu).
+# MainMenu also has a Controls button, which when pressed will call switch_to_menu($ControlsMenu)
+# both the credits and controls menu each have their respective back button, which when pressed will
+# call the menu manager's go_back() method.
+
 extends Control
 class_name UiMenuManager
 
