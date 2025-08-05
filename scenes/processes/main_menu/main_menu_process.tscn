@@ -1,12 +1,12 @@
 [gd_scene load_steps=10 format=3 uid="uid://cwt0bjtkqn86k"]
 
-[ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://scenes/ui_menus/main_menu/main_menu.gd" id="1_48xlc"]
-[ext_resource type="Texture2D" uid="uid://cojfngcyykh7e" path="res://assets/macey&strudel logo.png" id="2_u772s"]
-[ext_resource type="PackedScene" uid="uid://brdx2088afirh" path="res://scenes/ui_menus/about_controls/about_controls.tscn" id="3_1ehe0"]
-[ext_resource type="Script" uid="uid://ciqkd1jfahav3" path="res://scenes/ui_menus/main_menu/logo.gd" id="3_cbupj"]
-[ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="4_illhk"]
-[ext_resource type="Theme" uid="uid://c4rwjj76oefeo" path="res://theme.tres" id="7_4l22p"]
-[ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="8_lu6sk"]
+[ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://scenes/processes/main_menu/main_menu.gd" id="1_me56q"]
+[ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="2_dx6h4"]
+[ext_resource type="PackedScene" uid="uid://brdx2088afirh" path="res://scenes/ui_menus/about_controls/about_controls.tscn" id="3_2bm3n"]
+[ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="4_k2cr0"]
+[ext_resource type="Theme" uid="uid://c4rwjj76oefeo" path="res://theme.tres" id="5_gmrwh"]
+[ext_resource type="Texture2D" uid="uid://cojfngcyykh7e" path="res://assets/macey&strudel logo.png" id="6_6vieb"]
+[ext_resource type="Script" uid="uid://ciqkd1jfahav3" path="res://scenes/processes/main_menu/logo.gd" id="7_y5q7t"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lu6sk"]
 font_size = 64
@@ -14,23 +14,23 @@ font_size = 64
 [sub_resource type="LabelSettings" id="LabelSettings_4l22p"]
 font_size = 32
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenuProcess" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_48xlc")
+script = ExtResource("1_me56q")
 metadata/_custom_type_script = "uid://btyqrdhbher3c"
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 process_mode = 3
-stream = ExtResource("4_illhk")
+stream = ExtResource("2_dx6h4")
 volume_db = -15.0
 autoplay = true
 
-[node name="AboutControls" parent="." instance=ExtResource("3_1ehe0")]
+[node name="AboutControls" parent="." instance=ExtResource("3_2bm3n")]
 visible = false
 layout_mode = 1
 
@@ -78,7 +78,7 @@ custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Back"
-script = ExtResource("8_lu6sk")
+script = ExtResource("4_k2cr0")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="MainMenu" type="Control" parent="."]
@@ -100,42 +100,42 @@ anchor_bottom = 0.5
 offset_top = 236.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("7_4l22p")
+theme = ExtResource("5_gmrwh")
 theme_override_constants/separation = 10
 
 [node name="Play" type="Button" parent="MainMenu/VBoxContainer"]
 layout_mode = 2
-theme = ExtResource("7_4l22p")
+theme = ExtResource("5_gmrwh")
 text = "Play"
-script = ExtResource("8_lu6sk")
+script = ExtResource("4_k2cr0")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="Controls" type="Button" parent="MainMenu/VBoxContainer"]
 layout_mode = 2
-theme = ExtResource("7_4l22p")
+theme = ExtResource("5_gmrwh")
 text = "Controls"
-script = ExtResource("8_lu6sk")
+script = ExtResource("4_k2cr0")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="Credits" type="Button" parent="MainMenu/VBoxContainer"]
 layout_mode = 2
-theme = ExtResource("7_4l22p")
+theme = ExtResource("5_gmrwh")
 text = "Credits"
-script = ExtResource("8_lu6sk")
+script = ExtResource("4_k2cr0")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="Quit" type="Button" parent="MainMenu/VBoxContainer"]
 layout_mode = 2
-theme = ExtResource("7_4l22p")
+theme = ExtResource("5_gmrwh")
 text = "Quit"
-script = ExtResource("8_lu6sk")
+script = ExtResource("4_k2cr0")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="Logo" type="Sprite2D" parent="MainMenu"]
 position = Vector2(480, 200)
 scale = Vector2(2.5, 2.5)
-texture = ExtResource("2_u772s")
-script = ExtResource("3_cbupj")
+texture = ExtResource("6_6vieb")
+script = ExtResource("7_y5q7t")
 
 [connection signal="menu_exited" from="AboutControls" to="." method="go_back"]
 [connection signal="pressed" from="CreditsMenu/CenterContainer/VBoxContainer/CreditsBack" to="." method="go_back"]

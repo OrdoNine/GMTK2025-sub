@@ -33,7 +33,6 @@ const crafting_sound := preload("res://assets/sounds/crafting.wav")
 const building_place_sound := preload("res://assets/sounds/building_place.wav")
 const boost_sound := preload("res://assets/sounds/boost.wav")
 
-var stamina_points: int = 0
 var facing_direction: int = 1 # 1: right, -1: left
 
 var is_taking_damage: bool = false
@@ -83,7 +82,8 @@ func finish_item_craft():
 	inst.global_position = global_position
 	add_sibling(inst)
 	inst.activate()
-	stamina_points -= _item_craft_progress.points
+	
+	Global.get_game().stamina_points -= _item_craft_progress.points
 	
 	_item_craft_progress = null
 	_active_item_key = KEY_NONE
@@ -96,7 +96,7 @@ func deactivate_item_craft():
 	_crafting_sound_player.stop()
 
 func _ready() -> void:
-	Global.game_new_loop.connect(game_reset)
+	Global.get_game().new_loop.connect(game_reset)
 	game_reset(true)
 	
 	# create crafting sound player
@@ -147,7 +147,7 @@ func deactivate_active_item():
 		_active_bridge_maker = null
 
 func meets_stamina_requirement(c: int) -> bool:
-	return stamina_points >= c
+	return Global.get_game().stamina_points >= c
 
 # this is for crafting stuff
 func _input(event: InputEvent) -> void:
@@ -175,7 +175,7 @@ func _input(event: InputEvent) -> void:
 					inst.global_position = get_position_of_tile((get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
 					add_sibling(inst)
 					inst.activate()
-					stamina_points -= 8
+					Global.get_game().stamina_points -= 8
 					
 					_active_bridge_maker = inst
 					_active_item_key = event.keycode
@@ -409,17 +409,6 @@ func _physics_process(delta: float) -> void:
 	_ignore_grounded_on_this_frame = false
 	
 func _process(_delta: float) -> void:
-	if Global.time_remaining <= 0:
-		kill();
-	
-	if Input.is_action_just_pressed("escape"):
-		if Global.ignore_escape:
-			Global.ignore_escape = false
-		else:
-			Global.game_state = Global.GameState.PAUSE
-	
-	%GamePlayUI.stamina_points = stamina_points
-	
 	# update some animation
 	# 1. flash red when the player is stunned
 	# 2. flash visible/invisible while iframes are active

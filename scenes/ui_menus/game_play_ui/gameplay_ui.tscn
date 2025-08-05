@@ -1,0 +1,286 @@
+[gd_scene load_steps=25 format=3 uid="uid://dtffmkkwd7jot"]
+
+[ext_resource type="Script" uid="uid://c46u4t5y4r0cm" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.gd" id="1_dymph"]
+[ext_resource type="Texture2D" uid="uid://dkug5dcp07w2" path="res://assets/dorito16x16.png" id="3_an0os"]
+[ext_resource type="Texture2D" uid="uid://dqrg66a4g1d4o" path="res://assets/heart16x16.png" id="4_tbl42"]
+[ext_resource type="Texture2D" uid="uid://4cev5fx10su3" path="res://assets/item icons.png" id="5_78jyq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qo1c4"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1qw6s"]
+atlas = ExtResource("3_an0os")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_72vjj"]
+atlas = ExtResource("3_an0os")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ssq1o"]
+atlas = ExtResource("3_an0os")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ssq1o"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1qw6s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_72vjj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ssq1o")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="LabelSettings" id="LabelSettings_dymph"]
+font_size = 32
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_571aq"]
+atlas = ExtResource("4_tbl42")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lk847"]
+atlas = ExtResource("4_tbl42")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x55rh"]
+atlas = ExtResource("4_tbl42")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_tqwpt"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_571aq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lk847")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x55rh")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2g8yc"]
+atlas = ExtResource("5_78jyq")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_571aq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2g8yc")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tqwpt"]
+atlas = ExtResource("5_78jyq")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_88lhp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tqwpt")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uyx3j"]
+atlas = ExtResource("5_78jyq")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lk847"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uyx3j")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4tv77"]
+atlas = ExtResource("5_78jyq")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_x55rh"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4tv77")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dw4im"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_an0os"]
+font_size = 32
+
+[node name="GameplayUI" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dymph")
+
+[node name="BottomPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_qo1c4")
+
+[node name="MarginContainer" type="MarginContainer" parent="BottomPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="StatusDisplay" type="HBoxContainer" parent="BottomPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="SlimeIcon" type="Control" parent="BottomPanel/MarginContainer/StatusDisplay"]
+custom_minimum_size = Vector2(76, 30)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="Icon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/StatusDisplay/SlimeIcon"]
+z_index = 100
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_ssq1o")
+autoplay = "default"
+centered = false
+offset = Vector2(0, -9)
+
+[node name="SlimeCountLabel" type="Label" parent="BottomPanel/MarginContainer/StatusDisplay"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_vertical = 8
+text = "x32"
+label_settings = SubResource("LabelSettings_dymph")
+
+[node name="LifeIcon" type="Control" parent="BottomPanel/MarginContainer/StatusDisplay"]
+custom_minimum_size = Vector2(76, 30)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="Icon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/StatusDisplay/LifeIcon"]
+z_index = 100
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_tqwpt")
+autoplay = "default"
+centered = false
+offset = Vector2(0, -10)
+
+[node name="LifeCountLabel" type="Label" parent="BottomPanel/MarginContainer/StatusDisplay"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_vertical = 8
+text = "30"
+label_settings = SubResource("LabelSettings_dymph")
+
+[node name="CraftingDisplay" type="HBoxContainer" parent="BottomPanel/MarginContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="Bomb" type="Control" parent="BottomPanel/MarginContainer/CraftingDisplay"]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BombDisplayIcon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/CraftingDisplay/Bomb"]
+unique_name_in_owner = true
+z_index = 100
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_571aq")
+centered = false
+offset = Vector2(-1, -16)
+
+[node name="Bridge" type="Control" parent="BottomPanel/MarginContainer/CraftingDisplay"]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BridgeDisplayIcon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/CraftingDisplay/Bridge"]
+unique_name_in_owner = true
+z_index = 100
+position = Vector2(-1, 0)
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_88lhp")
+centered = false
+offset = Vector2(-1, -16)
+
+[node name="Spring" type="Control" parent="BottomPanel/MarginContainer/CraftingDisplay"]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="SpringDisplayIcon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/CraftingDisplay/Spring"]
+unique_name_in_owner = true
+z_index = 100
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_lk847")
+centered = false
+offset = Vector2(-1, -16)
+
+[node name="Booster" type="Control" parent="BottomPanel/MarginContainer/CraftingDisplay"]
+custom_minimum_size = Vector2(58, 24)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BoosterDisplayIcon" type="AnimatedSprite2D" parent="BottomPanel/MarginContainer/CraftingDisplay/Booster"]
+unique_name_in_owner = true
+z_index = 100
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_x55rh")
+centered = false
+offset = Vector2(-1, -16)
+
+[node name="TopPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_dw4im")
+
+[node name="MarginContainer" type="MarginContainer" parent="TopPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="RoundNumberLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Round: 32"
+label_settings = SubResource("LabelSettings_an0os")

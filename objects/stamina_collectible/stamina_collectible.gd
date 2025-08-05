@@ -15,8 +15,8 @@ func on_body_entered(body: Node2D):
 		$CollectSound.pitch_scale = 1.0 + randf() * 0.3
 		$CollectSound.play()
 
-		body.stamina_points += 1
+		Global.get_game().stamina_points += 1
 
 func _ready() -> void:
 	body_entered.connect(on_body_entered)
-	Global.game_new_loop.connect(game_reset)
+	Global.get_game().new_loop.connect(game_reset)

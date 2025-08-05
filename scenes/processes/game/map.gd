@@ -22,13 +22,3 @@ func _update_cells(coords: Array[Vector2i], _forced_cleanup: bool) -> void:
 			_collider_dict[coord] = collider
 		else:
 			_collider_dict.erase(coord)
-
-func _ready():
-	Global.reset_tilemap.connect(game_full_reset)
-
-# i would like to be able to simply reload the entire scene in order to
-# do a full restart.
-# but for some reason, the game state tracking system is not allowing me to
-# do that. will have to do this instead:
-func game_full_reset() -> void:
-	get_tree().reload_current_scene();

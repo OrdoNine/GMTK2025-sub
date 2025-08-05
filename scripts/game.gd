@@ -1,10 +1,22 @@
 extends Node2D
+class_name Game
 
 const collectibles: Dictionary[Vector2i, Resource] = {
 	Vector2i(0, 0): preload("res://objects/stamina_collectible/stamina_collectible.tscn")
 }
 
+var round_number: int = 1
+var stamina_points: int = 0
+var player_lives: int = 3
+signal new_loop(new_round: bool);
+
 func _ready() -> void:
+	setup_level()
+	
+func begin_new_loop(new_round: bool):
+	new_loop.emit(new_round)
+
+func setup_level() -> void:
 	var collectibles_tile_map: TileMapLayer = $CollectiblesTileMap
 	
 	# read the collectibles tilemap to instantiate collectible instances
@@ -22,3 +34,6 @@ func _ready() -> void:
 				add_child(obj)
 	
 	collectibles_tile_map.visible = false
+
+func end_round() -> void:
+	print("round ended")
