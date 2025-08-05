@@ -272,7 +272,6 @@ func update_movement(delta: float) -> void:
 			if move_dir != 0:
 				facing_direction = move_dir
 				if is_on_wall_only():
-					_jump_remaining = 0.0
 					current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.STUNNED:
