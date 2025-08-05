@@ -1,0 +1,46 @@
+[gd_resource type="Theme" load_steps=9 format=3 uid="uid://c4rwjj76oefeo"]
+
+[ext_resource type="Texture2D" uid="uid://b0ik8r1wiflnu" path="res://assets/button-Sheet.png" id="1_e1x85"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="2_cjfk0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0fbet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0fbet"]
+atlas = ExtResource("1_e1x85")
+region = Rect2(0, 0, 128, 24)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_62e2m"]
+texture = SubResource("AtlasTexture_0fbet")
+texture_margin_left = 15.0
+texture_margin_top = 8.0
+texture_margin_right = 14.0
+texture_margin_bottom = 6.0
+modulate_color = Color(1, 0.7, 0.7, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qtu10"]
+texture = SubResource("AtlasTexture_0fbet")
+texture_margin_left = 15.0
+texture_margin_top = 8.0
+texture_margin_right = 14.0
+texture_margin_bottom = 6.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qtu10"]
+atlas = ExtResource("1_e1x85")
+region = Rect2(128, 0, 128, 24)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ee4bf"]
+texture = SubResource("AtlasTexture_qtu10")
+texture_margin_left = 15.0
+texture_margin_top = 9.0
+texture_margin_right = 14.0
+texture_margin_bottom = 5.0
+modulate_color = Color(1, 0.7, 0.7, 1)
+
+[resource]
+default_font = ExtResource("2_cjfk0")
+default_font_size = 16
+Button/font_sizes/font_size = 32
+Button/styles/focus = SubResource("StyleBoxEmpty_0fbet")
+Button/styles/hover = SubResource("StyleBoxTexture_62e2m")
+Button/styles/normal = SubResource("StyleBoxTexture_qtu10")
+Button/styles/pressed = SubResource("StyleBoxTexture_ee4bf")
