@@ -202,6 +202,26 @@ func get_tiled_pos_of(pos: Vector2) -> Vector2i:
 
 func get_position_of_tile(coord: Vector2i) -> Vector2:
 	return tilemap.to_global(tilemap.map_to_local(coord))
+	
+# formula to obtain the maximum velocity given an acceleration (a) and a damping factor (k):
+#	(this is the velocity function. v0 is the initial velocity)
+#	v(x) = v0*k^x + a*k + a*k^2 + a*k^3 + a*k^4 + ... + a*k^n
+#	
+#	lim v(x) as x -> inf = a / (1 - k) - a, as:
+#		- a + a*k + a*k^2 + a*k^3 + a*k^4 + ... + a*k^n is a geometric series.
+#		  the limit of this series is a / (1 - k). subtract a to remove the first term.
+#		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if k >= 1, limit
+#		  approaches infinity.
+func calc_velocity_limit(acceleration: float, damping: float) -> float:
+	if damping >= 1.0:
+		push_error("velocity limit approaches infinity")
+		return INF
+	
+	if damping < 0.0:
+		push_error("velocity limit does not exist")
+		return NAN
+	
+	return acceleration / (1.0 - damping) - acceleration
 
 func update_movement(delta: float) -> void:
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
