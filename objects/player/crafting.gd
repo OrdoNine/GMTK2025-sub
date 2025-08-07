@@ -16,12 +16,7 @@ var enabled: bool :
 				deactivate_active_item()
 				deactivate_item_craft()
 
-const _prefab_bomb = preload("res://objects/player_tools/bomb/bomb.tscn")
-const _prefab_inverse_bomb = preload("res://objects/player_tools/inverse_bomb/inverse_bomb.tscn")
-const _prefab_bridge_maker = preload("res://objects/player_tools/bridge/bridge.tscn")
-const _prefab_spring = preload("res://objects/player_tools/spring/spring.tscn")
-const _prefab_horiz_spring = preload("res://objects/player_tools/horiz_spring/horiz_spring.tscn")
-
+@export var item_table: ItemTable
 const _crafting_sound := preload("res://assets/sounds/crafting.wav")
 const _place_sound := preload("res://assets/sounds/building_place.wav")
 var _sound_player: AudioStreamPlayer
@@ -46,27 +41,22 @@ func play_sound(stream: AudioStream):
 	_sound_player.stream = stream
 	_sound_player.play()
 
-func begin_item_craft(time: float, points: int, prefab: PackedScene):
-	play_sound(_crafting_sound)
-	
-	item_craft_progress = {
-		time_remaining = time,
-		wait_length = time,
-		points = points,
-		prefab = prefab
-	}
-
 func finish_item_craft():
+	play_sound(_place_sound)
 	var inst: Node2D = item_craft_progress.prefab.instantiate()
 	inst.global_position = global_position
 	Global.get_game().add_child(inst)
 	inst.activate()
-	
 	Global.get_game().stamina_points -= item_craft_progress.points
-	
 	item_craft_progress = null
-	_active_item_key = KEY_NONE
-	play_sound(_place_sound)
+	
+	# if active state is not false after activate() was called,
+	# then this is an item that whose crafting button can be held
+	# down further to increase the power of the tool.
+	if inst.is_active():
+		active_item = inst
+	else:
+		_active_item_key = KEY_NONE
 
 func deactivate_item_craft():
 	item_craft_progress = null
@@ -81,6 +71,54 @@ func deactivate_active_item():
 func meets_stamina_requirement(c: int) -> bool:
 	return Global.get_game().stamina_points >= c
 
+func is_player_on_floor() -> bool:
+	var player: CharacterBody2D = get_parent()
+	if player.is_on_floor():
+		return true
+	
+	# check also the the tile below the tile that the player's center is occupied in
+	# is a floor tile. this is so that the bridge item can't place the bridge inside
+	# the ground when you are very close to the ground, but not actually on it.
+	var _tilemap: TileMapLayer = Global.get_game().get_node("Map")
+	var player_tilemap_pos = _tilemap.local_to_map(_tilemap.to_local(player.global_position))
+	return _tilemap.get_cell_source_id(player_tilemap_pos + Vector2i(0, 1)) != -1
+
+func trigger_item_craft(index: int) -> bool:
+	var item_desc := item_table.items[index]
+	if item_desc == null:
+		push_error("index out of range of item table")
+		return false
+	
+	if not meets_stamina_requirement(item_desc.cost):
+		return false
+	
+	if item_desc.only_when_airborne and is_player_on_floor():
+		return false
+	
+	# really this is just so the player doesn't fall through the bridge
+	# immediately after crafting it
+	get_parent().velocity.y = 0.0
+	
+	if item_desc.immediate:
+		item_craft_progress = {
+			time_remaining = 0,
+			wait_length = 0,
+			points = item_desc.cost,
+			prefab = item_desc.item_scene
+		}
+		
+		finish_item_craft()
+	else:
+		play_sound(_crafting_sound)
+		item_craft_progress = {
+			time_remaining = 0.5,
+			wait_length = 0.5,
+			points = item_desc.cost,
+			prefab = item_desc.item_scene
+		}
+	
+	return true
+
 # this is for crafting stuff
 func _input(event: InputEvent) -> void:
 	if not enabled: return
@@ -88,45 +126,30 @@ func _input(event: InputEvent) -> void:
 	var player: CharacterBody2D = get_parent()
 	
 	if event is InputEventKey and not event.is_echo():
-		if active_item == null and item_craft_progress == null:
-			# 1 key: craft bomb
-			if event.pressed and event.keycode == KEY_1 and meets_stamina_requirement(5):
+		if event.pressed and active_item == null and item_craft_progress == null:
+			var item_index_to_craft := \
+				[KEY_1, KEY_2, KEY_3, KEY_4].find(event.keycode)
+		
+			if item_index_to_craft != -1 and trigger_item_craft(item_index_to_craft):
 				_active_item_key = event.keycode
-				begin_item_craft(0.5, 5, _prefab_bomb)
-				
-			# slime bomb
-			# if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
-			# 	_active_item_key = event.keycode
-			# 	begin_item_craft(0.5, 3, _prefab_inverse_bomb)
-				
 			# 2 key: bridge marker (if airborne)
-			elif event.pressed and event.keycode == KEY_2 and not player.is_on_floor() and meets_stamina_requirement(8):
-				# place bridge maker if not on floor
-				var inst: Node2D = _prefab_bridge_maker.instantiate()
-				
-				# place bridge maker on the center of the cell below the player
-				var tilemap: TileMapLayer = Global.get_game().get_node("Map")
-				var player_bottom: Vector2i = global_position + Vector2.DOWN * player.get_node("CollisionShape2D").shape.size.y / 2.0
-				var player_bottom_tile_pos := tilemap.local_to_map(tilemap.to_local(player_bottom))
-				var bridge_maker_placement_tile_pos := player_bottom_tile_pos + Vector2i(0, 1)
-				inst.global_position = tilemap.to_global(tilemap.map_to_local(bridge_maker_placement_tile_pos))
-				
-				Global.get_game().add_child(inst)
-				inst.activate()
-				Global.get_game().stamina_points -= 8
-				
-				active_item = inst
-				_active_item_key = event.keycode
-			
-			# 3 key: spring
-			elif event.pressed and event.keycode == KEY_3 and meets_stamina_requirement(6):
-				_active_item_key = event.keycode
-				begin_item_craft(0.5, 6, _prefab_spring)
-				
-			# 4 key: horiz spring
-			elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
-				_active_item_key = event.keycode
-				begin_item_craft(0.5, 6, _prefab_horiz_spring)
+			#elif event.pressed and event.keycode == KEY_2 and not player.is_on_floor() and meets_stamina_requirement(8):
+				## place bridge maker if not on floor
+#22				var inst: Node2D = item_table.find_item("bridge").instantiate()
+				#
+				## place bridge maker on the center of the cell below the player
+				#var tilemap: TileMapLayer = Global.get_game().get_node("Map")
+				#var player_bottom: Vector2i = global_position + Vector2.DOWN * player.get_node("CollisionShape2D").shape.size.y / 2.0
+				#var player_bottom_tile_pos := tilemap.local_to_map(tilemap.to_local(player_bottom))
+				#var bridge_maker_placement_tile_pos := player_bottom_tile_pos + Vector2i(0, 1)
+				#inst.global_position = tilemap.to_global(tilemap.map_to_local(bridge_maker_placement_tile_pos))
+				#
+				#Global.get_game().add_child(inst)
+				#inst.activate()
+				#Global.get_game().stamina_points -= 8
+				#
+				#active_item = inst
+				#_active_item_key = event.
 		
 		elif event.is_released() and event.keycode == _active_item_key:
 			if active_item != null:

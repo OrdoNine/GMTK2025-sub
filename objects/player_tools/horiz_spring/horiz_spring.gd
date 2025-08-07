@@ -11,3 +11,6 @@ func on_body_entered(body: Node):
 func activate():
 	await get_tree().create_timer(0.1).timeout
 	_bounce_area.body_entered.connect(on_body_entered)
+
+func is_active():
+	return false

@@ -81,6 +81,8 @@ func game_reset(_new_round: bool):
 	
 	_new_anim = "idle"
 	_was_on_floor = true
+	
+	$ItemCrafter.reset()
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
@@ -202,7 +204,11 @@ func update_movement(delta: float) -> void:
 		
 		PlayerState.CRAFTING:
 			_new_anim = "hurt"
-			velocity = Vector2.ZERO
+			velocity += get_gravity() * delta
+			
+			velocity.x = 0.0
+			if not item_crafter.active_item:
+				velocity.y = 0.0
 			
 			if not item_crafter.is_active_or_crafting:
 				current_state = PlayerState.FREEMOVE

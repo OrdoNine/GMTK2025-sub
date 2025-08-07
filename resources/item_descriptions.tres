@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="ItemTable" load_steps=11 format=3 uid="uid://d04t1ovvv1pe6"]
+
+[ext_resource type="Script" uid="uid://il8056th70y6" path="res://scripts/resources/item_description.gd" id="1_t4463"]
+[ext_resource type="PackedScene" uid="uid://b0abxmeyedi4a" path="res://objects/player_tools/bomb/bomb.tscn" id="2_5u0bn"]
+[ext_resource type="Script" uid="uid://c1rqabtggw06f" path="res://scripts/resources/item_table.gd" id="2_rokxx"]
+[ext_resource type="PackedScene" uid="uid://belsygxt1sd7w" path="res://objects/player_tools/bridge/bridge.tscn" id="3_5u0bn"]
+[ext_resource type="PackedScene" uid="uid://sh543jbopukr" path="res://objects/player_tools/spring/spring.tscn" id="4_y465p"]
+[ext_resource type="PackedScene" uid="uid://dptp358pg8el5" path="res://objects/player_tools/horiz_spring/horiz_spring.tscn" id="5_hvwlg"]
+
+[sub_resource type="Resource" id="Resource_y465p"]
+script = ExtResource("1_t4463")
+id = "bomb"
+name = "Bomb"
+cost = 5
+immediate = false
+only_when_airborne = false
+item_scene = ExtResource("2_5u0bn")
+metadata/_custom_type_script = "uid://il8056th70y6"
+
+[sub_resource type="Resource" id="Resource_hvwlg"]
+script = ExtResource("1_t4463")
+id = "bridge"
+name = "Bridge"
+cost = 8
+immediate = true
+only_when_airborne = true
+item_scene = ExtResource("3_5u0bn")
+metadata/_custom_type_script = "uid://il8056th70y6"
+
+[sub_resource type="Resource" id="Resource_3yuas"]
+script = ExtResource("1_t4463")
+id = "spring"
+name = "Spring"
+cost = 6
+immediate = false
+only_when_airborne = false
+item_scene = ExtResource("4_y465p")
+metadata/_custom_type_script = "uid://il8056th70y6"
+
+[sub_resource type="Resource" id="Resource_yjiy2"]
+script = ExtResource("1_t4463")
+id = "booster"
+name = "Booster"
+cost = 6
+immediate = false
+only_when_airborne = false
+item_scene = ExtResource("5_hvwlg")
+metadata/_custom_type_script = "uid://il8056th70y6"
+
+[resource]
+script = ExtResource("2_rokxx")
+items = Array[ExtResource("1_t4463")]([SubResource("Resource_y465p"), SubResource("Resource_hvwlg"), SubResource("Resource_3yuas"), SubResource("Resource_yjiy2")])
+metadata/_custom_type_script = "uid://c1rqabtggw06f"

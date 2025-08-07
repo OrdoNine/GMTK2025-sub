@@ -56,6 +56,9 @@ func fill_radius(radius: float) -> void:
 func activate():
 	_timer = 0.5
 
+func is_active():
+	return false
+
 func _physics_process(delta: float) -> void:
 	if _is_exploding:
 		if _current_explosion_radius >= EXPLOSION_RADIUS:

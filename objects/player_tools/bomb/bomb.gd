@@ -54,6 +54,9 @@ func explode() -> void:
 func activate():
 	_timer = 1.0
 
+func is_active():
+	return false
+
 func _physics_process(delta: float) -> void:
 	if _timer <= 0.0: return
 	

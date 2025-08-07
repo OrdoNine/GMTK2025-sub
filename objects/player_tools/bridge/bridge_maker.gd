@@ -21,7 +21,12 @@ func _ready():
 	_tilemap = get_node("../Map")
 
 func activate() -> void:
-	var start = _tilemap.local_to_map(_tilemap.to_local(global_position))
+	# i want the bridge maker to be placed directly below the player
+	# and aligned to the tilemap grid
+	var player_height := _tilemap.tile_set.tile_size.y # assumed player height
+	var bottom := global_position + Vector2.DOWN * (player_height + 0.01)
+	var start = _tilemap.local_to_map(_tilemap.to_local(bottom))
+	global_position = _tilemap.to_global(_tilemap.map_to_local(start))
 	
 	# place initial block
 	if _tilemap.get_cell_source_id(start) == -1:
@@ -40,9 +45,14 @@ func activate() -> void:
 func deactivate() -> void:
 	left_active = false
 	right_active = false
+	
+func is_active():
+	return active
 
 func _physics_process(delta: float) -> void:
-	if not active: return
+	if not active:
+		queue_free()
+		return
 	
 	_expansion_wait -= delta
 	if _expansion_wait <= 0.0:
