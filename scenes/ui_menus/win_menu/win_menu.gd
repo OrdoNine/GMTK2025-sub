@@ -3,7 +3,7 @@ extends Control
 func _ready() -> void:
 	Global.gamemode_changed.connect(_on_gamemode_changed);
 
-func _on_gamemode_changed(from_state: Global.GameState, to_state: Global.GameState) -> void:
+func _on_gamemode_changed(_from_state: Global.GameState, to_state: Global.GameState) -> void:
 	self.visible = to_state == Global.GameState.WIN_STATE;
 	if self.visible:
 		$Rounds.text = "Rounds: " + str(Global.round_number)

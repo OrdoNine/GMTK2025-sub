@@ -37,3 +37,5 @@ func _instanciate_collectable_from(collectables_map : TileMapLayer) -> void:
 				var instance : Node2D = collectable_obj.instantiate()
 				instance.position = collectables_map.map_to_local(tile_pos)
 				self.add_child(instance)
+			elif tile_pos_in_atlas != Vector2i(-1, -1):
+				push_error("Can't create a collectable without associated object!\nAtlas Position: ", tile_pos_in_atlas);
