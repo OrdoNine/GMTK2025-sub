@@ -29,7 +29,6 @@ enum PlayerState {
 const jump_sound := preload("res://assets/sounds/jump.wav")
 const landing_sound := preload("res://assets/sounds/land.wav")
 const hurt_sound := preload("res://assets/sounds/hurt.wav")
-const crafting_sound := preload("res://assets/sounds/crafting.wav")
 const building_place_sound := preload("res://assets/sounds/building_place.wav")
 const boost_sound := preload("res://assets/sounds/boost.wav")
 
@@ -55,54 +54,11 @@ var _was_on_floor := true
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../Map")
 
-const _prefab_bomb = preload("res://objects/player_tools/bomb/bomb.tscn")
-const _prefab_inverse_bomb = preload("res://objects/player_tools/inverse_bomb/inverse_bomb.tscn")
-const _prefab_bridge_maker = preload("res://objects/player_tools/bridge/bridge.tscn")
-const _prefab_spring = preload("res://objects/player_tools/spring/spring.tscn")
-const _prefab_horiz_spring = preload("res://objects/player_tools/horiz_spring/horiz_spring.tscn")
-
-var _item_craft_progress = null
-var _active_bridge_maker: Node2D = null
-var _active_item_key := KEY_NONE
-var _crafting_sound_player: AudioStreamPlayer
 var _active_sounds: Array[AudioStreamPlayer] = []
-
-func begin_item_craft(time: float, points: int, prefab: PackedScene):
-	_crafting_sound_player.play()
-	
-	_item_craft_progress = {
-		time_remaining = time,
-		wait_length = time,
-		points = points,
-		prefab = prefab
-	}
-
-func finish_item_craft():
-	var inst: Node2D = _item_craft_progress.prefab.instantiate()
-	inst.global_position = global_position
-	add_sibling(inst)
-	inst.activate()
-	
-	Global.get_game().stamina_points -= _item_craft_progress.points
-	
-	_item_craft_progress = null
-	_active_item_key = KEY_NONE
-	play_sound(building_place_sound)
-	_crafting_sound_player.stop()
-
-func deactivate_item_craft():
-	_item_craft_progress = null
-	_active_item_key = KEY_NONE
-	_crafting_sound_player.stop()
 
 func _ready() -> void:
 	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
-	
-	# create crafting sound player
-	_crafting_sound_player = AudioStreamPlayer.new()
-	_crafting_sound_player.stream = crafting_sound
-	add_child(_crafting_sound_player)
 
 # this will reset the entire player state
 func game_reset(_new_round: bool):
@@ -123,9 +79,6 @@ func game_reset(_new_round: bool):
 	_iframe_timer = 0.0
 	_ignore_grounded_on_this_frame = false
 	
-	_item_craft_progress = null
-	_active_bridge_maker = null
-	_active_item_key = KEY_NONE
 	_new_anim = "idle"
 	_was_on_floor = true
 
@@ -140,68 +93,6 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 	
 	if _deadly_area_count == 0:
 		is_taking_damage = false
-
-func deactivate_active_item():
-	if _active_bridge_maker != null:
-		_active_bridge_maker.deactivate()
-		_active_bridge_maker = null
-
-func meets_stamina_requirement(c: int) -> bool:
-	return Global.get_game().stamina_points >= c
-
-# this is for crafting stuff
-func _input(event: InputEvent) -> void:
-	if current_state != PlayerState.STUNNED:
-		if event is InputEventKey and not event.is_echo():
-			if _active_bridge_maker == null and _item_craft_progress == null:
-				# 1 key: craft bomb
-				if event.pressed and event.keycode == KEY_1 and meets_stamina_requirement(5):
-					_active_item_key = event.keycode
-					begin_item_craft(0.5, 5, _prefab_bomb)
-					
-				# slime bomb
-				# if event.pressed and event.keycode == KEY_2 and meets_stamina_requirement(3):
-				# 	_active_item_key = event.keycode
-				# 	begin_item_craft(0.5, 3, _prefab_inverse_bomb)
-					
-				# 2 key: bridge marker (if airborne)
-				elif event.pressed and event.keycode == KEY_2 and not is_on_floor() and meets_stamina_requirement(8):
-					# place bridge maker if not on floor
-					velocity.x = 0.0
-					var inst: Node2D = _prefab_bridge_maker.instantiate()
-					
-					# place bridge maker on the center of the cell below the player
-					var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
-					inst.global_position = get_position_of_tile((get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
-					add_sibling(inst)
-					inst.activate()
-					Global.get_game().stamina_points -= 8
-					
-					_active_bridge_maker = inst
-					_active_item_key = event.keycode
-				
-				# 3 key: spring
-				elif event.pressed and event.keycode == KEY_3 and meets_stamina_requirement(6):
-					_active_item_key = event.keycode
-					begin_item_craft(0.5, 6, _prefab_spring)
-					
-				# 4 key: horiz spring
-				elif event.pressed and event.keycode == KEY_4 and meets_stamina_requirement(6):
-					_active_item_key = event.keycode
-					begin_item_craft(0.5, 6, _prefab_horiz_spring)
-			
-			elif event.is_released() and event.keycode == _active_item_key:
-				if _active_bridge_maker != null:
-					deactivate_active_item()
-					
-				if _item_craft_progress != null:
-					deactivate_item_craft()
-
-func get_tiled_pos_of(pos: Vector2) -> Vector2i:
-	return tilemap.local_to_map(tilemap.to_local(pos))
-
-func get_position_of_tile(coord: Vector2i) -> Vector2:
-	return tilemap.to_global(tilemap.map_to_local(coord))
 	
 # formula to obtain the maximum velocity given an acceleration (a) and a damping factor (k):
 #	(this is the velocity function. v0 is the initial velocity)
@@ -224,8 +115,10 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	return acceleration / (1.0 - damping) - acceleration
 
 func update_movement(delta: float) -> void:
+	var item_crafter := $ItemCrafter
+	
 	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
-	if _active_bridge_maker != null:
+	if item_crafter.is_active_or_crafting:
 		can_jump = false
 	
 	if can_jump:
@@ -259,7 +152,7 @@ func update_movement(delta: float) -> void:
 	
 	# calculate move direction
 	var move_dir := 0
-	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null
+	var is_control_revoked: bool = item_crafter.is_active_or_crafting
 	if not is_control_revoked:
 		if Input.is_action_pressed("player_right"):
 			move_dir += 1
@@ -311,7 +204,7 @@ func update_movement(delta: float) -> void:
 			_new_anim = "hurt"
 			velocity = Vector2.ZERO
 			
-			if _item_craft_progress == null:
+			if not item_crafter.is_active_or_crafting:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLSLIDE:
@@ -393,18 +286,12 @@ func _physics_process(delta: float) -> void:
 		return
 	
 	var sprite: AnimatedSprite2D = $AnimatedSprite2D
+	var item_crafter := $ItemCrafter
+	
 	_new_anim = "idle"
 	
-	# if bridge maker is no longer active, then deactivate the tracking of it
-	if _active_bridge_maker != null and not _active_bridge_maker.active:
-		_active_bridge_maker = null
-	
-	# update item craft progress
-	if _item_craft_progress != null:
+	if item_crafter.is_active_or_crafting:
 		current_state = PlayerState.CRAFTING
-		_item_craft_progress.time_remaining -= delta
-		if _item_craft_progress.time_remaining <= 0.0:
-			finish_item_craft()
 	
 	# taking damage
 	if is_taking_damage and _iframe_timer <= 0.0:
@@ -412,13 +299,10 @@ func _physics_process(delta: float) -> void:
 		_iframe_timer = IFRAME_LENGTH
 		current_state = PlayerState.STUNNED
 		velocity = Vector2(0, -200)
-		deactivate_active_item()
-		_item_craft_progress = null
 		play_sound(hurt_sound)
 	
-	# update iframe time
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
-
+	item_crafter.enabled = current_state != PlayerState.STUNNED
 	update_movement(delta)
 	
 	# update sprite animation
@@ -452,8 +336,9 @@ func _process(_delta: float) -> void:
 			# crafting animation will stretch out the player a little bit
 			# stretching increases as it gets closer to being finished
 			var sprite := $AnimatedSprite2D
-			if _item_craft_progress != null:
-				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
+			var item_craft_progress = $ItemCrafter.item_craft_progress
+			if item_craft_progress != null:
+				var t: float = 1.0 - item_craft_progress.time_remaining / item_craft_progress.wait_length
 				sprite.scale = Vector2(
 					pow(2, t * 0.4),
 					pow(2, -t * 0.4)
