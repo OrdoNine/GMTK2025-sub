@@ -358,15 +358,13 @@ process_mode = 1
 position = Vector2(-1656, -128)
 collision_layer = 2
 script = ExtResource("2_bo1nx")
-walk_acceleration = 3800.0
-speed_damping = 0.8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 shape = SubResource("RectangleShape2D_8gbba")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Player"]
 sprite_frames = SubResource("SpriteFrames_s8vy0")
-animation = &"fall"
+animation = &"idle"
 
 [node name="WinArea" type="Area2D" parent="."]
 position = Vector2(1688, -176)
