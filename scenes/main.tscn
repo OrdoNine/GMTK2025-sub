@@ -364,7 +364,7 @@ shape = SubResource("RectangleShape2D_8gbba")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Player"]
 sprite_frames = SubResource("SpriteFrames_s8vy0")
-animation = &"idle"
+animation = &"wallslide"
 
 [node name="WinArea" type="Area2D" parent="."]
 position = Vector2(1688, -176)

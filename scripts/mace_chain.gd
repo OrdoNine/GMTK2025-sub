@@ -34,6 +34,8 @@ var curve := Curve2D.new()
 var completion := 0.0 #how much of the curve we completed (distance)
 var loops := 0 #how many times have we completed the same loop 
 
+var debug_pause : bool = false;
+
 func _ready() -> void:
 	mace_start = mace.global_position
 	Global.game_new_loop.connect(game_reset)
@@ -61,32 +63,35 @@ func game_reset(_new_round: bool):
 	emit_signal("completed_loop")
 
 func _process(delta: float) -> void:
-	if mace:
-		if completion >= loop_dist:
-			completion = 0
-			loops += 1
-			emit_signal("completed_loop")
-			
-		if completion < 0:
-			if current_loop and last_pattern.move:
-				changePattern(mace_range, last_pattern.rotation, last_pattern.move, last_pattern.advanced, last_pattern.position)
-				completion = loop_dist
-				current_loop = false
-			else:
-				completion = 0
+	if !mace: return;
+	if Input.is_key_pressed(KEY_P):
+		debug_pause = !debug_pause;
+	if debug_pause: return;
+	
+	if completion >= loop_dist:
+		completion = 0
+		loops += 1
+		emit_signal("completed_loop")
 		
-		if knockback > 0:
-			mace_vel = move_toward(mace_vel, -mace_speed, knockback/mace_accel * delta)
-			knockback = move_toward(knockback, 0, mace_accel)
+	if completion < 0:
+		if current_loop and last_pattern.move:
+			changePattern(mace_range, last_pattern.rotation, last_pattern.move, last_pattern.advanced, last_pattern.position)
+			completion = loop_dist
+			current_loop = false
 		else:
-			if reversed:
-				reversed = false
-			mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
-		
-		var dist = mace_vel
-		completion += dist
-		
-		mace.global_position = curve.sample_baked(completion)
+			completion = 0
+	
+	if knockback > 0:
+		mace_vel = move_toward(mace_vel, -mace_speed, knockback/mace_accel * delta)
+		knockback = move_toward(knockback, 0, mace_accel)
+	else:
+		reversed = false
+		mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
+	
+	var dist = mace_vel
+	completion += dist
+	
+	mace.global_position = curve.sample_baked(completion)
 
 func _on_completed_loop() -> void:
 	if current_loop:

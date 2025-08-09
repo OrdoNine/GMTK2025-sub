@@ -17,24 +17,34 @@ const _prefab_spring = preload("res://objects/realized-items/spring/spring.tscn"
 const _prefab_horiz_spring = preload("res://objects/realized-items/horiz_spring/horiz_spring.tscn")
 
 # Constructs
-## Consists of various states of Player according to which different actions happen in the script.
+## Consists of various states of Player according to which different actions happen in the script. [br]
+## Variants:[br]
+## FREEMOVE: normal grounded/mid-air movement mode[br]
+## WALLSLIDE: currently wallsliding[br]
+## WALLJUMP: jump from a wallslide. diminished mid-air control[br]
+## CRAFTING: crafting a powerup[br]
+## STUNNED: control is revoked for a short time when player takes damage[br]
 enum PlayerState {
-	## normal grounded/mid-air movement mode
 	FREEMOVE, 
-	## currently wallsliding
 	WALLSLIDE,
-	## jump from a wallslide. diminished mid-air control
 	WALLJUMP,
-	## crafting a powerup
 	CRAFTING,
-	## control is revoked for a short time when player takes damage
 	STUNNED,
 }
 
-## The current state of the player.
-var current_state := PlayerState.FREEMOVE
+enum PowerupType {
+	BOOSTER,
+	SPRING,
+	BOMB,
+	BRIDGE
+}
 
-# Variables # TODO: Order and move variables. The current one is based on guesswork, ngl
+## The current state of the player.
+var current_state := PlayerState.FREEMOVE;
+
+## The previous state of the player.
+var previous_state : PlayerState = PlayerState.FREEMOVE;
+
 # Movement related variables & constants
 ## The time which is given after the moment you no longer can jump, in which you may jump anyway.
 ## Example: If you failed the last moment jump by a millisecond, you are still fine and we'll let you jump.
@@ -51,47 +61,47 @@ var _cayote_jump_timer := 0.0
 ## The time it takes for the player to complete a jump.
 @export_range(0.1, 10)  var _jump_length := 0.5
 
-## Acceleration in FreeMove. Normal Movements and Jumping from floor.
-@export_range(0, 10000) var _walk_acceleration := 1400.0
-
-## Friction in FreeMove. Normal Movements and Jumping from floor.
-@export_range(0, 1)     var _speed_damping := 0.92
-
 ## The damping of jumping velocity. Useful to control the variable jump height.
 @export_range(0.0, 1.0) var _early_jump_damp := 0.5
-
-@export_group("Wall Slide, Jump")
 
 ## The multiplier limit that forces wall slide speed not to increase indefinitely.
 @export_range(0, 10000) var _wall_slide_speed_limit = 4.0
 
-## The velocity in the x axis, while jumping from a wall.
-@export_range(0, 10000) var _wall_jump_x_velocity = 230.0
-
-## Friction in Wall Jump. Movements in air, while jumping from a wall.
-@export_range(0, 10000) var _wall_jump_damping = 0.98
-
-## Acceleration in Wall Jump. Movements in air, while jumping from a wall.
-@export_range(0, 10000) var _wall_jump_acceleration = 450.0
+## The velocity boost in the x axis, while wall jumping.
+@export_range(0, 10000) var _wall_jump_initial_xboost = 230.0
 
 ## Remaining Percentage of Jump Remaining. 0: Jump has been completed. 1: Jump has not been completed.
-var _jump_remaining = 0.0
+var _jump_remaining = 0.0;
 
-## Records the last direction
-var _last_move_dir: int = 0
+## If jumped from or is on some wall, then it is the direction away from the wall with player being at the origin.
+var _wall_away_direction : int = 0;
 
-## If jumped from or is on some wall, then it is the direction away from the wall.
-var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
+## A map from player state to acceleration used.
+var _player_state_to_acceleration : Dictionary[PlayerState, float] = {
+	PlayerState.FREEMOVE: 1400,
+	PlayerState.WALLSLIDE: 1400,
+	PlayerState.WALLJUMP: 450,
+	PlayerState.CRAFTING: 0,
+	PlayerState.STUNNED: 0.
+}
 
-# Animation related variables & constants
+## A map from player state to initial xvel used.
+var _player_state_to_initial_xvel: Dictionary[PlayerState, float] = {
+	PlayerState.FREEMOVE: NAN,
+	PlayerState.WALLSLIDE: NAN,
+	PlayerState.WALLJUMP: NAN,
+	PlayerState.CRAFTING: 0,
+	PlayerState.STUNNED: 0.
+}
 
-## The time after death when you are invincible to spikes and such.
-const _INVINCIBILITY_FRAMES_LENGTH := 3.0 # must be longer than stun length # TODO: Fix its dependency on _DAMAGE_STUN_LENGTH
-
-## A variable to track time from the last time you got hurt from a spike. Animation Purposes
-var _invincibility_frames_timer: float = 0.0
-
-var _new_anim := "idle"
+## A map from player state to damping used.
+var _player_state_to_damping: Dictionary[PlayerState, float] = {
+	PlayerState.FREEMOVE: 0.92,
+	PlayerState.WALLSLIDE: 0.92,
+	PlayerState.WALLJUMP: 0.98,
+	PlayerState.CRAFTING: 0,
+	PlayerState.STUNNED: 0,
+}
 
 # Other variables and constants. Mysterious ngl. why the f*** there are so many variables.
 ## A stream player for crafting sound separately. (So that you could stop the crafting sound early)
@@ -101,19 +111,25 @@ var _crafting_sound_player: AudioStreamPlayer
 var _active_sounds: Array[AudioStreamPlayer] = []
 
 ## The time after you got stunned, where you stay stunned.
-const _DAMAGE_STUN_LENGTH := 2.0
+const _STUN_LENGTH := 2.0
 
 ## A variable to track time from the last moment you got stunned.
 var _stun_timer: float = 0.0
 
+## The time after death when you are invincible to spikes and such.
+const _INVINCIBILITY_FRAMES_LENGTH := 3.0 # must be longer than stun length # TODO: Fix its dependency on _STUN_LENGTH
+
+## A variable to track time from the last time you got hurt from a spike. Animation Purposes
+var _invincibility_frames_timer: float = 0.0
+
 ## A variable to track the number of slimes in your inventory.
 var slimes_collected: int = 0
 
-## A variable to track the direction you are facing. # TODO: Check if you can somehow merge this and move_dir
-var facing_direction: int = 1 # 1: right, -1: left
+## A variable to track the direction you are facing.
+var facing_direction: int = 1;
 
 ## A variable to track if we are taking damage. # TODO: Check if you could remove this variable.
-var is_taking_damage: bool = false
+var _can_be_stunned: bool = false
 
 ## A variable to track the cardinality of deadly area, the player is in, to know about giving a stun.
 var _deadly_area_count: int = 0
@@ -138,23 +154,39 @@ var _active_bridge_maker: Node2D = null
 
 ## Tracking the event key of the active item to shut it up, afterwards if necessary.
 ## TODO: Check if you can remove it.
-var _active_item_key := KEY_NONE
+var _active_powerup_key := KEY_NONE
+
+var keys_to_powerup : Dictionary[Key, PowerupType] = {
+	KEY_1: PowerupType.BOMB,
+	KEY_2: PowerupType.BRIDGE,
+	KEY_3: PowerupType.SPRING,
+	KEY_4: PowerupType.BOOSTER
+};
+
+var powerup_to_slime_cost : Dictionary[PowerupType, int] = {
+	PowerupType.BOMB: 5,
+	PowerupType.BRIDGE: 8,
+	PowerupType.SPRING: 6,
+	PowerupType.BOOSTER: 6,
+};
+
+var just_jumped : bool = false;
+var just_jumped_from_wall : bool = false;
 
 # Public Functions # TODO: Needs REWRITE!!!
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
-		is_taking_damage = true
+		_can_be_stunned = true
 		
 	_deadly_area_count = _deadly_area_count + 1
 func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
 	
 	if _deadly_area_count == 0:
-		is_taking_damage = false
+		_can_be_stunned = false
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
-	_ignore_grounded_on_this_frame = true
 	_play_sound(_boost_sound)
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
@@ -175,104 +207,30 @@ func _ready() -> void: # TODO: Rewrite
 	_crafting_sound_player = AudioStreamPlayer.new()
 	_crafting_sound_player.stream = _crafting_sound
 	add_child(_crafting_sound_player)
+
 func _input(event: InputEvent) -> void:
 	if event is not InputEventKey or event.is_echo(): return;
 	if current_state == PlayerState.STUNNED: return;
 	
-	# TODO: Gotta come back here again. So coupled AAH
-	if _active_bridge_maker == null and _item_craft_progress == null:
-		# 1 key: craft bomb
-		if event.pressed and event.keycode == KEY_1 and _meets_stamina_requirement(5):
-			_active_item_key = event.keycode
-			_begin_item_craft(0.5, 5, _prefab_bomb)
-			
-		# slime bomb # TODO: Think about this code's existence
-		# if event.pressed and event.keycode == KEY_2 and _meets_stamina_requirement(3):
-		# 	_active_item_key = event.keycode
-		# 	_begin_item_craft(0.5, 3, _prefab_inverse_bomb)
-			
-		# 2 key: bridge marker (if airborne)
-		elif event.pressed and event.keycode == KEY_2 and not is_on_floor() and _meets_stamina_requirement(8):
-			# place bridge maker if not on floor
-			velocity.x = 0.0
-			_active_bridge_maker = _prefab_bridge_maker.instantiate()
-			
-			# place bridge maker on the center of the cell below the player
-			var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
-			_active_bridge_maker.global_position = _get_position_of_tile((_get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
-			add_sibling(_active_bridge_maker)
-			_active_bridge_maker.activate()
-			slimes_collected -= 8
-			
-			_active_item_key = event.keycode
-		
-		# 3 key: spring
-		elif event.pressed and event.keycode == KEY_3 and _meets_stamina_requirement(6):
-			_active_item_key = event.keycode
-			_begin_item_craft(0.5, 6, _prefab_spring)
-			
-		# 4 key: horiz spring
-		elif event.pressed and event.keycode == KEY_4 and _meets_stamina_requirement(6):
-			_active_item_key = event.keycode
-			_begin_item_craft(0.5, 6, _prefab_horiz_spring)
-	elif event.is_released() and event.keycode == _active_item_key:
-		if _active_bridge_maker != null:
-			_deactivate_active_item()
-			
-		if _item_craft_progress != null:
-			_deactivate_item_craft()
+	var items_are_active : bool = _active_bridge_maker != null or _item_craft_progress != null;
+	if not items_are_active and event.is_released() and event.keycode == _active_powerup_key:
+		_stop_powerups_if_using();
+		return;
+	
+	if not event.pressed: return;
+	var powerup = keys_to_powerup.get(event.keycode);
+	if powerup == null: return;
+	if slimes_collected < powerup_to_slime_cost[powerup]: return;
+	_active_powerup_key = event.keycode;
+	_use_powerup(powerup);
+
 func _physics_process(delta: float) -> void:
-	# debug fly # THE WHAT? didn't know this existed # TODO: Check out this section later. idk, the codebase aah...
-	if OS.is_debug_build() and Input.is_key_pressed(KEY_SHIFT):
-		const fly_speed := 1200.0
-		if Input.is_action_pressed("player_right"):
-			position.x += fly_speed * delta
-		if Input.is_action_pressed("player_left"):
-			position.x -= fly_speed * delta
-		if Input.is_action_pressed("player_up"):
-			position.y -= fly_speed * delta
-		if Input.is_action_pressed("player_down"):
-			position.y += fly_speed * delta
-		return
+	_handle_player_items(delta);
+	_handle_player_controls(delta);
+	_handle_player_visuals();
+	_handle_player_sounds();
 
-	var sprite: AnimatedSprite2D = $AnimatedSprite2D
-	_new_anim = "idle"
-	
-	# if bridge maker is no longer active, then deactivate the tracking of it
-	# DKP: Ok so is that really necessary?
-	if _active_bridge_maker != null and not _active_bridge_maker.active:
-		_active_bridge_maker = null
-	
-	# update item craft progress
-	if _item_craft_progress != null:
-		current_state = PlayerState.CRAFTING
-		_item_craft_progress.time_remaining -= delta
-		if _item_craft_progress.time_remaining <= 0.0:
-			_finish_item_craft()
-	
-	# taking damage
-	if is_taking_damage and _invincibility_frames_timer <= 0.0:
-		_stun_timer = _DAMAGE_STUN_LENGTH
-		_invincibility_frames_timer = _INVINCIBILITY_FRAMES_LENGTH
-		current_state = PlayerState.STUNNED
-		velocity = Vector2(0, -200)
-		_deactivate_active_item()
-		_item_craft_progress = null
-		_play_sound(_hurt_sound)
-	
-	# update iframe time
-	_invincibility_frames_timer = move_toward(_invincibility_frames_timer, 0, delta)
-
-	_update_movement(delta)
-	
-	# update sprite animation
-	
-	sprite.flip_h = facing_direction < 0
-	if sprite.animation != _new_anim:
-		sprite.play(_new_anim)
-
-	_ignore_grounded_on_this_frame = false
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if Global.time_remaining <= 0:
 		kill();
 	
@@ -304,6 +262,8 @@ func _process(_delta: float) -> void:
 			else:
 				visible = true
 			
+			_invincibility_frames_timer = move_toward(_invincibility_frames_timer, 0, delta);
+			
 			# crafting animation will stretch out the player a little bit
 			# stretching increases as it gets closer to being finished
 			var sprite := $AnimatedSprite2D
@@ -334,12 +294,9 @@ func _finish_item_craft():
 	slimes_collected -= _item_craft_progress.points
 	
 	_item_craft_progress = null
-	_active_item_key = KEY_NONE
+	current_state = PlayerState.FREEMOVE;
+	_active_powerup_key = KEY_NONE
 	_play_sound(_building_place_sound)
-	_crafting_sound_player.stop()
-func _deactivate_item_craft():
-	_item_craft_progress = null
-	_active_item_key = KEY_NONE
 	_crafting_sound_player.stop()
 func _game_reset(_new_round: bool):
 	position = _start_pos
@@ -350,177 +307,26 @@ func _game_reset(_new_round: bool):
 	_active_sounds = []
 	
 	facing_direction = 1
-	is_taking_damage = false
+	_can_be_stunned = false
 	current_state = PlayerState.FREEMOVE
 	
 	_jump_remaining = 0.0
-	_last_move_dir = 1
 	_stun_timer = 0.0
 	_invincibility_frames_timer = 0.0
 	_ignore_grounded_on_this_frame = false
 	
 	_item_craft_progress = null
 	_active_bridge_maker = null
-	_active_item_key = KEY_NONE
-	_new_anim = "idle"
+	_active_powerup_key = KEY_NONE
 	_was_on_floor = true
-func _deactivate_active_item():
-	if _active_bridge_maker != null:
-		_active_bridge_maker.deactivate()
-		_active_bridge_maker = null
+
 func _meets_stamina_requirement(c: int) -> bool:
 	return slimes_collected >= c
 func _get_tiled_pos_of(pos: Vector2) -> Vector2i:
 	return tilemap.local_to_map(tilemap.to_local(pos))
 func _get_position_of_tile(coord: Vector2i) -> Vector2:
 	return tilemap.to_global(tilemap.map_to_local(coord))
-func _update_movement(delta: float) -> void:
-	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
-	if _active_bridge_maker != null:
-		can_jump = false
 
-	if can_jump:
-		_cayote_jump_timer = _COYOTE_JUMP_TIME
-	# begin jump
-	if Input.is_action_just_pressed("player_jump") and _cayote_jump_timer > 0.0:
-		var sound := _play_sound(_jump_sound)
-		sound.pitch_scale = 1.0 + randf() * 0.1
-		_jump_remaining = 1.0
-		
-		if _wall_direction != 0:
-			current_state = PlayerState.WALLJUMP
-			facing_direction = _wall_direction
-			velocity.x = _wall_direction * _wall_jump_x_velocity
-			_ignore_grounded_on_this_frame = true
-
-	# for the entire duration of the jump, set y velocity to a factor of _jump_power,
-	# tapering off the longer the jump button is held.
-	# once the jump button is released, stop the jump and dampen the y velocity. makes it
-	# easier to control the height of the jumps
-	var is_jumping: bool = _jump_remaining > 0.0
-	if Input.is_action_pressed("player_jump") and not is_on_ceiling():
-		if _jump_remaining > 0.0:
-			velocity.y = -_jump_power * _jump_remaining
-			_jump_remaining = move_toward(_jump_remaining, 0.0, delta / _jump_length)
-	else:
-		if is_jumping:
-			velocity.y *= _early_jump_damp
-		_jump_remaining = 0.0
-	
-	# calculate move direction
-	var move_dir := 0
-	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null
-	if not is_control_revoked:
-		if Input.is_action_pressed("player_right"):
-			move_dir += 1
-		if Input.is_action_pressed("player_left"):
-			move_dir -= 1
-	
-	# update physics stuff based on current state
-	# its a basic state machine
-	match current_state:
-		PlayerState.FREEMOVE:
-			# apply gravity normally
-			velocity += get_gravity() * delta
-
-			# apply movement direction
-			# velocity.x = move_toward(velocity.x, walk_speed * move_dir, _walk_acceleration * delta);
-			velocity.x += move_dir * (_walk_acceleration * delta)
-			velocity.x *= _speed_damping
-			
-			if is_on_floor():
-				_wall_direction = 0
-				_new_anim = "idle" if move_dir == 0 else "run"
-				
-				if not _was_on_floor:
-					var sound := _play_sound(_landing_sound)
-					if sound:
-						sound.pitch_scale = 1.0 + randf() * 0.2
-			else:
-				_new_anim = "jump" if velocity.y > 0 else "fall"
-			
-			if move_dir != 0:
-				facing_direction = move_dir
-				if is_on_wall_only():
-					current_state = PlayerState.WALLSLIDE
-		
-		PlayerState.STUNNED:
-			_new_anim = "hurt"
-			
-			# apply gravity normally
-			velocity += get_gravity() * delta
-			
-			_stun_timer = move_toward(_stun_timer, 0, delta)
-			if _stun_timer <= 0.0:
-				current_state = PlayerState.FREEMOVE
-		
-		PlayerState.CRAFTING:
-			_new_anim = "hurt"
-			velocity = Vector2.ZERO
-			
-			if _item_craft_progress == null:
-				current_state = PlayerState.FREEMOVE
-		
-		PlayerState.WALLSLIDE:
-			_new_anim = "wallslide"
-			
-			_wall_direction = sign(get_wall_normal().x)
-			facing_direction = _wall_direction
-			_cayote_jump_timer = _COYOTE_JUMP_TIME
-			
-			# no longer on wall, transition into freemove
-			if not is_on_wall_only():
-				current_state = PlayerState.FREEMOVE
-				
-			# wall sliding
-			else:
-				# maintain maximum y velocity while wall sliding
-				var max_y_vel: float = get_gravity().y * delta * _wall_slide_speed_limit
-				velocity += get_gravity() * delta
-				
-				if velocity.y > max_y_vel:
-					velocity.y = max_y_vel
-				
-				# if player wants to move away from the wall, do so here
-				if move_dir != _last_move_dir and move_dir != 0:
-					velocity.x += _walk_acceleration * move_dir * delta
-					velocity.x *= _speed_damping
-					
-				# otherwise... ideally, do nothing. but for some reason i need
-				# to apply a force towards the wall to make it so it's not like 
-				# 0.0001 pixels away from the wall and thus counts it as no longer
-				# on the wall.
-				else:
-					velocity.x = -_wall_direction * 100.0 # please stay on the wall
-
-		PlayerState.WALLJUMP:
-			_new_anim = "jump"
-			
-			# apply gravity normally
-			velocity += get_gravity() * delta
-			
-			# apply movement direction
-			# velocity.x = move_dir * walk_speed
-			
-			if is_on_wall_only() and not _ignore_grounded_on_this_frame:
-				_jump_remaining = 0.0
-				current_state = PlayerState.WALLSLIDE
-				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
-				
-			elif is_on_floor() and not _ignore_grounded_on_this_frame:
-				_jump_remaining = 0.0
-				current_state = PlayerState.FREEMOVE
-				var sound := _play_sound(_landing_sound)
-				if sound:
-					sound.pitch_scale = 1.0 + randf() * 0.2
-			else:
-				velocity.x += move_dir * _wall_jump_acceleration * delta
-				velocity.x *= _wall_jump_damping
-	_last_move_dir = move_dir
-	_was_on_floor = is_on_floor()
-	_cayote_jump_timer = move_toward(_cayote_jump_timer, 0.0, delta)
-	
-	move_and_slide()
 func _play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	if stream == null: return
 	
@@ -539,3 +345,206 @@ func _play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	)
 	
 	return audio_source
+func _use_powerup(powerup: PowerupType):
+	match powerup:
+		PowerupType.BOMB:
+			_begin_item_craft(0.5, 5, _prefab_bomb);
+		PowerupType.BRIDGE:
+			if is_on_floor(): return;
+			# place bridge maker if not on floor
+			velocity.x = 0.0
+			_active_bridge_maker = _prefab_bridge_maker.instantiate()
+			
+			# place bridge maker on the center of the cell below the player
+			var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
+			_active_bridge_maker.global_position = _get_position_of_tile((_get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
+			add_sibling(_active_bridge_maker)
+			_active_bridge_maker.activate()
+			slimes_collected -= 8
+		PowerupType.BOOSTER:
+			_begin_item_craft(0.5, 6, _prefab_horiz_spring)
+		PowerupType.SPRING:
+			_begin_item_craft(0.5, 6, _prefab_spring)
+		_:
+			push_error("You cannot use the ", PowerupType.keys()[powerup], " as there is no code for it's usage!");
+func _stop_powerups_if_using():
+	# Deactivate bridge, if any
+	if _active_bridge_maker != null:
+		_active_bridge_maker.deactivate()
+		_active_bridge_maker = null
+	
+	# Stop Item Craft, if any
+	_item_craft_progress = null
+	_active_powerup_key = KEY_NONE
+	_crafting_sound_player.stop()
+
+func _handle_player_sounds():
+	if not _was_on_floor and is_on_floor():
+		_play_sound(_landing_sound);
+	if just_jumped:
+		_play_sound(_jump_sound);
+		just_jumped = false;
+	if previous_state != PlayerState.STUNNED and current_state == PlayerState.STUNNED:
+		_play_sound(_hurt_sound);
+func _handle_player_controls(delta: float) -> void:
+	var move_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"));
+	
+	if _handle_flight(OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT), delta): return;
+	
+	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null;
+	if is_control_revoked: return;
+
+	if move_dir != 0 and current_state != PlayerState.WALLSLIDE: facing_direction = move_dir;
+	previous_state = current_state;
+	
+	_update_state(move_dir, delta);
+	_handle_jump_and_fall(delta);
+	_handle_horizontal_motion(move_dir, delta);
+	
+	_was_on_floor = is_on_floor();
+	move_and_slide()
+
+func _update_state(move_dir: int, delta: float):
+	match current_state:
+		PlayerState.FREEMOVE:
+			if is_on_floor():
+				_wall_away_direction = 0;
+			if move_dir != 0:
+				facing_direction = move_dir
+				if is_on_wall_only():
+					_wall_away_direction = sign(get_wall_normal().x)
+					facing_direction = _wall_away_direction; 
+					current_state = PlayerState.WALLSLIDE
+		PlayerState.WALLSLIDE:
+			if not is_on_wall_only():
+				current_state = PlayerState.FREEMOVE;
+			if just_jumped_from_wall:
+				current_state = PlayerState.WALLJUMP;
+		PlayerState.WALLJUMP:
+			if is_on_wall_only():
+				_jump_remaining = 0;
+				_wall_away_direction = sign(get_wall_normal().x)
+				facing_direction = _wall_away_direction; 
+				current_state = PlayerState.WALLSLIDE;
+			elif is_on_floor():
+				_jump_remaining = 0;
+				current_state = PlayerState.FREEMOVE;
+		PlayerState.CRAFTING:
+			pass
+		PlayerState.STUNNED:
+			_stun_timer = move_toward(_stun_timer, 0, delta)
+			if _stun_timer <= 0.0 and current_state == PlayerState.STUNNED:  
+				current_state = PlayerState.FREEMOVE;
+
+func _handle_jump_and_fall(delta: float) -> void:
+	if _can_jump(): _cayote_jump_timer = _COYOTE_JUMP_TIME
+	
+	var should_jump : bool = Input.is_action_just_pressed("player_jump") and _cayote_jump_timer > 0.0;
+	if should_jump:
+		just_jumped = true;
+		_jump_remaining = 1.0
+
+		if current_state == PlayerState.WALLSLIDE:
+			facing_direction = _wall_away_direction
+			just_jumped_from_wall = true;
+
+	_cayote_jump_timer = move_toward(_cayote_jump_timer, 0.0, delta)
+	if _jump_remaining > 0.0:
+		var falling_short : bool = not Input.is_action_pressed("player_jump") or is_on_ceiling();
+		if falling_short:
+			velocity.y = _compute_new_velocity(velocity.y, 0, _early_jump_damp, 0, delta);
+			_jump_remaining = 0.0
+		else:
+			velocity.y = _compute_new_velocity(-_jump_power, 0, _jump_remaining, 0, delta);
+	velocity.y = _compute_new_velocity(velocity.y, get_gravity().y, 1, 1, delta);
+	_jump_remaining = move_toward(_jump_remaining, 0.0, delta / _jump_length)
+	
+	if current_state != PlayerState.WALLSLIDE: return;
+	
+	var max_y_vel = get_gravity().y * _wall_slide_speed_limit * delta;
+	if velocity.y > max_y_vel: velocity.y = max_y_vel;
+
+func _handle_horizontal_motion(move_dir: int, delta: float) -> void:
+	if current_state == PlayerState.WALLSLIDE and (move_dir == 0 or move_dir == -_wall_away_direction):
+		velocity.x = -_wall_away_direction;
+		return;
+	var initial_vel : float = _player_state_to_initial_xvel[current_state];
+	var acceleration : float = _player_state_to_acceleration[current_state];
+	var damping : float = _player_state_to_damping[current_state];
+
+	if current_state == PlayerState.WALLJUMP and just_jumped_from_wall:
+		just_jumped_from_wall = false;
+		velocity.x = _wall_away_direction * _wall_jump_initial_xboost;
+
+	if is_nan(initial_vel):
+		velocity.x = _compute_new_velocity(velocity.x, acceleration, damping, move_dir, delta);
+	else:
+		velocity.x = _compute_new_velocity(initial_vel, acceleration, damping, move_dir, delta);
+
+func _handle_flight(flight: bool, delta: float):
+	if !flight: return false;
+	
+	const fly_speed := 1200.0
+	var speed = fly_speed * delta;
+	
+	var x_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
+	position.x += x_dir * speed;
+	
+	var y_dir := int(Input.is_action_pressed("player_down")) - int(Input.is_action_pressed("player_up"))
+	position.y += y_dir * speed;
+
+	return true;
+
+## Computes if the player is able to jump with member variable and methods.
+func _can_jump() -> bool:
+	var can_move_and_is_on_floor : bool = current_state == PlayerState.FREEMOVE and is_on_floor();
+	var on_wall : bool = current_state == PlayerState.WALLSLIDE;
+	var not_making_bridge : bool = _active_bridge_maker == null;
+	return (can_move_and_is_on_floor or on_wall) and not_making_bridge;
+
+func _handle_player_visuals():
+	var sprite = $AnimatedSprite2D;
+	var animation = "idle" if velocity.x == 0 else "run";
+	
+	if velocity.y > 0:
+		animation = "jump";
+	elif velocity.y < 0:
+		animation = "fall";
+
+	if current_state == PlayerState.WALLSLIDE:
+		animation = "wallslide";
+
+	if current_state == PlayerState.STUNNED:
+		animation = "hurt";
+
+	if sprite.animation != animation:
+		sprite.animation = animation;
+		sprite.play();
+
+	if facing_direction != 0:
+		sprite.flip_h = facing_direction < 0;
+
+func _handle_player_items(delta: float):
+	if _active_bridge_maker != null and not _active_bridge_maker.active:
+		_active_bridge_maker = null
+
+	if _item_craft_progress != null:
+		current_state = PlayerState.CRAFTING
+		_item_craft_progress.time_remaining -= delta
+		if _item_craft_progress.time_remaining <= 0.0:
+			_finish_item_craft()
+
+	if _can_be_stunned and _invincibility_frames_timer <= 0.0:
+		_stun_timer = _STUN_LENGTH
+		_invincibility_frames_timer = _INVINCIBILITY_FRAMES_LENGTH
+		current_state = PlayerState.STUNNED
+		velocity = Vector2(0, -200)
+		_stop_powerups_if_using()
+
+static func _compute_new_velocity(init_velocity: float, acceleration: float, damping_factor: float, dir: int, delta: float) -> float:
+	var velocity = init_velocity;
+	
+	velocity += acceleration * dir * delta;
+	velocity *= damping_factor;
+	
+	return velocity;
