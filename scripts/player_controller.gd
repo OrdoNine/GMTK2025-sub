@@ -534,7 +534,7 @@ func _handle_player_items(delta: float):
 		if _item_craft_progress.time_remaining <= 0.0:
 			_finish_item_craft()
 
-	if _can_be_stunned and _invincibility_frames_timer <= 0.0:
+	if _can_be_stunned and _stun_timer == 0 and _invincibility_frames_timer <= 0.0:
 		_stun_timer = _STUN_LENGTH
 		current_state = PlayerState.STUNNED
 		velocity = Vector2(0, -200)
