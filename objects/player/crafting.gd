@@ -53,7 +53,7 @@ func finish_item_craft():
 	# if active state is not false after activate() was called,
 	# then this is an item that whose crafting button can be held
 	# down further to increase the power of the tool.
-	if inst.is_active():
+	if inst.has_method("is_active") and inst.is_active():
 		active_item = inst
 	else:
 		_active_item_key = KEY_NONE
@@ -132,24 +132,6 @@ func _input(event: InputEvent) -> void:
 		
 			if item_index_to_craft != -1 and trigger_item_craft(item_index_to_craft):
 				_active_item_key = event.keycode
-			# 2 key: bridge marker (if airborne)
-			#elif event.pressed and event.keycode == KEY_2 and not player.is_on_floor() and meets_stamina_requirement(8):
-				## place bridge maker if not on floor
-#22				var inst: Node2D = item_table.find_item("bridge").instantiate()
-				#
-				## place bridge maker on the center of the cell below the player
-				#var tilemap: TileMapLayer = Global.get_game().get_node("Map")
-				#var player_bottom: Vector2i = global_position + Vector2.DOWN * player.get_node("CollisionShape2D").shape.size.y / 2.0
-				#var player_bottom_tile_pos := tilemap.local_to_map(tilemap.to_local(player_bottom))
-				#var bridge_maker_placement_tile_pos := player_bottom_tile_pos + Vector2i(0, 1)
-				#inst.global_position = tilemap.to_global(tilemap.map_to_local(bridge_maker_placement_tile_pos))
-				#
-				#Global.get_game().add_child(inst)
-				#inst.activate()
-				#Global.get_game().stamina_points -= 8
-				#
-				#active_item = inst
-				#_active_item_key = event.
 		
 		elif event.is_released() and event.keycode == _active_item_key:
 			if active_item != null:
