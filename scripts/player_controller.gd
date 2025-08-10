@@ -108,7 +108,7 @@ const _STUN_LENGTH := 2.0
 var _stun_timer: float = 0.0
 
 ## The time after death when you are invincible to spikes and such.
-const _INVINCIBILITY_FRAMES_LENGTH := 3.0 # must be longer than stun length # TODO: Fix its dependency on _STUN_LENGTH
+const _INVINCIBILITY_FRAMES_LENGTH := 1.0
 
 ## A variable to track time from the last time you got hurt from a spike. Animation Purposes
 var _invincibility_frames_timer: float = 0.0
@@ -434,7 +434,8 @@ func _update_state(move_dir: int, delta: float):
 			pass
 		PlayerState.STUNNED:
 			_stun_timer = move_toward(_stun_timer, 0, delta)
-			if _stun_timer <= 0.0 and current_state == PlayerState.STUNNED:  
+			if _stun_timer <= 0.0 and current_state == PlayerState.STUNNED:
+				_invincibility_frames_timer = _INVINCIBILITY_FRAMES_LENGTH
 				current_state = PlayerState.FREEMOVE
 
 func _handle_jump_and_fall(delta: float) -> void:
@@ -535,7 +536,6 @@ func _handle_player_items(delta: float):
 
 	if _can_be_stunned and _invincibility_frames_timer <= 0.0:
 		_stun_timer = _STUN_LENGTH
-		_invincibility_frames_timer = _INVINCIBILITY_FRAMES_LENGTH
 		current_state = PlayerState.STUNNED
 		velocity = Vector2(0, -200)
 		_stop_powerups_if_using()
