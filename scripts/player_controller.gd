@@ -25,7 +25,7 @@ const _prefab_horiz_spring = preload("res://objects/realized-items/horiz_spring/
 ## CRAFTING: crafting a powerup[br]
 ## STUNNED: control is revoked for a short time when player takes damage[br]
 enum PlayerState {
-	FREEMOVE, 
+	FREEMOVE,
 	WALLSLIDE,
 	WALLJUMP,
 	CRAFTING,
@@ -40,10 +40,10 @@ enum PowerupType {
 }
 
 ## The current state of the player.
-var current_state := PlayerState.FREEMOVE;
+var current_state := PlayerState.FREEMOVE
 
 ## The previous state of the player.
-var previous_state : PlayerState = PlayerState.FREEMOVE;
+var previous_state : PlayerState = PlayerState.FREEMOVE
 
 # Movement related variables & constants
 ## The time which is given after the moment you no longer can jump, in which you may jump anyway.
@@ -51,7 +51,7 @@ var previous_state : PlayerState = PlayerState.FREEMOVE;
 const _COYOTE_JUMP_TIME := 0.13
 
 ## A variable to track the time since the last moment, you no longer could jump.
-var _cayote_jump_timer := 0.0
+var _coyote_jump_timer := 0.0
 
 @export_group("Normal Movement")
 ## The constant ratio of velocity.y and jump_remaining.
@@ -71,33 +71,24 @@ var _cayote_jump_timer := 0.0
 @export_range(0, 10000) var _wall_jump_initial_xboost = 230.0
 
 ## Remaining Percentage of Jump Remaining. 0: Jump has been completed. 1: Jump has not been completed.
-var _jump_remaining = 0.0;
+var _jump_remaining = 0.0
 
 ## If jumped from or is on some wall, then it is the direction away from the wall with player being at the origin.
-var _wall_away_direction : int = 0;
+var _wall_away_direction : int = 0
 
 ## A map from player state to acceleration used.
 var _player_state_to_acceleration : Dictionary[PlayerState, float] = {
-	PlayerState.FREEMOVE: 1400,
+	PlayerState.FREEMOVE: 3800,
 	PlayerState.WALLSLIDE: 1400,
 	PlayerState.WALLJUMP: 450,
 	PlayerState.CRAFTING: 0,
 	PlayerState.STUNNED: 0.
 }
 
-## A map from player state to initial xvel used.
-var _player_state_to_initial_xvel: Dictionary[PlayerState, float] = {
-	PlayerState.FREEMOVE: NAN,
-	PlayerState.WALLSLIDE: NAN,
-	PlayerState.WALLJUMP: NAN,
-	PlayerState.CRAFTING: 0,
-	PlayerState.STUNNED: 0.
-}
-
 ## A map from player state to damping used.
 var _player_state_to_damping: Dictionary[PlayerState, float] = {
-	PlayerState.FREEMOVE: 0.92,
-	PlayerState.WALLSLIDE: 0.92,
+	PlayerState.FREEMOVE: 0.8,
+	PlayerState.WALLSLIDE: 0.8,
 	PlayerState.WALLJUMP: 0.98,
 	PlayerState.CRAFTING: 0,
 	PlayerState.STUNNED: 0,
@@ -126,7 +117,7 @@ var _invincibility_frames_timer: float = 0.0
 var slimes_collected: int = 0
 
 ## A variable to track the direction you are facing.
-var facing_direction: int = 1;
+var facing_direction: int = 1
 
 ## A variable to track if we are taking damage. # TODO: Check if you could remove this variable.
 var _can_be_stunned: bool = false
@@ -161,17 +152,17 @@ var keys_to_powerup : Dictionary[Key, PowerupType] = {
 	KEY_2: PowerupType.BRIDGE,
 	KEY_3: PowerupType.SPRING,
 	KEY_4: PowerupType.BOOSTER
-};
+}
 
 var powerup_to_slime_cost : Dictionary[PowerupType, int] = {
 	PowerupType.BOMB: 5,
 	PowerupType.BRIDGE: 8,
 	PowerupType.SPRING: 6,
 	PowerupType.BOOSTER: 6,
-};
+}
 
-var just_jumped : bool = false;
-var just_jumped_from_wall : bool = false;
+var just_jumped : bool = false
+var just_jumped_from_wall : bool = false
 
 # Public Functions # TODO: Needs REWRITE!!!
 func on_entered_deadly_area(_area: Area2D) -> void:
@@ -184,19 +175,22 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 	
 	if _deadly_area_count == 0:
 		_can_be_stunned = false
+
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
 	_play_sound(_boost_sound)
+
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.WALLJUMP
 	_ignore_grounded_on_this_frame = true
 	_play_sound(_boost_sound)
+
 func kill() -> void:
 	Global.player_lives -= 1
-	Global.game_state = Global.GameState.GAME_OVER if Global.player_lives == 0 else Global.GameState.DEATH;
+	Global.game_state = Global.GameState.GAME_OVER if Global.player_lives == 0 else Global.GameState.DEATH
 
 # Private Functions
 func _ready() -> void: # TODO: Rewrite
@@ -209,30 +203,30 @@ func _ready() -> void: # TODO: Rewrite
 	add_child(_crafting_sound_player)
 
 func _input(event: InputEvent) -> void:
-	if event is not InputEventKey or event.is_echo(): return;
-	if current_state == PlayerState.STUNNED: return;
+	if event is not InputEventKey or event.is_echo(): return
+	if current_state == PlayerState.STUNNED: return
 	
-	var items_are_active : bool = _active_bridge_maker != null or _item_craft_progress != null;
+	var items_are_active : bool = _active_bridge_maker != null or _item_craft_progress != null
 	if not items_are_active and event.is_released() and event.keycode == _active_powerup_key:
-		_stop_powerups_if_using();
-		return;
+		_stop_powerups_if_using()
+		return
 	
-	if not event.pressed: return;
-	var powerup = keys_to_powerup.get(event.keycode);
-	if powerup == null: return;
-	if slimes_collected < powerup_to_slime_cost[powerup]: return;
-	_active_powerup_key = event.keycode;
-	_use_powerup(powerup);
+	if not event.pressed: return
+	var powerup = keys_to_powerup.get(event.keycode)
+	if powerup == null: return
+	if slimes_collected < powerup_to_slime_cost[powerup]: return
+	_active_powerup_key = event.keycode
+	_use_powerup(powerup)
 
 func _physics_process(delta: float) -> void:
-	_handle_player_items(delta);
-	_handle_player_controls(delta);
-	_handle_player_visuals();
-	_handle_player_sounds();
+	_handle_player_items(delta)
+	_handle_player_controls(delta)
+	_handle_player_visuals()
+	_handle_player_sounds()
 
 func _process(delta: float) -> void:
 	if Global.time_remaining <= 0:
-		kill();
+		kill()
 	
 	if Input.is_action_just_pressed("escape"):
 		if Global.ignore_escape:
@@ -262,7 +256,7 @@ func _process(delta: float) -> void:
 			else:
 				visible = true
 			
-			_invincibility_frames_timer = move_toward(_invincibility_frames_timer, 0, delta);
+			_invincibility_frames_timer = move_toward(_invincibility_frames_timer, 0, delta)
 			
 			# crafting animation will stretch out the player a little bit
 			# stretching increases as it gets closer to being finished
@@ -286,6 +280,7 @@ func _begin_item_craft(time: float, points: int, prefab: PackedScene):
 		points = points,
 		prefab = prefab
 	}
+
 func _finish_item_craft():
 	var inst: Node2D = _item_craft_progress.prefab.instantiate()
 	inst.global_position = global_position
@@ -294,10 +289,11 @@ func _finish_item_craft():
 	slimes_collected -= _item_craft_progress.points
 	
 	_item_craft_progress = null
-	current_state = PlayerState.FREEMOVE;
+	current_state = PlayerState.FREEMOVE
 	_active_powerup_key = KEY_NONE
 	_play_sound(_building_place_sound)
 	_crafting_sound_player.stop()
+
 func _game_reset(_new_round: bool):
 	position = _start_pos
 	velocity = Vector2.ZERO
@@ -322,8 +318,10 @@ func _game_reset(_new_round: bool):
 
 func _meets_stamina_requirement(c: int) -> bool:
 	return slimes_collected >= c
+
 func _get_tiled_pos_of(pos: Vector2) -> Vector2i:
 	return tilemap.local_to_map(tilemap.to_local(pos))
+
 func _get_position_of_tile(coord: Vector2i) -> Vector2:
 	return tilemap.to_global(tilemap.map_to_local(coord))
 
@@ -345,12 +343,13 @@ func _play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	)
 	
 	return audio_source
+
 func _use_powerup(powerup: PowerupType):
 	match powerup:
 		PowerupType.BOMB:
-			_begin_item_craft(0.5, 5, _prefab_bomb);
+			_begin_item_craft(0.5, 5, _prefab_bomb)
 		PowerupType.BRIDGE:
-			if is_on_floor(): return;
+			if is_on_floor(): return
 			# place bridge maker if not on floor
 			velocity.x = 0.0
 			_active_bridge_maker = _prefab_bridge_maker.instantiate()
@@ -366,7 +365,8 @@ func _use_powerup(powerup: PowerupType):
 		PowerupType.SPRING:
 			_begin_item_craft(0.5, 6, _prefab_spring)
 		_:
-			push_error("You cannot use the ", PowerupType.keys()[powerup], " as there is no code for it's usage!");
+			push_error("You cannot use the ", PowerupType.keys()[powerup], " as there is no code for it's usage!")
+
 func _stop_powerups_if_using():
 	# Deactivate bridge, if any
 	if _active_bridge_maker != null:
@@ -380,149 +380,148 @@ func _stop_powerups_if_using():
 
 func _handle_player_sounds():
 	if not _was_on_floor and is_on_floor():
-		_play_sound(_landing_sound);
+		_play_sound(_landing_sound)
 	if just_jumped:
-		_play_sound(_jump_sound);
-		just_jumped = false;
+		_play_sound(_jump_sound)
+		just_jumped = false
 	if previous_state != PlayerState.STUNNED and current_state == PlayerState.STUNNED:
-		_play_sound(_hurt_sound);
-func _handle_player_controls(delta: float) -> void:
-	var move_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"));
-	
-	if _handle_flight(OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT), delta): return;
-	
-	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null;
-	if is_control_revoked: return;
+		_play_sound(_hurt_sound)
 
-	if move_dir != 0 and current_state != PlayerState.WALLSLIDE: facing_direction = move_dir;
-	previous_state = current_state;
+func _handle_player_controls(delta: float) -> void:
+	var move_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
 	
-	_update_state(move_dir, delta);
-	_handle_jump_and_fall(delta);
-	_handle_horizontal_motion(move_dir, delta);
+	if _handle_flight(OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT), delta): return
 	
-	_was_on_floor = is_on_floor();
+	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null
+	if is_control_revoked: return
+
+	if move_dir != 0 and current_state != PlayerState.WALLSLIDE: facing_direction = move_dir
+	previous_state = current_state
+	
+	_update_state(move_dir, delta)
+	_handle_jump_and_fall(delta)
+	_handle_horizontal_motion(move_dir, delta)
+	
+	_was_on_floor = is_on_floor()
 	move_and_slide()
 
 func _update_state(move_dir: int, delta: float):
 	match current_state:
 		PlayerState.FREEMOVE:
 			if is_on_floor():
-				_wall_away_direction = 0;
+				_wall_away_direction = 0
 			if move_dir != 0:
 				facing_direction = move_dir
 				if is_on_wall_only():
 					_wall_away_direction = sign(get_wall_normal().x)
-					facing_direction = _wall_away_direction; 
+					facing_direction = _wall_away_direction 
 					current_state = PlayerState.WALLSLIDE
 		PlayerState.WALLSLIDE:
 			if not is_on_wall_only():
-				current_state = PlayerState.FREEMOVE;
+				current_state = PlayerState.FREEMOVE
 			if just_jumped_from_wall:
-				current_state = PlayerState.WALLJUMP;
+				current_state = PlayerState.WALLJUMP
 		PlayerState.WALLJUMP:
 			if is_on_wall_only():
-				_jump_remaining = 0;
+				_jump_remaining = 0
 				_wall_away_direction = sign(get_wall_normal().x)
-				facing_direction = _wall_away_direction; 
-				current_state = PlayerState.WALLSLIDE;
+				facing_direction = _wall_away_direction 
+				current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
-				_jump_remaining = 0;
-				current_state = PlayerState.FREEMOVE;
+				_jump_remaining = 0
+				current_state = PlayerState.FREEMOVE
 		PlayerState.CRAFTING:
 			pass
 		PlayerState.STUNNED:
 			_stun_timer = move_toward(_stun_timer, 0, delta)
 			if _stun_timer <= 0.0 and current_state == PlayerState.STUNNED:  
-				current_state = PlayerState.FREEMOVE;
+				current_state = PlayerState.FREEMOVE
 
 func _handle_jump_and_fall(delta: float) -> void:
-	if _can_jump(): _cayote_jump_timer = _COYOTE_JUMP_TIME
+	if _can_jump(): _coyote_jump_timer = _COYOTE_JUMP_TIME
 	
-	var should_jump : bool = Input.is_action_just_pressed("player_jump") and _cayote_jump_timer > 0.0;
+	var should_jump : bool = Input.is_action_just_pressed("player_jump") and _coyote_jump_timer > 0.0
 	if should_jump:
-		just_jumped = true;
+		just_jumped = true
 		_jump_remaining = 1.0
 
 		if current_state == PlayerState.WALLSLIDE:
 			facing_direction = _wall_away_direction
-			just_jumped_from_wall = true;
+			just_jumped_from_wall = true
 
-	_cayote_jump_timer = move_toward(_cayote_jump_timer, 0.0, delta)
+	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
 	if _jump_remaining > 0.0:
-		var falling_short : bool = not Input.is_action_pressed("player_jump") or is_on_ceiling();
-		if falling_short:
-			velocity.y = _compute_new_velocity(velocity.y, 0, _early_jump_damp, 0, delta);
+		var jump_stopped_early : bool = not Input.is_action_pressed("player_jump") or is_on_ceiling()
+		if jump_stopped_early:
+			velocity.y *= _early_jump_damp
 			_jump_remaining = 0.0
 		else:
-			velocity.y = _compute_new_velocity(-_jump_power, 0, _jump_remaining, 0, delta);
-	velocity.y = _compute_new_velocity(velocity.y, get_gravity().y, 1, 1, delta);
+			velocity.y = -_jump_power * _jump_remaining
+	
+	velocity += get_gravity() * delta
 	_jump_remaining = move_toward(_jump_remaining, 0.0, delta / _jump_length)
 	
-	if current_state != PlayerState.WALLSLIDE: return;
-	
-	var max_y_vel = get_gravity().y * _wall_slide_speed_limit * delta;
-	if velocity.y > max_y_vel: velocity.y = max_y_vel;
+	if current_state == PlayerState.WALLSLIDE:
+		var max_y_vel = get_gravity().y * _wall_slide_speed_limit * delta
+		if velocity.y > max_y_vel: velocity.y = max_y_vel
 
 func _handle_horizontal_motion(move_dir: int, delta: float) -> void:
 	if current_state == PlayerState.WALLSLIDE and (move_dir == 0 or move_dir == -_wall_away_direction):
-		velocity.x = -_wall_away_direction;
-		return;
-	var initial_vel : float = _player_state_to_initial_xvel[current_state];
-	var acceleration : float = _player_state_to_acceleration[current_state];
-	var damping : float = _player_state_to_damping[current_state];
+		velocity.x = -_wall_away_direction
+		return
+	
+	var acceleration : float = _player_state_to_acceleration[current_state]
+	var damping : float = _player_state_to_damping[current_state]
 
 	if current_state == PlayerState.WALLJUMP and just_jumped_from_wall:
-		just_jumped_from_wall = false;
-		velocity.x = _wall_away_direction * _wall_jump_initial_xboost;
-
-	if is_nan(initial_vel):
-		velocity.x = _compute_new_velocity(velocity.x, acceleration, damping, move_dir, delta);
-	else:
-		velocity.x = _compute_new_velocity(initial_vel, acceleration, damping, move_dir, delta);
+		just_jumped_from_wall = false
+		velocity.x = _wall_away_direction * _wall_jump_initial_xboost
+	
+	velocity.x += acceleration * move_dir * delta
+	velocity.x *= damping
 
 func _handle_flight(flight: bool, delta: float):
-	if !flight: return false;
+	if !flight: return false
 	
 	const fly_speed := 1200.0
-	var speed = fly_speed * delta;
+	var speed = fly_speed * delta
 	
 	var x_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
-	position.x += x_dir * speed;
+	position.x += x_dir * speed
 	
 	var y_dir := int(Input.is_action_pressed("player_down")) - int(Input.is_action_pressed("player_up"))
-	position.y += y_dir * speed;
+	position.y += y_dir * speed
 
-	return true;
+	return true
 
 ## Computes if the player is able to jump with member variable and methods.
 func _can_jump() -> bool:
-	var can_move_and_is_on_floor : bool = current_state == PlayerState.FREEMOVE and is_on_floor();
-	var on_wall : bool = current_state == PlayerState.WALLSLIDE;
-	var not_making_bridge : bool = _active_bridge_maker == null;
-	return (can_move_and_is_on_floor or on_wall) and not_making_bridge;
+	var can_move_and_is_on_floor : bool = current_state == PlayerState.FREEMOVE and is_on_floor()
+	var on_wall : bool = current_state == PlayerState.WALLSLIDE
+	var not_making_bridge : bool = _active_bridge_maker == null
+	return (can_move_and_is_on_floor or on_wall) and not_making_bridge
 
 func _handle_player_visuals():
-	var sprite = $AnimatedSprite2D;
-	var animation = "idle" if velocity.x == 0 else "run";
+	var sprite = $AnimatedSprite2D
+	var animation = "idle" if velocity.x == 0 else "run"
 	
 	if velocity.y > 0:
-		animation = "jump";
+		animation = "jump"
 	elif velocity.y < 0:
-		animation = "fall";
+		animation = "fall"
 
 	if current_state == PlayerState.WALLSLIDE:
-		animation = "wallslide";
+		animation = "wallslide"
 
 	if current_state == PlayerState.STUNNED:
-		animation = "hurt";
+		animation = "hurt"
 
 	if sprite.animation != animation:
-		sprite.animation = animation;
-		sprite.play();
+		sprite.animation = animation
+		sprite.play()
 
 	if facing_direction != 0:
-		sprite.flip_h = facing_direction < 0;
+		sprite.flip_h = facing_direction < 0
 
 func _handle_player_items(delta: float):
 	if _active_bridge_maker != null and not _active_bridge_maker.active:
@@ -540,11 +539,3 @@ func _handle_player_items(delta: float):
 		current_state = PlayerState.STUNNED
 		velocity = Vector2(0, -200)
 		_stop_powerups_if_using()
-
-static func _compute_new_velocity(init_velocity: float, acceleration: float, damping_factor: float, dir: int, delta: float) -> float:
-	var velocity = init_velocity;
-	
-	velocity += acceleration * dir * delta;
-	velocity *= damping_factor;
-	
-	return velocity;
