@@ -88,6 +88,7 @@ func game_reset(_new_round: bool):
 	_was_on_floor = true
 	
 	$ItemCrafter.reset()
+	reset_physics_interpolation()
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	if _deadly_area_count == 0:
@@ -303,12 +304,11 @@ func _physics_process(delta: float) -> void:
 	
 	if item_crafter.is_active_or_crafting:
 		current_state = PlayerState.CRAFTING
-		
-	item_crafter.enabled = current_state != PlayerState.STUNNED
 	
 	if is_taking_damage and _iframe_timer <= 0.0:
 		take_damage()
-	
+		
+	item_crafter.enabled = current_state != PlayerState.STUNNED
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
 	
 	update_movement(delta)
