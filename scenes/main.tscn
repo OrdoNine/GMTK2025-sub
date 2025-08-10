@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=63 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://scripts/game_loader.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://objects/realized-items/mace/mace.tscn" id="15_wsu2k"]
 [ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="16_k12tt"]
 [ext_resource type="Texture2D" uid="uid://bpegee8ggqnhy" path="res://assets/maceybg.png" id="17_muem4"]
+[ext_resource type="Script" uid="uid://dh8hcj3cyrbu" path="res://scripts/sound_manager.gd" id="22_jscy8"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6bp64"]
 texture = ExtResource("1_21xkr")
@@ -418,7 +419,6 @@ position = Vector2(-1784, -192)
 process_mode = 3
 stream = ExtResource("16_k12tt")
 volume_db = -15.0
-autoplay = true
 
 [node name="BG" type="CanvasLayer" parent="."]
 layer = -1
@@ -429,5 +429,9 @@ transform = Transform2D(1, 0, 0, 1, 480, 360)
 self_modulate = Color(0.4, 0.4, 0.4, 1)
 scale = Vector2(3, 3)
 texture = ExtResource("17_muem4")
+
+[node name="SoundManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("22_jscy8")
 
 [connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]

@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://dptp358pg8el5"]
 
-[ext_resource type="Script" uid="uid://gaaoanvohxai" path="res://objects/realized-items/horiz_spring/horiz_spring.gd" id="1_jj66b"]
+[ext_resource type="Script" uid="uid://gaaoanvohxai" path="res://objects/realized-items/booster/booster.gd" id="1_jj66b"]
 [ext_resource type="Texture2D" uid="uid://d17gatr7svhx6" path="res://assets/items-Sheet.png" id="2_qxbst"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ugmi2"]

@@ -1,21 +1,6 @@
 extends CharacterBody2D
 class_name Player
 
-# Asset Links
-# TODO: Sound Manager so that we don't have to load sounds here!
-const _jump_sound := preload("res://assets/sounds/jump.wav")
-const _landing_sound := preload("res://assets/sounds/land.wav")
-const _hurt_sound := preload("res://assets/sounds/hurt.wav")
-const _crafting_sound := preload("res://assets/sounds/crafting.wav")
-const _building_place_sound := preload("res://assets/sounds/building_place.wav")
-const _boost_sound := preload("res://assets/sounds/boost.wav")
-
-const _prefab_bomb = preload("res://objects/realized-items/bomb/bomb.tscn")
-const _prefab_inverse_bomb = preload("res://objects/realized-items/inverse_bomb/inverse_bomb.tscn")
-const _prefab_bridge_maker = preload("res://objects/realized-items/bridge/bridge.tscn")
-const _prefab_spring = preload("res://objects/realized-items/spring/spring.tscn")
-const _prefab_horiz_spring = preload("res://objects/realized-items/horiz_spring/horiz_spring.tscn")
-
 # Constructs
 ## Consists of various states of Player according to which different actions happen in the script. [br]
 ## Variants:[br]
@@ -73,11 +58,17 @@ var _coyote_jump_timer := 0.0
 ## Remaining Percentage of Jump Remaining. 0: Jump has been completed. 1: Jump has not been completed.
 var _jump_remaining = 0.0
 
+## A variable telling if you have just jumped, this frame.
+var just_jumped : bool = false
+
+## A variable telling if you have just jumped from a wall, this frame.
+var just_jumped_from_wall : bool = false
+
 ## If jumped from or is on some wall, then it is the direction away from the wall with player being at the origin.
 var _wall_away_direction : int = 0
 
 ## A map from player state to acceleration used.
-var _player_state_to_acceleration : Dictionary[PlayerState, float] = {
+const player_state_to_acceleration : Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 3800,
 	PlayerState.WALLSLIDE: 1400,
 	PlayerState.WALLJUMP: 450,
@@ -86,7 +77,7 @@ var _player_state_to_acceleration : Dictionary[PlayerState, float] = {
 }
 
 ## A map from player state to damping used.
-var _player_state_to_damping: Dictionary[PlayerState, float] = {
+const player_state_to_damping: Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 0.8,
 	PlayerState.WALLSLIDE: 0.8,
 	PlayerState.WALLJUMP: 0.98,
@@ -95,12 +86,6 @@ var _player_state_to_damping: Dictionary[PlayerState, float] = {
 }
 
 # Other variables and constants. Mysterious ngl. why the f*** there are so many variables.
-## A stream player for crafting sound separately. (So that you could stop the crafting sound early)
-var _crafting_sound_player: AudioStreamPlayer
-
-## A array of sounds that are played.
-var _active_sounds: Array[AudioStreamPlayer] = []
-
 ## The time after you got stunned, where you stay stunned.
 const _STUN_LENGTH := 2.0
 
@@ -119,14 +104,11 @@ var slimes_collected: int = 0
 ## A variable to track the direction you are facing.
 var facing_direction: int = 1
 
-## A variable to track if we are taking damage. # TODO: Check if you could remove this variable.
+## A variable to track if we are taking damage.
 var _can_be_stunned: bool = false
 
 ## A variable to track the cardinality of deadly area, the player is in, to know about giving a stun.
 var _deadly_area_count: int = 0
-
-## A variable that is supposed to be removing walk friction while using booster. # TODO: Check if you can somehow remove this.
-var _ignore_grounded_on_this_frame: bool = false
 
 ## A variable to track if the player was on floor at the previous frame to give a landing sound.
 var _was_on_floor := true
@@ -137,8 +119,8 @@ var _was_on_floor := true
 ## The tilemap of blocks. # TODO: Check if you can remove it completely.
 @onready var tilemap: TileMapLayer = get_node("../Map")
 
-## I dunno tbqh. Supposedly a dict of random item_craft_progress related bullshit.
-var _item_craft_progress = null
+## Used Powerup
+var _powerup_used : PowerupType;
 
 ## Reference to the active bridgemaker. # TODO: Check if i can remove this
 var _active_bridge_maker: Node2D = null
@@ -147,46 +129,66 @@ var _active_bridge_maker: Node2D = null
 ## TODO: Check if you can remove it.
 var _active_powerup_key := KEY_NONE
 
-var keys_to_powerup : Dictionary[Key, PowerupType] = {
+# Some dictionaries to convert stuff related to powerups to each other!
+const keys_to_powerup : Dictionary[Key, PowerupType] = {
 	KEY_1: PowerupType.BOMB,
 	KEY_2: PowerupType.BRIDGE,
 	KEY_3: PowerupType.SPRING,
 	KEY_4: PowerupType.BOOSTER
 }
 
-var powerup_to_slime_cost : Dictionary[PowerupType, int] = {
+const powerup_to_slime_cost : Dictionary[PowerupType, int] = {
 	PowerupType.BOMB: 5,
 	PowerupType.BRIDGE: 8,
 	PowerupType.SPRING: 6,
 	PowerupType.BOOSTER: 6,
 }
 
-var just_jumped : bool = false
-var just_jumped_from_wall : bool = false
+# TODO: Somehow remove this snippet
+const _prefab_path_start = "res://objects/realized-items/"
+const powerup_to_prefab : Dictionary[PowerupType, Resource] = {
+	PowerupType.BOMB: preload(_prefab_path_start + "bomb/bomb.tscn"),
+	PowerupType.BRIDGE: preload(_prefab_path_start + "bridge/bridge.tscn"),
+	PowerupType.SPRING: preload(_prefab_path_start + "spring/spring.tscn"),
+	PowerupType.BOOSTER: preload(_prefab_path_start + "booster/booster.tscn"),
+}
+
+const powerup_to_is_craftable: Dictionary[PowerupType, bool] = {
+	PowerupType.BOMB: true,
+	PowerupType.BRIDGE: false,
+	PowerupType.SPRING: true,
+	PowerupType.BOOSTER: true,
+}
+
+## The time required to craft an item
+const CRAFTING_TIME : float = 0.5;
+
+## A timer for crafting
+var crafting_timer : float = 0;
 
 # Public Functions # TODO: Needs REWRITE!!!
+# TODO: Find from where this is connected to the callback.
 func on_entered_deadly_area(_area: Area2D) -> void:
-	if _deadly_area_count == 0:
-		_can_be_stunned = true
-		
 	_deadly_area_count = _deadly_area_count + 1
+	if _deadly_area_count >= 0:
+		_can_be_stunned = true
+
+# TODO: Find from where this is connected to the callback.
 func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
-	
-	if _deadly_area_count == 0:
+	if _deadly_area_count <= 0:
 		_can_be_stunned = false
 
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
-	_play_sound(_boost_sound)
+	%SoundManager.play(SoundManager.Sound.BOOST)
 
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.WALLJUMP
-	_ignore_grounded_on_this_frame = true
-	_play_sound(_boost_sound)
+	%SoundManager.play(SoundManager.Sound.BOOST)
 
 func kill() -> void:
 	Global.player_lives -= 1
@@ -196,25 +198,20 @@ func kill() -> void:
 func _ready() -> void: # TODO: Rewrite
 	Global.game_new_loop.connect(_game_reset)
 	_game_reset(true)
-	
-	# create crafting sound player
-	_crafting_sound_player = AudioStreamPlayer.new()
-	_crafting_sound_player.stream = _crafting_sound
-	add_child(_crafting_sound_player)
 
 func _input(event: InputEvent) -> void:
 	if event is not InputEventKey or event.is_echo(): return
 	if current_state == PlayerState.STUNNED: return
 	
-	var items_are_active : bool = _active_bridge_maker != null or _item_craft_progress != null
-	if not items_are_active and event.is_released() and event.keycode == _active_powerup_key:
+	var items_are_active : bool = _active_bridge_maker != null or crafting_timer > 0
+	if items_are_active and event.is_released() and event.keycode == _active_powerup_key:
 		_stop_powerups_if_using()
 		return
 	
 	if not event.pressed: return
 	var powerup = keys_to_powerup.get(event.keycode)
 	if powerup == null: return
-	if slimes_collected < powerup_to_slime_cost[powerup]: return
+	if slimes_collected < powerup_to_slime_cost[powerup] and not OS.is_debug_build(): return
 	_active_powerup_key = event.keycode
 	_use_powerup(powerup)
 
@@ -223,8 +220,14 @@ func _physics_process(delta: float) -> void:
 	_handle_player_controls(delta)
 	_handle_player_visuals()
 	_handle_player_sounds()
+	
+	# Updating timer.
+	_stun_timer = move_toward(_stun_timer, 0, delta)
 
 func _process(delta: float) -> void:
+	previous_state = current_state
+	_handle_state_transitions()
+
 	if Global.time_remaining <= 0:
 		kill()
 	
@@ -261,8 +264,8 @@ func _process(delta: float) -> void:
 			# crafting animation will stretch out the player a little bit
 			# stretching increases as it gets closer to being finished
 			var sprite := $AnimatedSprite2D
-			if _item_craft_progress != null:
-				var t: float = 1.0 - _item_craft_progress.time_remaining / _item_craft_progress.wait_length
+			if crafting_timer > 0:
+				var t: float = 1.0 - crafting_timer / CRAFTING_TIME
 				sprite.scale = Vector2(
 					pow(2, t * 0.4),
 					pow(2, -t * 0.4)
@@ -271,36 +274,20 @@ func _process(delta: float) -> void:
 				sprite.scale = Vector2.ONE
 
 # Accessory Functions
-func _begin_item_craft(time: float, points: int, prefab: PackedScene):
-	_crafting_sound_player.play()
-	
-	_item_craft_progress = {
-		time_remaining = time,
-		wait_length = time,
-		points = points,
-		prefab = prefab
-	}
-
 func _finish_item_craft():
-	var inst: Node2D = _item_craft_progress.prefab.instantiate()
-	inst.global_position = global_position
-	add_sibling(inst)
-	inst.activate()
-	slimes_collected -= _item_craft_progress.points
+	# Instanciating the crafted object.
+	var object: Node2D = powerup_to_prefab[_powerup_used].instantiate()
+	object.global_position = global_position
+	add_sibling(object)
+	object.activate()
 	
-	_item_craft_progress = null
-	current_state = PlayerState.FREEMOVE
+	slimes_collected -= powerup_to_slime_cost[_powerup_used]
+	crafting_timer = 0;
 	_active_powerup_key = KEY_NONE
-	_play_sound(_building_place_sound)
-	_crafting_sound_player.stop()
 
 func _game_reset(_new_round: bool):
 	position = _start_pos
 	velocity = Vector2.ZERO
-	
-	for snd in _active_sounds:
-		snd.queue_free()
-	_active_sounds = []
 	
 	facing_direction = 1
 	_can_be_stunned = false
@@ -309,107 +296,87 @@ func _game_reset(_new_round: bool):
 	_jump_remaining = 0.0
 	_stun_timer = 0.0
 	_invincibility_frames_timer = 0.0
-	_ignore_grounded_on_this_frame = false
 	
-	_item_craft_progress = null
 	_active_bridge_maker = null
 	_active_powerup_key = KEY_NONE
 	_was_on_floor = true
 
-func _meets_stamina_requirement(c: int) -> bool:
-	return slimes_collected >= c
-
-func _get_tiled_pos_of(pos: Vector2) -> Vector2i:
-	return tilemap.local_to_map(tilemap.to_local(pos))
-
-func _get_position_of_tile(coord: Vector2i) -> Vector2:
-	return tilemap.to_global(tilemap.map_to_local(coord))
-
-func _play_sound(stream: AudioStream) -> AudioStreamPlayer:
-	if stream == null: return
-	
-	var audio_source := AudioStreamPlayer.new()
-	audio_source.stream = stream
-	add_child(audio_source)
-	
-	audio_source.play()
-	_active_sounds.push_back(audio_source)
-	
-	audio_source.finished.connect(func():
-		audio_source.queue_free()
-		var idx = _active_sounds.find(audio_source)
-		if idx != -1:
-			_active_sounds.remove_at(idx)
-	)
-	
-	return audio_source
-
 func _use_powerup(powerup: PowerupType):
-	match powerup:
-		PowerupType.BOMB:
-			_begin_item_craft(0.5, 5, _prefab_bomb)
-		PowerupType.BRIDGE:
-			if is_on_floor(): return
-			# place bridge maker if not on floor
-			velocity.x = 0.0
-			_active_bridge_maker = _prefab_bridge_maker.instantiate()
-			
-			# place bridge maker on the center of the cell below the player
-			var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
-			_active_bridge_maker.global_position = _get_position_of_tile((_get_tiled_pos_of(player_bottom) + Vector2i(0, 1)))
-			add_sibling(_active_bridge_maker)
-			_active_bridge_maker.activate()
-			slimes_collected -= 8
-		PowerupType.BOOSTER:
-			_begin_item_craft(0.5, 6, _prefab_horiz_spring)
-		PowerupType.SPRING:
-			_begin_item_craft(0.5, 6, _prefab_spring)
-		_:
-			push_error("You cannot use the ", PowerupType.keys()[powerup], " as there is no code for it's usage!")
+	_powerup_used = powerup;
+	if powerup_to_is_craftable[powerup]:
+		crafting_timer = CRAFTING_TIME;
+		return;
+
+	_use_immediate_powerup();
+
+func _use_immediate_powerup():
+	if _powerup_used != PowerupType.BRIDGE:
+		push_error("Powerup is not implemented: ", PowerupType.keys()[_powerup_used])
+	if is_on_floor(): return
+	velocity.x = 0.0
+	_active_bridge_maker = powerup_to_prefab[PowerupType.BRIDGE].instantiate()
+
+	_active_bridge_maker.global_position = get_bridge_maker_spawn_pos()
+	add_sibling(_active_bridge_maker)
+	_active_bridge_maker.activate()
+	
+	# The cost of the bridge should be given now only because it is an immediate action except item crafting which happens after some time.
+	slimes_collected -= powerup_to_slime_cost[PowerupType.BRIDGE];
+
+func get_bridge_maker_spawn_pos() -> Vector2:
+	var player_bottom: Vector2i = global_position + Vector2.DOWN * $CollisionShape2D.shape.size.y / 2.0
+	var tile_space_position_of_player_bottom : Vector2i = tilemap.local_to_map(tilemap.to_local(player_bottom))
+	var tile_space_position_of_tile_below_player : Vector2i = tile_space_position_of_player_bottom + Vector2i(0, 1);
+	var local_position_of_tile_below_player : Vector2 = tilemap.to_global(tilemap.map_to_local(tile_space_position_of_tile_below_player))
+	return local_position_of_tile_below_player;
 
 func _stop_powerups_if_using():
-	# Deactivate bridge, if any
 	if _active_bridge_maker != null:
 		_active_bridge_maker.deactivate()
 		_active_bridge_maker = null
 	
-	# Stop Item Craft, if any
-	_item_craft_progress = null
+	crafting_timer = 0;
 	_active_powerup_key = KEY_NONE
-	_crafting_sound_player.stop()
 
 func _handle_player_sounds():
 	if not _was_on_floor and is_on_floor():
-		_play_sound(_landing_sound)
+		%SoundManager.play(SoundManager.Sound.LAND)
 	if just_jumped:
-		_play_sound(_jump_sound)
+		%SoundManager.play(SoundManager.Sound.JUMP)
 		just_jumped = false
 	if previous_state != PlayerState.STUNNED and current_state == PlayerState.STUNNED:
-		_play_sound(_hurt_sound)
+		%SoundManager.play(SoundManager.Sound.HURT)
 
 func _handle_player_controls(delta: float) -> void:
-	var move_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
-	
-	if _handle_flight(OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT), delta): return
-	
-	var is_control_revoked := _active_bridge_maker != null or _item_craft_progress != null
-	if is_control_revoked: return
+	if _handle_flight(OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT), delta):
+		return
 
-	if move_dir != 0 and current_state != PlayerState.WALLSLIDE: facing_direction = move_dir
-	previous_state = current_state
+	var is_control_revoked : bool = crafting_timer > 0
+	if is_control_revoked:
+		return;
+
+	var move_dir : int = compute_move_dir();
+	if move_dir != 0 and current_state != PlayerState.WALLSLIDE:
+		facing_direction = move_dir
 	
-	_update_state(move_dir, delta)
 	_handle_jump_and_fall(delta)
 	_handle_horizontal_motion(move_dir, delta)
 	
 	_was_on_floor = is_on_floor()
 	move_and_slide()
 
-func _update_state(move_dir: int, delta: float):
+func compute_move_dir() -> int:
+	if _active_bridge_maker != null:
+		return 0
+	return int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
+
+
+func _handle_state_transitions():
 	match current_state:
 		PlayerState.FREEMOVE:
 			if is_on_floor():
 				_wall_away_direction = 0
+			var move_dir = compute_move_dir()
 			if move_dir != 0:
 				facing_direction = move_dir
 				if is_on_wall_only():
@@ -431,15 +398,16 @@ func _update_state(move_dir: int, delta: float):
 				_jump_remaining = 0
 				current_state = PlayerState.FREEMOVE
 		PlayerState.CRAFTING:
-			pass
+			if crafting_timer == 0:
+				current_state = PlayerState.FREEMOVE;
 		PlayerState.STUNNED:
-			_stun_timer = move_toward(_stun_timer, 0, delta)
 			if _stun_timer <= 0.0 and current_state == PlayerState.STUNNED:
 				_invincibility_frames_timer = _INVINCIBILITY_FRAMES_LENGTH
 				current_state = PlayerState.FREEMOVE
 
 func _handle_jump_and_fall(delta: float) -> void:
-	if _can_jump(): _coyote_jump_timer = _COYOTE_JUMP_TIME
+	if _can_jump():
+		_coyote_jump_timer = _COYOTE_JUMP_TIME
 	
 	var should_jump : bool = Input.is_action_just_pressed("player_jump") and _coyote_jump_timer > 0.0
 	if should_jump:
@@ -467,12 +435,16 @@ func _handle_jump_and_fall(delta: float) -> void:
 		if velocity.y > max_y_vel: velocity.y = max_y_vel
 
 func _handle_horizontal_motion(move_dir: int, delta: float) -> void:
+	if _active_bridge_maker != null:
+		velocity.x = 0;
+		return;
+
 	if current_state == PlayerState.WALLSLIDE and (move_dir == 0 or move_dir == -_wall_away_direction):
 		velocity.x = -_wall_away_direction
 		return
 	
-	var acceleration : float = _player_state_to_acceleration[current_state]
-	var damping : float = _player_state_to_damping[current_state]
+	var acceleration : float = player_state_to_acceleration[current_state]
+	var damping : float = player_state_to_damping[current_state]
 
 	if current_state == PlayerState.WALLJUMP and just_jumped_from_wall:
 		just_jumped_from_wall = false
@@ -504,7 +476,7 @@ func _can_jump() -> bool:
 
 func _handle_player_visuals():
 	var sprite = $AnimatedSprite2D
-	var animation = "idle" if velocity.x == 0 else "run"
+	var animation = "idle" if compute_move_dir() == 0 else "run"
 	
 	if velocity.y > 0:
 		animation = "jump"
@@ -528,10 +500,10 @@ func _handle_player_items(delta: float):
 	if _active_bridge_maker != null and not _active_bridge_maker.active:
 		_active_bridge_maker = null
 
-	if _item_craft_progress != null:
+	if crafting_timer > 0:
 		current_state = PlayerState.CRAFTING
-		_item_craft_progress.time_remaining -= delta
-		if _item_craft_progress.time_remaining <= 0.0:
+		crafting_timer -= delta
+		if crafting_timer <= 0.0:
 			_finish_item_craft()
 
 	if _can_be_stunned and _stun_timer == 0 and _invincibility_frames_timer <= 0.0:
