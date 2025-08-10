@@ -8,7 +8,7 @@ const COYOTE_JUMP_TIME := 0.13
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
 	WALLSLIDE, # currently wallsliding
-	WALLJUMP, # jump from a wallslide. diminished mid-air control
+	SLIPPERY_JUMP, # jump, but with diminished mid-air control
 	CRAFTING,
 	STUNNED, # control is revoked for a short time when player takes damage
 }
@@ -20,36 +20,40 @@ enum PlayerState {
 @export_range(0, 1)     var speed_damping := 0.92
 @export_range(0.0, 1.0) var jump_stop_power := 0.5
 
-@export_group("Wall Slide, Jump")
+@export_group("Wall Slide\\Jump")
 @export_range(0, 10000) var wall_slide_speed = 4.0
-@export_range(0, 10000) var wall_jump_velocity = 230.0
-@export_range(0, 10000) var wall_jump_damping = 0.98
-@export_range(0, 10000) var wall_jump_control_acceleration = 450.0
+@export_range(0, 10000) var wall_jump_x_velocity = 230.0
+
+@export_group("Slippery Jump")
+@export_range(0, 10000) var slippery_jump_damping = 0.98
+@export_range(0, 10000) var slippery_jump_acceleration = 450.0
 
 const jump_sound := preload("res://assets/sounds/jump.wav")
 const landing_sound := preload("res://assets/sounds/land.wav")
 const hurt_sound := preload("res://assets/sounds/hurt.wav")
-const building_place_sound := preload("res://assets/sounds/building_place.wav")
 const boost_sound := preload("res://assets/sounds/boost.wav")
 
-var facing_direction: int = 1 # 1: right, -1: left
-
-var is_taking_damage: bool = false
-
 var current_state := PlayerState.FREEMOVE
+
+var facing_direction: int = 1 # 1: right, -1: left
+var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
 
 # progress of the jump, from 0.0 to 1.0.
 # 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
 var _last_move_dir: int = 0 # for tracking if the player wants to get off of a wall slide
 var _coyote_jump_timer := 0.0
-var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
-var _deadly_area_count: int = 0 # for tracking if the player should be taking damage
-var _stun_timer: float = 0.0
-var _iframe_timer: float = 0.0
+var _can_jump := false
+
 var _ignore_grounded_on_this_frame: bool = false
 var _new_anim := "idle"
 var _was_on_floor := true
+
+var _deadly_area_count: int = 0 # for tracking if the player should be taking damage
+var is_taking_damage: bool = false
+
+var _stun_timer: float = 0.0
+var _iframe_timer: float = 0.0
 
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../Map")
@@ -78,6 +82,7 @@ func game_reset(_new_round: bool):
 	_stun_timer = 0.0
 	_iframe_timer = 0.0
 	_ignore_grounded_on_this_frame = false
+	_can_jump = false
 	
 	_new_anim = "idle"
 	_was_on_floor = true
@@ -98,11 +103,12 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 	
 # formula to obtain the maximum velocity given an acceleration (a) and a damping factor (k):
 #	(this is the velocity function. v0 is the initial velocity)
-#	v(x) = v0*k^x + a*k + a*k^2 + a*k^3 + a*k^4 + ... + a*k^n
+#	(x is the integer number of frames that have elapsed since initial velocity)
+#	v(x) = v0*k^x + sum(n=1, x, a*k^n)
 #	
 #	lim v(x) as x -> inf = a / (1 - k) - a, as:
-#		- a + a*k + a*k^2 + a*k^3 + a*k^4 + ... + a*k^n is a geometric series.
-#		  the limit of this series is a / (1 - k). subtract a to remove the first term.
+#		- sum(n=0, x, a*k^n) is a geometric series.
+#		  the limit of this series is a / (1 - k). subtract a to remove the n=0 term.
 #		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if k >= 1, limit
 #		  approaches infinity.
 func calc_velocity_limit(acceleration: float, damping: float) -> float:
@@ -119,11 +125,7 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 func update_movement(delta: float) -> void:
 	var item_crafter := $ItemCrafter
 	
-	var can_jump := (current_state == PlayerState.FREEMOVE and is_on_floor()) or (current_state == PlayerState.WALLSLIDE and is_on_wall_only());
-	if item_crafter.is_active_or_crafting:
-		can_jump = false
-	
-	if can_jump:
+	if _can_jump:
 		_coyote_jump_timer = COYOTE_JUMP_TIME
 		
 	# begin jump
@@ -132,10 +134,12 @@ func update_movement(delta: float) -> void:
 		sound.pitch_scale = 1.0 + randf() * 0.1
 		_jump_remaining = 1.0
 		
+		# if the player is on or have very recently exited a wall (coyote time),
+		# then initiate the walljump.
 		if _wall_direction != 0:
-			current_state = PlayerState.WALLJUMP
+			current_state = PlayerState.SLIPPERY_JUMP
 			facing_direction = _wall_direction
-			velocity.x = _wall_direction * wall_jump_velocity
+			velocity.x = _wall_direction * wall_jump_x_velocity
 			_ignore_grounded_on_this_frame = true
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
@@ -144,7 +148,7 @@ func update_movement(delta: float) -> void:
 	# easier to control the height of the jumps
 	var is_jumping: bool = _jump_remaining > 0.0
 	if Input.is_action_pressed("player_jump") and not is_on_ceiling():
-		if _jump_remaining > 0.0:
+		if is_jumping:
 			velocity.y = -jump_power * _jump_remaining
 			_jump_remaining = move_toward(_jump_remaining, 0.0, delta / jump_length)
 	else:
@@ -163,20 +167,35 @@ func update_movement(delta: float) -> void:
 	
 	# update physics stuff based on current state
 	# its a basic state machine
+	velocity += get_gravity() * delta
+	_can_jump = false
+	update_state(move_dir, delta)
+	
+	_last_move_dir = move_dir
+	_was_on_floor = is_on_floor()
+	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
+	
+	move_and_slide()
+
+func update_state(move_dir: float, delta: float) -> void:
+	var item_crafter := $ItemCrafter
+	
+	# could possibly use dynamic dispatch instead of this match statement,
+	# but i feel like that is over-engineering. would be preferable though if
+	# the code gets complex enough.
 	match current_state:
 		PlayerState.FREEMOVE:
-			# apply gravity normally
-			velocity += get_gravity() * delta
-
-			# apply movement direction
-			# velocity.x = move_toward(velocity.x, walk_speed * move_dir, walk_acceleration * delta);
+			_can_jump = is_on_floor()
+			
 			velocity.x += walk_acceleration * move_dir * delta
 			velocity.x *= speed_damping
 			
 			if is_on_floor():
+				# unset data for wall-jump coyote time
 				_wall_direction = 0
 				_new_anim = "idle" if move_dir == 0 else "run"
 				
+				# play landing sound when player touches the floor
 				if not _was_on_floor:
 					var sound := play_sound(landing_sound)
 					if sound:
@@ -184,6 +203,7 @@ func update_movement(delta: float) -> void:
 			else:
 				_new_anim = "jump" if velocity.y > 0 else "fall"
 			
+			# transition into wallslide when on a wall
 			if move_dir != 0:
 				facing_direction = move_dir
 				if is_on_wall_only():
@@ -191,20 +211,15 @@ func update_movement(delta: float) -> void:
 		
 		PlayerState.STUNNED:
 			_new_anim = "hurt"
-			
-			# apply gravity normally
-			velocity += get_gravity() * delta
-			
-			# damping
 			velocity.x *= speed_damping
 			
+			# tick stun timer
 			_stun_timer = move_toward(_stun_timer, 0, delta)
 			if _stun_timer <= 0.0:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.CRAFTING:
 			_new_anim = "hurt"
-			velocity += get_gravity() * delta
 			
 			velocity.x = 0.0
 			if not item_crafter.active_item:
@@ -215,11 +230,12 @@ func update_movement(delta: float) -> void:
 		
 		PlayerState.WALLSLIDE:
 			_new_anim = "wallslide"
+			_can_jump = is_on_wall_only()
 			
 			_wall_direction = sign(get_wall_normal().x)
 			facing_direction = -_wall_direction
 			_coyote_jump_timer = COYOTE_JUMP_TIME
-				
+			
 			# no longer on wall, transition into freemove
 			if not is_on_wall_only():
 				current_state = PlayerState.FREEMOVE
@@ -228,8 +244,6 @@ func update_movement(delta: float) -> void:
 			else:
 				# maintain maximum y velocity while wall sliding
 				var max_y_vel: float = get_gravity().y * delta * wall_slide_speed
-				velocity += get_gravity() * delta
-				
 				if velocity.y > max_y_vel:
 					velocity.y = max_y_vel
 				
@@ -245,36 +259,27 @@ func update_movement(delta: float) -> void:
 				else:
 					velocity.x = -_wall_direction * 100.0 # please stay on the wall
 
-		PlayerState.WALLJUMP:
+		PlayerState.SLIPPERY_JUMP:
 			_new_anim = "jump"
 			
-			# apply gravity normally
-			velocity += get_gravity() * delta
-			
-			# apply movement direction
-			# velocity.x = move_dir * walk_speed
-			
+			# wallslide transition
 			if is_on_wall_only() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.WALLSLIDE
 				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
-				
+			
+			# freemove transition
 			elif is_on_floor() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.FREEMOVE
 				var sound := play_sound(landing_sound)
 				if sound:
 					sound.pitch_scale = 1.0 + randf() * 0.2
-				
+			
+			# diminished mid-air control
 			else:
-				velocity.x += move_dir * wall_jump_control_acceleration * delta
-				velocity.x *= wall_jump_damping
-	
-	_last_move_dir = move_dir
-	_was_on_floor = is_on_floor()
-	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
-	
-	move_and_slide()
+				velocity.x += move_dir * slippery_jump_acceleration * delta
+				velocity.x *= slippery_jump_damping
 
 func _physics_process(delta: float) -> void:
 	# debug fly
@@ -298,28 +303,27 @@ func _physics_process(delta: float) -> void:
 	
 	if item_crafter.is_active_or_crafting:
 		current_state = PlayerState.CRAFTING
+		
+	item_crafter.enabled = current_state != PlayerState.STUNNED
 	
-	# taking damage
 	if is_taking_damage and _iframe_timer <= 0.0:
-		_stun_timer = DAMAGE_STUN_LENGTH
-		_iframe_timer = IFRAME_LENGTH
-		current_state = PlayerState.STUNNED
-		velocity = Vector2(0, -200)
-		play_sound(hurt_sound)
+		take_damage()
 	
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
-	item_crafter.enabled = current_state != PlayerState.STUNNED
+	
 	update_movement(delta)
+	_ignore_grounded_on_this_frame = false
+
+# process is for updating visuals
+func _process(_delta: float) -> void:
+	var sprite := $AnimatedSprite2D
 	
 	# update sprite animation
 	sprite.flip_h = facing_direction < 0
 	if sprite.animation != _new_anim:
 		sprite.play(_new_anim)
-		
-	_ignore_grounded_on_this_frame = false
 	
-func _process(_delta: float) -> void:
-	# update some animation
+	# update some procedural animations
 	# 1. flash red when the player is stunned
 	# 2. flash visible/invisible while iframes are active
 	# 3. crafting animation
@@ -341,7 +345,6 @@ func _process(_delta: float) -> void:
 			
 			# crafting animation will stretch out the player a little bit
 			# stretching increases as it gets closer to being finished
-			var sprite := $AnimatedSprite2D
 			var item_craft_progress = $ItemCrafter.item_craft_progress
 			if item_craft_progress != null:
 				var t: float = 1.0 - item_craft_progress.time_remaining / item_craft_progress.wait_length
@@ -361,10 +364,22 @@ func spring_bounce_callback(bounce_power: float) -> void:
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
-	current_state = PlayerState.WALLJUMP
+	current_state = PlayerState.SLIPPERY_JUMP
 	_ignore_grounded_on_this_frame = true
 	play_sound(boost_sound)
-		
+
+func take_damage() -> void:
+	_stun_timer = DAMAGE_STUN_LENGTH
+	_iframe_timer = IFRAME_LENGTH
+	current_state = PlayerState.STUNNED
+	velocity = Vector2(0, -200)
+	
+	_jump_remaining = 0.0
+	_coyote_jump_timer = 0.0
+	_can_jump = false
+	
+	play_sound(hurt_sound)
+
 func kill() -> void:
 	Global.player_lives -= 1
 	
