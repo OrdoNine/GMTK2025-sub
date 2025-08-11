@@ -250,10 +250,11 @@ func update_state(move_dir: float, delta: float) -> void:
 			else:
 				_new_anim = "jump" if velocity.y > 0 else "fall"
 			
-			# transition into wallslide when on a wall
 			if move_dir != 0:
 				facing_direction = move_dir
-				if is_on_wall_only():
+				
+				# transition into wallslide when moving towards a wall
+				if is_on_wall_only() and sign(get_wall_normal().x) == -move_dir:
 					current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.STUNNED:
@@ -284,7 +285,8 @@ func update_state(move_dir: float, delta: float) -> void:
 			_coyote_jump_timer = COYOTE_JUMP_TIME
 			
 			# no longer on wall, transition into freemove
-			if not is_on_wall_only():
+			if not is_on_wall_only() or move_dir != -_wall_direction:
+				velocity.x = 0.0
 				current_state = PlayerState.FREEMOVE
 				
 			# wall sliding
@@ -295,16 +297,14 @@ func update_state(move_dir: float, delta: float) -> void:
 					velocity.y = max_y_vel
 				
 				# if player wants to move away from the wall, do so here
-				if move_dir != _last_move_dir and move_dir != 0:
-					velocity.x += walk_acceleration * move_dir * delta
-					velocity.x *= speed_damping
+				#if move_dir != -_wall_direction:
+					#velocity.x += walk_acceleration * move_dir * delta
+					#velocity.x *= speed_damping
 					
-				# otherwise... ideally, do nothing. but for some reason i need
-				# to apply a force towards the wall to make it so it's not like 
-				# 0.0001 pixels away from the wall and thus counts it as no longer
-				# on the wall.
-				else:
-					velocity.x = -_wall_direction * 100.0 # please stay on the wall
+				# for some reason i need to apply a force towards the wall to
+				# make it so it's not like 0.00001 pixels away from the wall and
+				# thus counts it as no longer on the wall.
+				velocity.x = -_wall_direction * 100.0 # please stay on the wall
 
 		PlayerState.WALLJUMP:
 			# i want the maximum velocity of this state to be the same as
