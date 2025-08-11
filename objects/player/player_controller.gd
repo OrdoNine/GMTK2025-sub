@@ -8,7 +8,8 @@ const COYOTE_JUMP_TIME := 0.13
 enum PlayerState {
 	FREEMOVE, # normal grounded/mid-air movement mode
 	WALLSLIDE, # currently wallsliding
-	SLIPPERY_JUMP, # jump, but with diminished mid-air control
+	WALLJUMP, # jump, but with diminished mid-air control
+	BOOSTER_JUMP,
 	CRAFTING,
 	STUNNED, # control is revoked for a short time when player takes damage
 }
@@ -22,11 +23,11 @@ enum PlayerState {
 
 @export_group("Wall Slide\\Jump")
 @export_range(0, 10000) var wall_slide_speed = 4.0
-@export_range(0, 10000) var wall_jump_x_velocity = 230.0
+@export_range(0, 10000) var wall_jump_control_acceleration = 700.0
 
-@export_group("Slippery Jump")
-@export_range(0, 10000) var slippery_jump_damping = 0.98
-@export_range(0, 10000) var slippery_jump_acceleration = 450.0
+@export_group("Booster Control")
+@export_range(0, 10000) var booster_control_acceleration = 450.0
+@export_range(0, 10000) var booster_control_damping := 0.98
 
 const jump_sound := preload("res://assets/sounds/jump.wav")
 const landing_sound := preload("res://assets/sounds/land.wav")
@@ -123,6 +124,23 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	
 	return acceleration / (1.0 - damping) - acceleration
 
+func calc_damping_from_limit(limit: float, acceleration: float) -> float:
+	return -acceleration / (limit + acceleration) + 1.0
+
+func calc_walljump_damping() -> float:
+	# i want the maximum velocity of this state to be the same as
+	# that of the normal movement mode, but with a different
+	# acceleration.
+	var normal_movement_limit := calc_velocity_limit(
+		walk_acceleration,
+		speed_damping)
+	
+	var wall_jump_daming := calc_damping_from_limit(
+		normal_movement_limit,
+		wall_jump_control_acceleration)
+	
+	return wall_jump_daming
+
 func update_movement(delta: float) -> void:
 	var item_crafter := $ItemCrafter
 	
@@ -136,11 +154,16 @@ func update_movement(delta: float) -> void:
 		_jump_remaining = 1.0
 		
 		# if the player is on or have very recently exited a wall (coyote time),
-		# then initiate the walljump.
+		# then initiate the walljump. the initial x velocity of the walljump
+		# will be the maximum x velocity of it.
 		if _wall_direction != 0:
-			current_state = PlayerState.SLIPPERY_JUMP
+			var wall_jump_max_velocity = calc_velocity_limit(
+				wall_jump_control_acceleration * delta,
+				calc_walljump_damping())
+			
+			current_state = PlayerState.WALLJUMP
 			facing_direction = _wall_direction
-			velocity.x = _wall_direction * wall_jump_x_velocity
+			velocity.x = _wall_direction * wall_jump_max_velocity
 			_ignore_grounded_on_this_frame = true
 
 	# for the entire duration of the jump, set y velocity to a factor of jump_power,
@@ -177,6 +200,29 @@ func update_movement(delta: float) -> void:
 	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
 	
 	move_and_slide()
+
+func update_slippery_jump_state(accel: float, damping: float,
+								move_dir: float, delta: float) -> void:
+	_new_anim = "jump"
+	
+	# wallslide transition
+	if is_on_wall_only() and not _ignore_grounded_on_this_frame:
+		_jump_remaining = 0.0
+		current_state = PlayerState.WALLSLIDE
+		velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
+	
+	# freemove transition
+	elif is_on_floor() and not _ignore_grounded_on_this_frame:
+		_jump_remaining = 0.0
+		current_state = PlayerState.FREEMOVE
+		var sound := play_sound(landing_sound)
+		if sound:
+			sound.pitch_scale = 1.0 + randf() * 0.2
+	
+	# diminished mid-air control
+	else:
+		velocity.x += move_dir * accel * delta
+		velocity.x *= damping
 
 func update_state(move_dir: float, delta: float) -> void:
 	var item_crafter := $ItemCrafter
@@ -260,27 +306,20 @@ func update_state(move_dir: float, delta: float) -> void:
 				else:
 					velocity.x = -_wall_direction * 100.0 # please stay on the wall
 
-		PlayerState.SLIPPERY_JUMP:
-			_new_anim = "jump"
+		PlayerState.WALLJUMP:
+			# i want the maximum velocity of this state to be the same as
+			# that of the normal movement mode, but with a different
+			# acceleration.
+			var damping := calc_walljump_damping()
 			
-			# wallslide transition
-			if is_on_wall_only() and not _ignore_grounded_on_this_frame:
-				_jump_remaining = 0.0
-				current_state = PlayerState.WALLSLIDE
-				velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
-			
-			# freemove transition
-			elif is_on_floor() and not _ignore_grounded_on_this_frame:
-				_jump_remaining = 0.0
-				current_state = PlayerState.FREEMOVE
-				var sound := play_sound(landing_sound)
-				if sound:
-					sound.pitch_scale = 1.0 + randf() * 0.2
-			
-			# diminished mid-air control
-			else:
-				velocity.x += move_dir * slippery_jump_acceleration * delta
-				velocity.x *= slippery_jump_damping
+			update_slippery_jump_state(
+				wall_jump_control_acceleration, damping,
+				move_dir, delta)
+		
+		PlayerState.BOOSTER_JUMP:
+			update_slippery_jump_state(
+				booster_control_acceleration, booster_control_damping,
+				move_dir, delta)
 
 func _physics_process(delta: float) -> void:
 	# debug fly
@@ -364,7 +403,7 @@ func spring_bounce_callback(bounce_power: float) -> void:
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
-	current_state = PlayerState.SLIPPERY_JUMP
+	current_state = PlayerState.BOOSTER_JUMP
 	_ignore_grounded_on_this_frame = true
 	play_sound(boost_sound)
 
