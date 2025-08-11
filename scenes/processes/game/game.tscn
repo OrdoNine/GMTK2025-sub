@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=4 uid="uid://dsd4k1sulk80x"]
+[gd_scene load_steps=21 format=4 uid="uid://dsd4k1sulk80x"]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://assets/collectibles-tilemap.png" id="1_21xkr"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://dxhlmw6xjfhaw" path="res://scripts/win.gd" id="12_fdnlq"]
 [ext_resource type="Texture2D" uid="uid://cyshaitips887" path="res://assets/maceartifact.png" id="13_0ld40"]
 [ext_resource type="Texture2D" uid="uid://tj3y8eqp11a4" path="res://assets/spark.png" id="14_gqmmt"]
+[ext_resource type="Script" uid="uid://c41grkl4jef1" path="res://scripts/sound_manager.gd" id="14_qv02h"]
 [ext_resource type="PackedScene" uid="uid://b2fcsh0tiky6b" path="res://objects/mace/mace.tscn" id="15_wsu2k"]
 [ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="16_k12tt"]
 [ext_resource type="Texture2D" uid="uid://bpegee8ggqnhy" path="res://assets/maceybg.png" id="17_muem4"]
@@ -117,5 +118,9 @@ transform = Transform2D(1, 0, 0, 1, 480, 360)
 self_modulate = Color(0.4, 0.4, 0.4, 1)
 scale = Vector2(3, 3)
 texture = ExtResource("17_muem4")
+
+[node name="SoundManager" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("14_qv02h")
 
 [connection signal="completed_loop" from="MaceChain" to="MaceChain" method="_on_completed_loop"]

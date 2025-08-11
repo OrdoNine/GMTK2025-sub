@@ -26,12 +26,6 @@ enum PlayerState {
 @export_range(0, 10000) var wall_jump_damping = 0.98
 @export_range(0, 10000) var wall_jump_control_acceleration = 450.0
 
-const jump_sound := preload("res://assets/sounds/jump.wav")
-const landing_sound := preload("res://assets/sounds/land.wav")
-const hurt_sound := preload("res://assets/sounds/hurt.wav")
-const building_place_sound := preload("res://assets/sounds/building_place.wav")
-const boost_sound := preload("res://assets/sounds/boost.wav")
-
 var facing_direction: int = 1 # 1: right, -1: left
 
 var is_taking_damage: bool = false
@@ -54,8 +48,6 @@ var _was_on_floor := true
 @onready var _start_pos := position
 @onready var tilemap: TileMapLayer = get_node("../Map")
 
-var _active_sounds: Array[AudioStreamPlayer] = []
-
 func _ready() -> void:
 	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
@@ -64,10 +56,6 @@ func _ready() -> void:
 func game_reset(_new_round: bool):
 	position = _start_pos
 	velocity = Vector2.ZERO
-	
-	for snd in _active_sounds:
-		snd.queue_free()
-	_active_sounds = []
 	
 	facing_direction = 1
 	is_taking_damage = false
@@ -128,7 +116,7 @@ func update_movement(delta: float) -> void:
 		
 	# begin jump
 	if Input.is_action_just_pressed("player_jump") and _coyote_jump_timer > 0.0:
-		var sound := play_sound(jump_sound)
+		var sound := SoundManager.play(SoundManager.Sound.JUMP);
 		sound.pitch_scale = 1.0 + randf() * 0.1
 		_jump_remaining = 1.0
 		
@@ -178,9 +166,8 @@ func update_movement(delta: float) -> void:
 				_new_anim = "idle" if move_dir == 0 else "run"
 				
 				if not _was_on_floor:
-					var sound := play_sound(landing_sound)
-					if sound:
-						sound.pitch_scale = 1.0 + randf() * 0.2
+					var sound := SoundManager.play(SoundManager.Sound.LAND)
+					sound.pitch_scale = 1.0 + randf() * 0.2
 			else:
 				_new_anim = "jump" if velocity.y > 0 else "fall"
 			
@@ -262,9 +249,8 @@ func update_movement(delta: float) -> void:
 			elif is_on_floor() and not _ignore_grounded_on_this_frame:
 				_jump_remaining = 0.0
 				current_state = PlayerState.FREEMOVE
-				var sound := play_sound(landing_sound)
-				if sound:
-					sound.pitch_scale = 1.0 + randf() * 0.2
+				var sound := SoundManager.play(SoundManager.Sound.LAND)
+				sound.pitch_scale = 1.0 + randf() * 0.2
 				
 			else:
 				velocity.x += move_dir * wall_jump_control_acceleration * delta
@@ -305,7 +291,7 @@ func _physics_process(delta: float) -> void:
 		_iframe_timer = IFRAME_LENGTH
 		current_state = PlayerState.STUNNED
 		velocity = Vector2(0, -200)
-		play_sound(hurt_sound)
+		SoundManager.play(SoundManager.Sound.HURT)
 	
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
 	item_crafter.enabled = current_state != PlayerState.STUNNED
@@ -356,14 +342,14 @@ func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
 	_ignore_grounded_on_this_frame = true
-	play_sound(boost_sound)
+	SoundManager.play(SoundManager.Sound.BOOST)
 	
 func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> void:
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.WALLJUMP
 	_ignore_grounded_on_this_frame = true
-	play_sound(boost_sound)
+	SoundManager.play(SoundManager.Sound.BOOST)
 		
 func kill() -> void:
 	Global.get_game().player_lives -= 1
@@ -375,22 +361,3 @@ func kill() -> void:
 	else:
 		print("Normal death")
 		#Global.game_state = Global.GameState.DEATH
-
-func play_sound(stream: AudioStream) -> AudioStreamPlayer:
-	if stream == null: return
-	
-	var audio_source := AudioStreamPlayer.new()
-	audio_source.stream = stream
-	add_child(audio_source)
-	
-	audio_source.play()
-	_active_sounds.push_back(audio_source)
-	
-	audio_source.finished.connect(func():
-		audio_source.queue_free()
-		var idx = _active_sounds.find(audio_source)
-		if idx != -1:
-			_active_sounds.remove_at(idx)
-	)
-	
-	return audio_source

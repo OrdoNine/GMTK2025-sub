@@ -17,32 +17,22 @@ var enabled: bool :
 				deactivate_item_craft()
 
 @export var item_table: ItemTable
-const _crafting_sound := preload("res://assets/sounds/crafting.wav")
-const _place_sound := preload("res://assets/sounds/building_place.wav")
-var _sound_player: AudioStreamPlayer
 
 var _active_item_key := KEY_NONE
 var _enabled := true
 
 func _ready() -> void:
-	_sound_player = AudioStreamPlayer.new()
-	add_child(_sound_player)
-	
 	reset()
 
 func reset() -> void:
-	_sound_player.stop()
+	SoundManager.stop(SoundManager.Sound.CRAFTING)
+	SoundManager.stop(SoundManager.Sound.PLACE)
 	item_craft_progress = null
 	active_item = null
 	_active_item_key = KEY_NONE
 
-func play_sound(stream: AudioStream):
-	_sound_player.stop()
-	_sound_player.stream = stream
-	_sound_player.play()
-
 func finish_item_craft():
-	play_sound(_place_sound)
+	SoundManager.play(SoundManager.Sound.PLACE)
 	var inst: Node2D = item_craft_progress.prefab.instantiate()
 	inst.global_position = global_position
 	Global.get_game().add_child(inst)
@@ -61,7 +51,9 @@ func finish_item_craft():
 func deactivate_item_craft():
 	item_craft_progress = null
 	_active_item_key = KEY_NONE
-	_sound_player.stop()
+	
+	SoundManager.stop(SoundManager.Sound.PLACE)
+	SoundManager.stop(SoundManager.Sound.CRAFTING)
 	
 func deactivate_active_item():
 	if active_item != null:
@@ -109,7 +101,7 @@ func trigger_item_craft(index: int) -> bool:
 		
 		finish_item_craft()
 	else:
-		play_sound(_crafting_sound)
+		SoundManager.play(SoundManager.Sound.CRAFTING)
 		item_craft_progress = {
 			time_remaining = 0.5,
 			wait_length = 0.5,
