@@ -205,8 +205,9 @@ func update_movement(delta: float) -> void:
 	
 	move_and_slide()
 
-func update_slippery_jump_state(accel: float, damping: float,
-								move_dir: float, delta: float) -> void:
+func update_slippery_jump_state(
+		accel: float, damping: float,
+		move_dir: float, delta: float) -> void:
 	_new_anim = "jump"
 	
 	# wallslide transition
