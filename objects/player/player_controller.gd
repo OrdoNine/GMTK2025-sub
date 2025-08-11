@@ -11,7 +11,6 @@ enum PlayerState {
 	WALLJUMP, # jump, but with diminished mid-air control
 	BOOSTER_JUMP,
 	CRAFTING,
-	STUNNED, # control is revoked for a short time when player takes damage
 }
 
 @export_group("Normal Movement")
@@ -35,6 +34,7 @@ const hurt_sound := preload("res://assets/sounds/hurt.wav")
 const boost_sound := preload("res://assets/sounds/boost.wav")
 
 var current_state := PlayerState.FREEMOVE
+var is_stunned := false
 
 var facing_direction: int = 1 # 1: right, -1: left
 var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
@@ -143,6 +143,10 @@ func calc_walljump_damping() -> float:
 
 func update_movement(delta: float) -> void:
 	var item_crafter := $ItemCrafter
+	if is_stunned:
+		_can_jump = false
+		_coyote_jump_timer = 0
+		_jump_remaining = 0
 	
 	if _can_jump:
 		_coyote_jump_timer = COYOTE_JUMP_TIME
@@ -182,7 +186,7 @@ func update_movement(delta: float) -> void:
 	
 	# calculate move direction
 	var move_dir := 0
-	var is_control_revoked: bool = item_crafter.is_active_or_crafting
+	var is_control_revoked: bool = item_crafter.is_active_or_crafting or is_stunned
 	if not is_control_revoked:
 		if Input.is_action_pressed("player_right"):
 			move_dir += 1
@@ -256,15 +260,6 @@ func update_state(move_dir: float, delta: float) -> void:
 				# transition into wallslide when moving towards a wall
 				if is_on_wall_only() and sign(get_wall_normal().x) == -move_dir:
 					current_state = PlayerState.WALLSLIDE
-		
-		PlayerState.STUNNED:
-			_new_anim = "hurt"
-			velocity.x *= speed_damping
-			
-			# tick stun timer
-			_stun_timer = move_toward(_stun_timer, 0, delta)
-			if _stun_timer <= 0.0:
-				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.CRAFTING:
 			_new_anim = "hurt"
@@ -347,10 +342,17 @@ func _physics_process(delta: float) -> void:
 	if is_taking_damage and _iframe_timer <= 0.0:
 		take_damage()
 		
-	item_crafter.enabled = current_state != PlayerState.STUNNED
+	item_crafter.enabled = !is_stunned
 	_iframe_timer = move_toward(_iframe_timer, 0, delta)
 	
 	update_movement(delta)
+	
+	if is_stunned:
+		_new_anim = "hurt"
+		_stun_timer = move_toward(_stun_timer, 0, delta)
+		if _stun_timer == 0.0:
+			is_stunned = false
+	
 	_ignore_grounded_on_this_frame = false
 
 # process is for updating visuals
@@ -366,33 +368,30 @@ func _process(_delta: float) -> void:
 	# 1. flash red when the player is stunned
 	# 2. flash visible/invisible while iframes are active
 	# 3. crafting animation
-	match current_state:
-		# flash red when player is stunned
-		PlayerState.STUNNED:
+	if is_stunned:
+		var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
+		modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
+	else:
+		modulate = Color(1.0, 1.0, 1.0)
+		
+		# flash visible/invisible while iframes are active
+		if _iframe_timer > 0.0:
 			var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
-			modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
-			
-		_:
-			modulate = Color(1.0, 1.0, 1.0)
-			
-			# flash visible/invisible while iframes are active
-			if _iframe_timer > 0.0:
-				var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
-				visible = t < 0.5
-			else:
-				visible = true
-			
-			# crafting animation will stretch out the player a little bit
-			# stretching increases as it gets closer to being finished
-			var item_craft_progress = $ItemCrafter.item_craft_progress
-			if item_craft_progress != null:
-				var t: float = 1.0 - item_craft_progress.time_remaining / item_craft_progress.wait_length
-				sprite.scale = Vector2(
-					pow(2, t * 0.4),
-					pow(2, -t * 0.4)
-				)
-			else:
-				sprite.scale = Vector2.ONE
+			visible = t < 0.5
+		else:
+			visible = true
+		
+		# crafting animation will stretch out the player a little bit
+		# stretching increases as it gets closer to being finished
+		var item_craft_progress = $ItemCrafter.item_craft_progress
+		if item_craft_progress != null:
+			var t: float = 1.0 - item_craft_progress.time_remaining / item_craft_progress.wait_length
+			sprite.scale = Vector2(
+				pow(2, t * 0.4),
+				pow(2, -t * 0.4)
+			)
+		else:
+			sprite.scale = Vector2.ONE
 
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
@@ -404,13 +403,15 @@ func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> voi
 	velocity.x = side_power * facing_direction
 	velocity.y = -bounce_power
 	current_state = PlayerState.BOOSTER_JUMP
+	
 	_ignore_grounded_on_this_frame = true
 	play_sound(boost_sound)
 
 func take_damage() -> void:
 	_stun_timer = DAMAGE_STUN_LENGTH
 	_iframe_timer = IFRAME_LENGTH
-	current_state = PlayerState.STUNNED
+	is_stunned = true
+	current_state = PlayerState.FREEMOVE
 	velocity = Vector2(0, -200)
 	
 	_jump_remaining = 0.0
