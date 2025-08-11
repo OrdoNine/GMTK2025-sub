@@ -366,15 +366,15 @@ func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> voi
 	play_sound(boost_sound)
 		
 func kill() -> void:
-	Global.player_lives -= 1
+	Global.get_game().player_lives -= 1
 	
-	if Global.player_lives == 0:
+	if Global.get_game().player_lives == 0:
 		print("Game over")
-		Global.game_state = Global.GameState.GAME_OVER
+		#Global.get_game().game_state = Global.GameState.GAME_OVER
 		
 	else:
 		print("Normal death")
-		Global.game_state = Global.GameState.DEATH
+		#Global.game_state = Global.GameState.DEATH
 
 func play_sound(stream: AudioStream) -> AudioStreamPlayer:
 	if stream == null: return
