@@ -1,44 +1,56 @@
 extends Node2D
 
-var item_craft_progress = null
+## An item that is active for further input to increase it's power or something.[br]
+## Like for bridge maker, holding it for longer makes it wider.
 var active_item: Node2D = null
 
-var is_active_or_crafting : bool :
-	get:
-		return item_craft_progress != null or active_item != null
+func is_item_active_or_crafting() -> bool:
+	return is_crafting() or is_item_active()
+
+func is_crafting() -> bool:
+	return crafted_item_prefab != null
+
+func is_item_active() -> bool:
+	return active_item != null
 
 var enabled: bool :
-	get: return _enabled
 	set(new):
-		if new != _enabled:
-			_enabled = new
-			if not _enabled:
-				deactivate_active_item()
-				deactivate_item_craft()
+		if new != enabled:
+			enabled = new
+			if not enabled:
+				deactivate_active_item_if_any()
+				deactivate_item_craft_if_any()
 
 @export var item_table: ItemTable
 
 var _active_item_key := KEY_NONE
-var _enabled := true
+
+const CRAFTING_TIME : float = 0.5;
+var crafting_timer : float = 0;
+
+var crafted_item_cost : int;
+var crafted_item_prefab : PackedScene = null;
 
 func _ready() -> void:
+	enabled = true;
 	reset()
 
 func reset() -> void:
 	SoundManager.stop(SoundManager.Sound.CRAFTING)
 	SoundManager.stop(SoundManager.Sound.PLACE)
-	item_craft_progress = null
+	crafted_item_prefab = null
 	active_item = null
 	_active_item_key = KEY_NONE
 
 func finish_item_craft():
 	SoundManager.play(SoundManager.Sound.PLACE)
-	var inst: Node2D = item_craft_progress.prefab.instantiate()
+	var inst: Node2D = crafted_item_prefab.instantiate()
 	inst.global_position = global_position
 	Global.get_game().add_child(inst)
 	inst.activate()
-	Global.get_game().stamina_points -= item_craft_progress.points
-	item_craft_progress = null
+	
+	Global.get_game().stamina_points -= crafted_item_cost if not OS.is_debug_build() else 0
+	crafted_item_prefab = null
 	
 	# if active state is not false after activate() was called,
 	# then this is an item that whose crafting button can be held
@@ -48,14 +60,14 @@ func finish_item_craft():
 	else:
 		_active_item_key = KEY_NONE
 
-func deactivate_item_craft():
-	item_craft_progress = null
-	_active_item_key = KEY_NONE
-	
-	SoundManager.stop(SoundManager.Sound.PLACE)
-	SoundManager.stop(SoundManager.Sound.CRAFTING)
-	
-func deactivate_active_item():
+func deactivate_item_craft_if_any():
+	if crafted_item_prefab != null:
+		SoundManager.stop(SoundManager.Sound.PLACE)
+		SoundManager.stop(SoundManager.Sound.CRAFTING)
+		crafted_item_prefab = null
+		_active_item_key = KEY_NONE
+
+func deactivate_active_item_if_any():
 	if active_item != null:
 		active_item.deactivate()
 		active_item = null
@@ -81,82 +93,48 @@ func trigger_item_craft(index: int) -> bool:
 		push_error("index out of range of item table")
 		return false
 	
-	if not meets_stamina_requirement(item_desc.cost):
+	if not meets_stamina_requirement(item_desc.cost) and not OS.is_debug_build():
 		return false
 	
 	if item_desc.only_when_airborne and is_player_on_floor():
 		return false
 	
-	# really this is just so the player doesn't fall through the bridge
-	# immediately after crafting it
-	get_parent().velocity.y = 0.0
-	
 	if item_desc.immediate:
-		item_craft_progress = {
-			time_remaining = 0,
-			wait_length = 0,
-			points = item_desc.cost,
-			prefab = item_desc.item_scene
-		}
+		crafted_item_cost = item_desc.cost
+		crafted_item_prefab = item_desc.item_scene
 		
 		finish_item_craft()
-	else:
-		SoundManager.play(SoundManager.Sound.CRAFTING)
-		item_craft_progress = {
-			time_remaining = 0.5,
-			wait_length = 0.5,
-			points = item_desc.cost,
-			prefab = item_desc.item_scene
-		}
+		return true;
+	
+	SoundManager.play(SoundManager.Sound.CRAFTING)
+	crafting_timer = CRAFTING_TIME;
+	crafted_item_cost = item_desc.cost
+	crafted_item_prefab = item_desc.item_scene
 	
 	return true
 
 # this is for crafting stuff
 func _input(event: InputEvent) -> void:
 	if not enabled: return
+	if not event is InputEventKey or event.is_echo(): return
 	
-	var player: CharacterBody2D = get_parent()
+	if event.pressed and active_item == null and crafted_item_prefab == null:
+		var item_index_to_craft := \
+			[KEY_1, KEY_2, KEY_3, KEY_4].find(event.keycode)
 	
-	if event is InputEventKey and not event.is_echo():
-		if event.pressed and active_item == null and item_craft_progress == null:
-			var item_index_to_craft := \
-				[KEY_1, KEY_2, KEY_3, KEY_4].find(event.keycode)
-		
-			if item_index_to_craft != -1 and trigger_item_craft(item_index_to_craft):
-				_active_item_key = event.keycode
-			# 2 key: bridge marker (if airborne)
-			#elif event.pressed and event.keycode == KEY_2 and not player.is_on_floor() and meets_stamina_requirement(8):
-				## place bridge maker if not on floor
-#22				var inst: Node2D = item_table.find_item("bridge").instantiate()
-				#
-				## place bridge maker on the center of the cell below the player
-				#var tilemap: TileMapLayer = Global.get_game().get_node("Map")
-				#var player_bottom: Vector2i = global_position + Vector2.DOWN * player.get_node("CollisionShape2D").shape.size.y / 2.0
-				#var player_bottom_tile_pos := tilemap.local_to_map(tilemap.to_local(player_bottom))
-				#var bridge_maker_placement_tile_pos := player_bottom_tile_pos + Vector2i(0, 1)
-				#inst.global_position = tilemap.to_global(tilemap.map_to_local(bridge_maker_placement_tile_pos))
-				#
-				#Global.get_game().add_child(inst)
-				#inst.activate()
-				#Global.get_game().stamina_points -= 8
-				#
-				#active_item = inst
-				#_active_item_key = event.
-		
-		elif event.is_released() and event.keycode == _active_item_key:
-			if active_item != null:
-				deactivate_active_item()
-				
-			if item_craft_progress != null:
-				deactivate_item_craft()
+		if item_index_to_craft != -1 and trigger_item_craft(item_index_to_craft):
+			_active_item_key = event.keycode
+	elif event.is_released() and event.keycode == _active_item_key:
+		deactivate_active_item_if_any()
+		deactivate_item_craft_if_any()
 
 func _physics_process(delta: float) -> void:
 	# if bridge maker is no longer active, then deactivate the tracking of it
 	if active_item != null and not active_item.active:
 		active_item = null
 	
+	crafting_timer = move_toward(crafting_timer, 0, delta)
 	# update item craft progress
-	if item_craft_progress != null:
-		item_craft_progress.time_remaining -= delta
-		if item_craft_progress.time_remaining <= 0.0:
+	if crafted_item_prefab != null:
+		if crafting_timer <= 0.0:
 			finish_item_craft()

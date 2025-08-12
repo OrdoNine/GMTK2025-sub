@@ -1,6 +1,6 @@
 extends Node
 
-class_name SoundManager;
+class_name SoundManager
 
 enum Sound {
 	JUMP,
@@ -22,14 +22,23 @@ func _ready() -> void:
 
 		var player : AudioStreamPlayer = AudioStreamPlayer.new()
 		player.stream = load(path_to_sound)
-		add_child(player);
+		add_child(player)
 		
-		_sound_players.push_back(player);
+		_sound_players.push_back(player)
 
 static func play(sound: Sound) -> AudioStreamPlayer:
-	_sound_players[sound].play();
-	return _sound_players[sound];
+	if not _sound_players:
+		return
+	if _sound_players.is_empty():
+		return
+
+	_sound_players[sound].play()
+	return _sound_players[sound]
 
 static func stop(sound: Sound) -> void:
-	if not _sound_players.is_empty():
-		_sound_players[sound].stop();
+	if not _sound_players:
+		return
+	if _sound_players.is_empty():
+		return
+
+	_sound_players[sound].stop()
