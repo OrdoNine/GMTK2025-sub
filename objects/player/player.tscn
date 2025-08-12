@@ -281,3 +281,5 @@ animation = &"wallslide"
 unique_name_in_owner = true
 script = ExtResource("3_ssrue")
 item_table = ExtResource("4_jnjyq")
+
+[connection signal="bridge_used" from="ItemCrafter" to="." method="_on_item_crafter_bridge_used"]

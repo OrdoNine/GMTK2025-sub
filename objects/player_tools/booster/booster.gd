@@ -1,12 +1,14 @@
 extends RigidBody2D
 
-@export var bounce_power := 180.0
-@export var side_power := 800.0
+class_name Booster
+
+static var BOUNCE_POWER := 180.0
+static var SIDE_POWER := 800.0
 @onready var _bounce_area := $BounceArea
 
 func on_body_entered(body: Node):
-	if body.has_method("horiz_spring_bounce_callback"):
-		body.horiz_spring_bounce_callback(bounce_power, side_power)
+	if body.has_method("_on_booster_bounce"):
+		body._on_booster_bounce()
 		
 func activate():
 	await get_tree().create_timer(0.1).timeout
