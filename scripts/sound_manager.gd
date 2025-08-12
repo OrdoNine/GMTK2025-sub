@@ -12,7 +12,7 @@ enum Sound {
 	COLLECT
 }
 
-static var _sound_players: Array[AudioStreamPlayer] = []
+var _sound_players: Array[AudioStreamPlayer] = []
 
 func _ready() -> void:
 	var sounds : Array = Sound.keys()
@@ -26,7 +26,7 @@ func _ready() -> void:
 		
 		_sound_players.push_back(player)
 
-static func play(sound: Sound) -> AudioStreamPlayer:
+func play(sound: Sound) -> AudioStreamPlayer:
 	if not _sound_players:
 		return
 	if _sound_players.is_empty():
@@ -35,7 +35,7 @@ static func play(sound: Sound) -> AudioStreamPlayer:
 	_sound_players[sound].play()
 	return _sound_players[sound]
 
-static func stop(sound: Sound) -> void:
+func stop(sound: Sound) -> void:
 	if not _sound_players:
 		return
 	if _sound_players.is_empty():

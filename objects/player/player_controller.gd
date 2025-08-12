@@ -110,7 +110,11 @@ func game_reset(_new_round : bool) -> void:
 	_can_be_stunned = false
 	_was_on_floor = true
 	
-	_reset_one_use_sigals()
+	_just_jumped = false
+	_just_jumped_from_wall = false
+	_just_used_spring = false
+	_just_used_booster = false
+	_just_used_bridge = false
 
 	# Deactivating all timers!
 	for timer in Global.PLAYER_TIMERS:
@@ -129,25 +133,20 @@ func _on_spring_bounce() -> void:
 func _on_booster_bounce() -> void:
 	_just_used_booster = true
 	_current_state = PlayerState.WALLJUMP
+func _on_item_crafter_bridge_used() -> void:
+	_just_used_bridge = true
 func _physics_process(delta: float) -> void:
 	_handle_player_controls(delta)
 	_handle_player_visuals()
 	_handle_player_sounds()
 	_update_timers(delta)
-	_reset_one_use_sigals()
-func _reset_one_use_sigals() -> void:
-	_just_jumped = false
-	_just_jumped_from_wall = false
-	_just_used_spring = false
-	_just_used_booster = false
-	_just_used_bridge = false
 func _update_timers(delta: float) -> void:
 	for timer in Global.PLAYER_TIMERS:
 		if timer == Global.TimerType.JUMP_PROGRESS:
 			Global.update_timer(timer, delta / _JUMP_LENGTH)
 			continue
 		Global.update_timer(timer, delta)
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	_previous_state = _current_state
 	_handle_state_transitions()
 func kill() -> void:
@@ -178,7 +177,7 @@ func _handle_flight(flight: bool, delta: float) -> bool:
 ## This method handles state transitions. It is only for checking things and changing states.[br]
 ## Everything in this must be related to changing player state. And nothing outside this method
 ## should be related to state transitions.
-func _handle_state_transitions():
+func _handle_state_transitions() -> void:
 	if _can_be_stunned and not Global.is_timer_active(Global.TimerType.STUN) \
 	and not Global.is_timer_active(Global.TimerType.INVINCIBILITY)\
 	and _current_state != PlayerState.STUNNED:
@@ -249,7 +248,7 @@ func _handle_jump_and_fall(delta: float) -> void:
 		return
 	elif _just_used_bridge:
 		velocity.y = 0
-		print("used bridge")
+		_just_used_bridge = false
 		return
 
 	if _can_jump():
@@ -297,6 +296,7 @@ func _handle_horizontal_motion(move_dir: int, delta: float) -> void:
 
 	if _current_state == PlayerState.WALLJUMP and _just_jumped_from_wall:
 		velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
+		_just_jumped_from_wall = false
 	
 	velocity.x += acceleration * move_dir * delta
 	velocity.x *= damping
@@ -315,7 +315,7 @@ func _compute_move_dir() -> int:
 	return int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
 
 ## Handles how player looks
-func _handle_player_visuals():
+func _handle_player_visuals() -> void:
 	visible = true
 	var sprite = $AnimatedSprite2D
 	var animation = "idle" if _compute_move_dir() == 0 else "run"
@@ -361,16 +361,15 @@ func _handle_player_visuals():
 		sprite.scale = Vector2.ONE
 
 ## Handles sounds made by player.
-func _handle_player_sounds():
+func _handle_player_sounds() -> void:
 	if not _was_on_floor and is_on_floor():
-		%SoundManager.play(SoundManager.Sound.LAND)
+		Global.play(Global.Sound.LAND)
 	if _just_jumped:
-		%SoundManager.play(SoundManager.Sound.JUMP)
+		Global.play(Global.Sound.JUMP)
+		_just_jumped = false
 	if _previous_state != PlayerState.STUNNED and _current_state == PlayerState.STUNNED:
-		%SoundManager.play(SoundManager.Sound.HURT)
+		Global.play(Global.Sound.HURT)
 	if _just_used_spring or _just_used_booster:
-		%SoundManager.play(SoundManager.Sound.BOOST)
-
-
-func _on_item_crafter_bridge_used() -> void:
-	_just_used_bridge = true
+		Global.play(Global.Sound.BOOST)
+		_just_used_spring = false
+		_just_used_booster = false

@@ -12,7 +12,7 @@ func on_body_entered(body: Node2D):
 		set_deferred("monitorable", false)
 		set_deferred("monitoring", false)
 		
-		var sound = SoundManager.play(SoundManager.Sound.COLLECT);
+		var sound = Global.play(Global.Sound.COLLECT);
 		sound.pitch_scale = 1.0 + randf() * 0.3
 
 		Global.get_game().stamina_points += 1

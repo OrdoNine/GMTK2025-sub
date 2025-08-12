@@ -35,15 +35,15 @@ func _ready() -> void:
 	reset()
 
 func reset() -> void:
-	SoundManager.stop(SoundManager.Sound.CRAFTING)
-	SoundManager.stop(SoundManager.Sound.PLACE)
+	Global.stop(Global.Sound.CRAFTING)
+	Global.stop(Global.Sound.PLACE)
 	Global.deactivate_timer(Global.TimerType.CRAFTING)
 	crafted_item_prefab = null
 	active_item = null
 	_active_item_key = KEY_NONE
 
 func finish_item_craft():
-	SoundManager.play(SoundManager.Sound.PLACE)
+	Global.play(Global.Sound.PLACE)
 	var inst: Node2D = crafted_item_prefab.instantiate()
 	inst.global_position = global_position
 	Global.get_game().add_child(inst)
@@ -62,8 +62,8 @@ func finish_item_craft():
 
 func deactivate_item_craft_if_any():
 	if crafted_item_prefab != null:
-		SoundManager.stop(SoundManager.Sound.PLACE)
-		SoundManager.stop(SoundManager.Sound.CRAFTING)
+		Global.stop(Global.Sound.PLACE)
+		Global.stop(Global.Sound.CRAFTING)
 		crafted_item_prefab = null
 		_active_item_key = KEY_NONE
 
@@ -109,7 +109,7 @@ func trigger_item_craft(index: int) -> bool:
 		finish_item_craft()
 		return true;
 	
-	SoundManager.play(SoundManager.Sound.CRAFTING)
+	Global.play(Global.Sound.CRAFTING)
 	Global.activate_timer(Global.TimerType.CRAFTING)
 	crafted_item_cost = item_desc.cost
 	crafted_item_prefab = item_desc.item_scene
