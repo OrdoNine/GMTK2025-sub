@@ -25,9 +25,6 @@ var enabled: bool :
 
 var _active_item_key := KEY_NONE
 
-const CRAFTING_TIME : float = 0.5;
-var crafting_timer : float = 0;
-
 var crafted_item_cost : int;
 var crafted_item_prefab : PackedScene = null;
 
@@ -107,7 +104,7 @@ func trigger_item_craft(index: int) -> bool:
 		return true;
 	
 	SoundManager.play(SoundManager.Sound.CRAFTING)
-	crafting_timer = CRAFTING_TIME;
+	Global.activate_timer(Global.TimerType.CRAFTING)
 	crafted_item_cost = item_desc.cost
 	crafted_item_prefab = item_desc.item_scene
 	
@@ -133,8 +130,8 @@ func _physics_process(delta: float) -> void:
 	if active_item != null and not active_item.active:
 		active_item = null
 	
-	crafting_timer = move_toward(crafting_timer, 0, delta)
+	Global.update_timer(Global.TimerType.CRAFTING, delta)
 	# update item craft progress
 	if crafted_item_prefab != null:
-		if crafting_timer <= 0.0:
+		if not Global.is_timer_active(Global.TimerType.CRAFTING):
 			finish_item_craft()
