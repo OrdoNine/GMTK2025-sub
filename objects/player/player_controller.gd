@@ -335,7 +335,7 @@ func _handle_state_transitions() -> void:
 				_current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLJUMP:
-			if is_on_wall_only():
+			if is_on_wall_only() and _compute_move_dir() == -sign(get_wall_normal().x):
 				print("walljump->wallslide")
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 				_wall_away_direction = sign(get_wall_normal().x)
