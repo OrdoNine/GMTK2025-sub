@@ -7,7 +7,8 @@ enum TimerType {
 	INVINCIBILITY,
 	STUN,
 	JUMP_PROGRESS,
-	CRAFTING
+	CRAFTING,
+	WALLJUMP_COYOTE
 }
 
 ## Activate values are which will cause the timer to update.
@@ -18,6 +19,7 @@ const timer_to_activate_values : Dictionary[TimerType, float] = {
 	TimerType.STUN: 2.0,
 	TimerType.JUMP_PROGRESS: 1.0,
 	TimerType.CRAFTING: 0.5,
+	TimerType.WALLJUMP_COYOTE: 0.13
 }
 
 ## A dictionary of current timer times.
