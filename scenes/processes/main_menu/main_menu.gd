@@ -14,3 +14,6 @@ func _on_credits_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+func _on_back_pressed() -> void:
+	go_back()

@@ -4,14 +4,13 @@
 [ext_resource type="PackedScene" uid="uid://dsd4k1sulk80x" path="res://scenes/processes/game/game.tscn" id="1_n0kln"]
 [ext_resource type="PackedScene" uid="uid://dtffmkkwd7jot" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.tscn" id="2_0jm6c"]
 [ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="4_q1tbv"]
+[ext_resource type="Script" uid="uid://dpr74hn47ekq2" path="res://scenes/processes/game/ui.gd" id="4_s4fpp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q1tbv"]
 bg_color = Color(0, 0, 0, 0.376471)
 
 [sub_resource type="LabelSettings" id="LabelSettings_gsata"]
 font_size = 64
-
-[sub_resource type="LabelSettings" id="LabelSettings_q1tbv"]
 
 [node name="GameProcess" type="Node2D"]
 process_mode = 3
@@ -28,16 +27,25 @@ process_mode = 1
 [node name="UILayer" type="CanvasLayer" parent="."]
 process_mode = 3
 
-[node name="PauseUI" type="Control" parent="UILayer"]
+[node name="UI" type="Control" parent="UILayer"]
 unique_name_in_owner = true
 layout_mode = 3
+anchors_preset = 0
+offset_right = 960.0
+offset_bottom = 720.0
+script = ExtResource("4_s4fpp")
+metadata/_custom_type_script = "uid://btyqrdhbher3c"
+
+[node name="PauseUI" type="Control" parent="UILayer/UI"]
+unique_name_in_owner = true
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="UILayer/PauseUI"]
+[node name="PanelContainer" type="PanelContainer" parent="UILayer/UI/PauseUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -46,39 +54,38 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_q1tbv")
 
-[node name="CenterContainer" type="CenterContainer" parent="UILayer/PauseUI/PanelContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="UILayer/UI/PauseUI/PanelContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/PauseUI/PanelContainer/CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer"]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Paused"
 label_settings = SubResource("LabelSettings_gsata")
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="ResumeButton" type="Button" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Resume"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
-[node name="ExitButton" type="Button" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="Restart" type="Button" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Restart"
+script = ExtResource("4_q1tbv")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="ExitToMenu" type="Button" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Exit To Menu"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
-[node name="Label2" type="Label" parent="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
-layout_mode = 2
-text = "TODO: add the rest of the buttons"
-label_settings = SubResource("LabelSettings_q1tbv")
-horizontal_alignment = 1
-autowrap_mode = 2
-
 [connection signal="round_ended" from="Game" to="." method="_on_game_round_ended"]
-[connection signal="pressed" from="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="UILayer/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitButton" to="." method="_on_exit_button_pressed"]
+[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitToMenu" to="." method="_on_exit_button_pressed"]

@@ -1,6 +1,6 @@
 [gd_scene load_steps=20 format=4 uid="uid://dsd4k1sulk80x"]
 
-[ext_resource type="Script" path="res://scripts/game.gd" id="1_6bp64"]
+[ext_resource type="Script" uid="uid://xk60rns8ltbn" path="res://scripts/game.gd" id="1_6bp64"]
 [ext_resource type="Texture2D" uid="uid://c4mg3n16gr2a7" path="res://assets/collectibles-tilemap.png" id="1_21xkr"]
 [ext_resource type="Script" uid="uid://db8px7j78l74f" path="res://scripts/cam.gd" id="1_ynf5e"]
 [ext_resource type="PackedScene" uid="uid://bu2xnaiq3ifd6" path="res://scenes/processes/game/map.tscn" id="2_wsu2k"]

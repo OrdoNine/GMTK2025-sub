@@ -1,8 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://cwt0bjtkqn86k"]
+[gd_scene load_steps=11 format=3 uid="uid://cwt0bjtkqn86k"]
 
 [ext_resource type="Script" uid="uid://b1gdpec1x60hn" path="res://scenes/processes/main_menu/main_menu.gd" id="1_me56q"]
 [ext_resource type="AudioStream" uid="uid://dp3ewhba42j2s" path="res://assets/music/rushed.ogg" id="2_dx6h4"]
-[ext_resource type="PackedScene" uid="uid://brdx2088afirh" path="res://scenes/ui_menus/about_controls/about_controls.tscn" id="3_2bm3n"]
 [ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="4_k2cr0"]
 [ext_resource type="Theme" uid="uid://c4rwjj76oefeo" path="res://theme.tres" id="5_gmrwh"]
 [ext_resource type="Texture2D" uid="uid://cojfngcyykh7e" path="res://assets/macey&strudel logo.png" id="6_6vieb"]
@@ -12,6 +11,12 @@
 font_size = 64
 
 [sub_resource type="LabelSettings" id="LabelSettings_4l22p"]
+font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_noy30"]
+font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_me56q"]
 font_size = 32
 
 [node name="MainMenuProcess" type="Control"]
@@ -29,10 +34,6 @@ process_mode = 3
 stream = ExtResource("2_dx6h4")
 volume_db = -15.0
 autoplay = true
-
-[node name="AboutControls" parent="." instance=ExtResource("3_2bm3n")]
-visible = false
-layout_mode = 1
 
 [node name="CreditsMenu" type="Control" parent="."]
 visible = false
@@ -137,9 +138,49 @@ scale = Vector2(2.5, 2.5)
 texture = ExtResource("6_6vieb")
 script = ExtResource("7_y5q7t")
 
-[connection signal="menu_exited" from="AboutControls" to="." method="go_back"]
+[node name="AboutControls" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 960.0
+offset_bottom = 722.0
+
+[node name="CenterContainer" type="CenterContainer" parent="AboutControls"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AboutControls/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="Header" type="Label" parent="AboutControls/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Controls"
+label_settings = SubResource("LabelSettings_noy30")
+horizontal_alignment = 1
+
+[node name="Text" type="Label" parent="AboutControls/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Arrow keys/WASD - move
+Z/Space - jump
+Hold the number keys to craft items"
+label_settings = SubResource("LabelSettings_me56q")
+horizontal_alignment = 1
+
+[node name="Back" type="Button" parent="AboutControls/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "OK"
+script = ExtResource("4_k2cr0")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
 [connection signal="pressed" from="CreditsMenu/CenterContainer/VBoxContainer/CreditsBack" to="." method="go_back"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/Play" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/Controls" to="." method="_on_controls_pressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/Credits" to="." method="_on_credits_pressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/Quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="AboutControls/CenterContainer/VBoxContainer/Back" to="." method="_on_back_pressed"]

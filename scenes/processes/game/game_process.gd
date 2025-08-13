@@ -11,7 +11,7 @@ func _input(event: InputEvent) -> void:
 		else:
 			root.paused = true
 			%PauseUI.visible = true
-		
+
 func _exit_tree() -> void:
 	get_tree().paused = false
 	

@@ -13,8 +13,6 @@ enum PlayerState {
 	FREEMOVE,
 	WALLSLIDE,
 	WALLJUMP,
-	CRAFTING,
-	STUNNED,
 }
 
 ## A map from player state to acceleration used.
@@ -22,17 +20,14 @@ const player_state_to_acceleration : Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 3800,
 	PlayerState.WALLSLIDE: 1400,
 	PlayerState.WALLJUMP: 450,
-	PlayerState.CRAFTING: 0,
-	PlayerState.STUNNED: 0.
 }
 
 ## A map from player state to damping used.
+# TODO: Compute it so that max velocity is same for all.
 const player_state_to_damping: Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 0.8,
 	PlayerState.WALLSLIDE: 0.8,
 	PlayerState.WALLJUMP: 0.98,
-	PlayerState.CRAFTING: 0,
-	PlayerState.STUNNED: 0,
 }
 
 ## The start position of the player, where it starts.
@@ -75,27 +70,27 @@ var _deadly_area_count: int = 0
 ## A variable to track if the player was on floor at the previous frame to give a landing sound.
 var _was_on_floor : bool = true
 
-# One Time Signals
-## A variable telling if you have just jumped, this frame.
-var _just_jumped : bool = false
+## A variable to track if you are stunned.
+var _stunned : bool = false
 
-## A variable telling if you have just jumped from a wall, this frame.
-var _just_jumped_from_wall : bool = false
+## Boost Velocities for like spring and booster player tools
+var _boost : Vector2 = Vector2.ZERO
 
-## A variable telling you just used a spring.
-var _just_used_spring : bool = false
+# Functions that you wouldn't touch.
+func on_entered_deadly_area(_area: Area2D) -> void:
+	_deadly_area_count = _deadly_area_count + 1
+	if _deadly_area_count > 0:
+		_can_be_stunned = true
 
-## A variable telling you just used a booster.
-var _just_used_booster : bool = false
+func on_exited_deadly_area(_area: Area2D) -> void:
+	_deadly_area_count = _deadly_area_count - 1
+	if _deadly_area_count <= 0:
+		_can_be_stunned = false
 
-## A variable telling you just used a bridge
-var _just_used_bridge : bool = false
-
-# Functions that you wouldn't touch. Increase the counter below whenever you touch it. A session may be considered a touch.
-# No. of sessions that someone touched this is: 0
 func _ready() -> void:
 	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
+
 func game_reset(_new_round : bool) -> void:
 	position = _start_pos
 	velocity = Vector2.ZERO
@@ -110,45 +105,37 @@ func game_reset(_new_round : bool) -> void:
 	_can_be_stunned = false
 	_was_on_floor = true
 	
-	_just_jumped = false
-	_just_jumped_from_wall = false
-	_just_used_spring = false
-	_just_used_booster = false
-	_just_used_bridge = false
+	_boost = Vector2.ZERO
 
 	# Deactivating all timers!
 	for timer in Global.PLAYER_TIMERS:
 		Global.deactivate_timer(timer)
-func on_entered_deadly_area(_area: Area2D) -> void:
-	_deadly_area_count = _deadly_area_count + 1
-	if _deadly_area_count > 0:
-		_can_be_stunned = true
-func on_exited_deadly_area(_area: Area2D) -> void:
-	_deadly_area_count = _deadly_area_count - 1
-	if _deadly_area_count <= 0:
-		_can_be_stunned = false
+
 func _on_spring_bounce() -> void:
+	_boost = Vector2(0, -Spring.BOUNCE_POWER)
 	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
-	_just_used_spring = true
+
 func _on_booster_bounce() -> void:
-	_just_used_booster = true
-	_current_state = PlayerState.WALLJUMP
+	_boost = Vector2(Booster.SIDE_POWER * _facing_direction, -Booster.BOUNCE_POWER)
+	_current_state = PlayerState.WALLJUMP #TODO: REMOVE THIS LINE
+
 func _on_item_crafter_bridge_used() -> void:
-	_just_used_bridge = true
+	velocity.y = 0 # IMO, a valid exception to not be in the update velocites.
+
 func _physics_process(delta: float) -> void:
 	_handle_player_controls(delta)
 	_handle_player_visuals()
-	_handle_player_sounds()
 	_update_timers(delta)
+	_previous_state = _current_state
+	_handle_state_transitions()
+
 func _update_timers(delta: float) -> void:
 	for timer in Global.PLAYER_TIMERS:
 		if timer == Global.TimerType.JUMP_PROGRESS:
 			Global.update_timer(timer, delta / _JUMP_LENGTH)
 			continue
 		Global.update_timer(timer, delta)
-func _process(_delta: float) -> void:
-	_previous_state = _current_state
-	_handle_state_transitions()
+
 func kill() -> void:
 	Global.get_game().player_lives -= 1
 	
@@ -159,6 +146,7 @@ func kill() -> void:
 	else:
 		print("Normal death")
 		#Global.game_state = Global.GameState.DEATH
+
 func _handle_flight(flight: bool, delta: float) -> bool:
 	if !flight: return false
 	
@@ -178,17 +166,25 @@ func _handle_flight(flight: bool, delta: float) -> bool:
 ## Everything in this must be related to changing player state. And nothing outside this method
 ## should be related to state transitions.
 func _handle_state_transitions() -> void:
-	if _can_be_stunned and not Global.is_timer_active(Global.TimerType.STUN) \
-	and not Global.is_timer_active(Global.TimerType.INVINCIBILITY)\
-	and _current_state != PlayerState.STUNNED:
-		Global.activate_timer(Global.TimerType.STUN)
-		_current_state = PlayerState.STUNNED
+	# Handling Stun
+	if _should_stun() and not _stunned:
+		_stunned = true
 		%ItemCrafter.enabled = false
+		Global.play(Global.Sound.HURT)
+		Global.activate_timer(Global.TimerType.STUN)
+
+	if _stunned and not Global.is_timer_active(Global.TimerType.STUN):
+		_stunned = false
+		Global.activate_timer(Global.TimerType.INVINCIBILITY)
+		_current_state = PlayerState.FREEMOVE
+		%ItemCrafter.enabled = true
 		return
+
 	match _current_state:
 		PlayerState.FREEMOVE:
 			if is_on_floor():
 				_wall_away_direction = 0
+
 			var move_dir = _compute_move_dir()
 			if move_dir != 0:
 				_facing_direction = move_dir
@@ -197,10 +193,10 @@ func _handle_state_transitions() -> void:
 					_facing_direction = _wall_away_direction 
 					_current_state = PlayerState.WALLSLIDE
 		PlayerState.WALLSLIDE:
-			if not is_on_wall_only():
-				_current_state = PlayerState.FREEMOVE
-			if _just_jumped_from_wall:
+			if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
 				_current_state = PlayerState.WALLJUMP
+			if _stunned or not is_on_wall_only():
+				_current_state = PlayerState.FREEMOVE
 		PlayerState.WALLJUMP:
 			if is_on_wall_only():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
@@ -210,14 +206,6 @@ func _handle_state_transitions() -> void:
 			elif is_on_floor():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 				_current_state = PlayerState.FREEMOVE
-		PlayerState.CRAFTING:
-			if Global.is_timer_active(Global.TimerType.CRAFTING):
-				_current_state = PlayerState.FREEMOVE
-		PlayerState.STUNNED:
-			if not Global.is_timer_active(Global.TimerType.STUN) and _current_state == PlayerState.STUNNED:
-				Global.activate_timer(Global.TimerType.INVINCIBILITY)
-				_current_state = PlayerState.FREEMOVE
-				%ItemCrafter.enabled = true
 
 ## Moves player based on inputs and states.
 func _handle_player_controls(delta: float) -> void:
@@ -232,81 +220,87 @@ func _handle_player_controls(delta: float) -> void:
 	if move_dir != 0 and _current_state != PlayerState.WALLSLIDE:
 		_facing_direction = move_dir
 	
-	_handle_jump_and_fall(delta)
-	_handle_horizontal_motion(move_dir, delta)
+	_update_player_velocities(move_dir, delta)
 	
+	# If you landed, then play the land sound.
+	var just_landed = not _was_on_floor and is_on_floor()
+	if just_landed:
+		Global.play(Global.Sound.LAND)
+
 	_was_on_floor = is_on_floor()
 	move_and_slide()
 
-## Moves player in Y axis based on inputs and states.
-func _handle_jump_and_fall(delta: float) -> void:
-	if _just_used_spring:
-		velocity.y = -Spring.BOUNCE_POWER
-		return
-	elif _just_used_booster:
-		velocity.y = -Booster.BOUNCE_POWER
-		return
-	elif _just_used_bridge:
-		velocity.y = 0
-		_just_used_bridge = false
-		return
-
-	if _can_jump():
-		Global.activate_timer(Global.TimerType.COYOTE)
-	
-	var should_jump : bool = Input.is_action_just_pressed("player_jump") and Global.is_timer_active(Global.TimerType.COYOTE)
-	if should_jump:
-		_just_jumped = true
-		Global.activate_timer(Global.TimerType.JUMP_PROGRESS)
-
-		if _current_state == PlayerState.WALLSLIDE:
-			_facing_direction = _wall_away_direction
-			_just_jumped_from_wall = true
-
-	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
-		var jump_stopped_early : bool = not Input.is_action_pressed("player_jump") or is_on_ceiling()
-		if jump_stopped_early:
-			velocity.y *= _EARLY_JUMP_DAMP
-			Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
-		else:
-			velocity.y = -_JUMP_POWER * Global.get_time_of(Global.TimerType.JUMP_PROGRESS)
-
-	velocity += get_gravity() * delta
-
-	if _current_state == PlayerState.WALLSLIDE:
-		var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
-		if velocity.y > max_y_vel: velocity.y = max_y_vel
-
-## Moves player in X axis based on inputs and states.
-func _handle_horizontal_motion(move_dir: int, delta: float) -> void:
-	if %ItemCrafter.is_item_active_or_crafting():
-		velocity.x = 0
-		return
-
-	if _current_state == PlayerState.WALLSLIDE and (move_dir == 0 or move_dir == -_wall_away_direction):
-		velocity.x = -_wall_away_direction
-		return
-	
-	if _just_used_booster:
-		velocity.x = Booster.SIDE_POWER * _facing_direction
-		return
-	
+func _update_player_velocities(move_dir: int, delta: float) -> void:
 	var acceleration : float = player_state_to_acceleration[_current_state]
 	var damping : float = player_state_to_damping[_current_state]
-
-	if _current_state == PlayerState.WALLJUMP and _just_jumped_from_wall:
-		velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
-		_just_jumped_from_wall = false
 	
-	velocity.x += acceleration * move_dir * delta
-	velocity.x *= damping
+	match _current_state:
+		PlayerState.FREEMOVE:
+			var can_jump = is_on_floor()
+			if can_jump:
+				Global.activate_timer(Global.TimerType.COYOTE)
 
-## Returns if player can jump in the current frame.
-func _can_jump() -> bool:
-	var can_move_and_is_on_floor : bool = _current_state == PlayerState.FREEMOVE and is_on_floor()
-	var on_wall : bool = _current_state == PlayerState.WALLSLIDE
-	var using_powerup : bool = %ItemCrafter.is_item_active_or_crafting()
-	return (can_move_and_is_on_floor or on_wall) and not using_powerup
+			var should_jump : bool = Input.is_action_just_pressed("player_jump") and Global.is_timer_active(Global.TimerType.COYOTE)
+			if should_jump and not _stunned:
+				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+				Global.play(Global.Sound.JUMP) # Play the jump sound.
+
+			_update_jump_if_needed(delta)
+
+			velocity += get_gravity() * delta
+			
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
+			
+			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
+				velocity.x = 0
+		PlayerState.WALLSLIDE:
+			Global.activate_timer(Global.TimerType.COYOTE)
+
+			if move_dir != _wall_away_direction:
+				velocity.x = -_wall_away_direction
+
+			var should_jump : bool = Input.is_action_just_pressed("player_jump")
+			if should_jump:
+				_facing_direction = _wall_away_direction
+				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
+				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+				Global.play(Global.Sound.JUMP) # Play the jump sound.
+
+			velocity += get_gravity() * delta
+
+			var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
+			if velocity.y > max_y_vel:
+				velocity.y = max_y_vel
+
+		PlayerState.WALLJUMP:
+			_update_jump_if_needed(delta)
+
+			velocity += get_gravity() * delta
+
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
+
+			if velocity.x != _wall_away_direction:
+				velocity.x = -_wall_away_direction
+
+			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
+				velocity.x = 0
+
+func _update_jump_if_needed(delta: float) -> void:
+	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
+		var continue_jumping : bool = Input.is_action_pressed("player_jump") and not is_on_ceiling()
+		if continue_jumping:
+			velocity.y = -_JUMP_POWER * Global.get_time_of(Global.TimerType.JUMP_PROGRESS)
+		else:
+			velocity.y *= _EARLY_JUMP_DAMP
+			Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+
+## Returns if you should stun the player
+func _should_stun() -> bool:
+	var not_stunned = not Global.is_timer_active(Global.TimerType.STUN)
+	var not_invincible = not Global.is_timer_active(Global.TimerType.INVINCIBILITY)
+	return _can_be_stunned and not_stunned and not_invincible
 
 ## Returns the direction where player should face in accordance with the inputs.
 func _compute_move_dir() -> int:
@@ -328,7 +322,7 @@ func _handle_player_visuals() -> void:
 	if _current_state == PlayerState.WALLSLIDE:
 		animation = "wallslide"
 
-	if _current_state == PlayerState.STUNNED:
+	if _stunned:
 		animation = "hurt"
 
 	if sprite.animation != animation:
@@ -338,17 +332,17 @@ func _handle_player_visuals() -> void:
 	if _facing_direction != 0:
 		sprite.flip_h = _facing_direction < 0
 	
-	if _current_state == PlayerState.STUNNED:
+	if _stunned:
 		var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
 		modulate = Color(1.0, 0.0, 0.0) if t < 0.5 else Color(1.0, 1.0, 1.0)
 		return
 	modulate = Color(1.0, 1.0, 1.0)
-		
+
 	# flash visible/invisible while iframes are active
 	if Global.is_timer_active(Global.TimerType.INVINCIBILITY):
 		var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
 		visible = t < 0.5
-	
+
 	# crafting animation will stretch out the player a little bit
 	# stretching increases as it gets closer to being finishedD
 	if Global.is_timer_active(Global.TimerType.CRAFTING):
@@ -359,17 +353,3 @@ func _handle_player_visuals() -> void:
 		)
 	else:
 		sprite.scale = Vector2.ONE
-
-## Handles sounds made by player.
-func _handle_player_sounds() -> void:
-	if not _was_on_floor and is_on_floor():
-		Global.play(Global.Sound.LAND)
-	if _just_jumped:
-		Global.play(Global.Sound.JUMP)
-		_just_jumped = false
-	if _previous_state != PlayerState.STUNNED and _current_state == PlayerState.STUNNED:
-		Global.play(Global.Sound.HURT)
-	if _just_used_spring or _just_used_booster:
-		Global.play(Global.Sound.BOOST)
-		_just_used_spring = false
-		_just_used_booster = false

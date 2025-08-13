@@ -8,6 +8,7 @@ static var SIDE_POWER := 800.0
 
 func on_body_entered(body: Node):
 	if body.has_method("_on_booster_bounce"):
+		Global.play(Global.Sound.BOOST)
 		body._on_booster_bounce()
 		
 func activate():
