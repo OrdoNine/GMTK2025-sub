@@ -1,10 +1,6 @@
 # TODO:
-# - walljump->wallslide only when moving towards wall
 # - rewrite the timer system
 # - Fix walljump accel/damping (it's too slippery)
-# - Allow jump from freemove to continue when entering wallslide
-#   until the jump button is released. (i love remaking code that
-#   i already made but in a worse structure)
 # - fix all the bugs with animations:
 #   - head hitting
 #   - crafting animation
