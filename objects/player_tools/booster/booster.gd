@@ -9,7 +9,7 @@ static var SIDE_POWER := 800.0
 func on_body_entered(body: Node):
 	if body.has_method("_on_booster_bounce"):
 		Global.play(Global.Sound.BOOST)
-		body._on_booster_bounce()
+		body._on_booster_bounce(SIDE_POWER, BOUNCE_POWER)
 		
 func activate():
 	await get_tree().create_timer(0.1).timeout

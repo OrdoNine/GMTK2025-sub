@@ -117,12 +117,12 @@ func game_reset(_new_round : bool) -> void:
 	for timer in Global.PLAYER_TIMERS:
 		Global.deactivate_timer(timer)
 
-func _on_spring_bounce() -> void:
-	_boost = Vector2(0, -Spring.BOUNCE_POWER)
+func _on_spring_bounce(bounce_power: float) -> void:
+	_boost = Vector2(0, bounce_power)
 	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 
-func _on_booster_bounce() -> void:
-	_boost = Vector2(Booster.SIDE_POWER * _facing_direction, -Booster.BOUNCE_POWER)
+func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
+	_boost = Vector2(side_power * _facing_direction, -bounce_power)
 	_current_state = PlayerState.WALLJUMP #TODO: REMOVE THIS LINE
 
 func _on_item_crafter_bridge_used() -> void:
