@@ -42,8 +42,8 @@ var _current_state : PlayerState = PlayerState.FREEMOVE
 ## The previous state of the player.
 var _previous_state : PlayerState = PlayerState.FREEMOVE
 
-## The constant ratio of velocity.y and jump_remaining.
-## Bigger the magnitude, Bigger the jump.
+## The velocity of the jump at the moment it was pressed. The velocity
+## decreases over time, according to the progress of the jump timer.
 const _JUMP_POWER : float = 300.0
 
 ## The time it takes for the player to complete a jump.
@@ -58,7 +58,8 @@ const _WALL_SLIDE_SPEED_LIMIT : float = 4.0
 ## The velocity boost in the x axis, while wall jumping.
 const _WALL_JUMP_INITIAL_XBOOST : float = 230.0
 
-## If jumped from or is on some wall, then it is the direction away from the wall with player being at the origin.
+## If jumped from or is on some wall, then it is the direction away from the
+## wall with player being at the origin.
 var _wall_away_direction : int = 0
 
 ## A variable to track the direction you are facing.
@@ -76,7 +77,9 @@ var _was_on_floor : bool = true
 ## A variable to track if you are stunned.
 var _stunned : bool = false
 
-## Boost Velocities for like spring and booster player tools
+## When this variable is non-zero, the player's velocity will be set to this
+## and this variable will be reset afterwards. Intended to be used by code that
+## handles boost/spring.
 var _boost : Vector2 = Vector2.ZERO
 
 # Functions that you wouldn't touch.
