@@ -150,7 +150,7 @@ func game_reset(_new_round : bool) -> void:
 		Global.deactivate_timer(timer)
 
 func _on_spring_bounce(bounce_power: float) -> void:
-	_boost = Vector2(0, bounce_power)
+	_boost = Vector2(0, -bounce_power)
 	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
