@@ -13,6 +13,7 @@ enum PlayerState {
 	FREEMOVE,
 	WALLSLIDE,
 	WALLJUMP,
+	BOOST,
 }
 
 ## A map from player state to acceleration used.
@@ -20,6 +21,7 @@ const player_state_to_acceleration : Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 3800,
 	PlayerState.WALLSLIDE: 1400,
 	PlayerState.WALLJUMP: 450,
+	PlayerState.BOOST: 450,
 }
 
 ## A map from player state to damping used.
@@ -28,6 +30,7 @@ const player_state_to_damping: Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 0.8,
 	PlayerState.WALLSLIDE: 0.8,
 	PlayerState.WALLJUMP: 0.98,
+	PlayerState.BOOST: 0.98,
 }
 
 ## The start position of the player, where it starts.
@@ -180,6 +183,11 @@ func _handle_state_transitions() -> void:
 		%ItemCrafter.enabled = true
 		return
 
+	if _boost != Vector2.ZERO and _current_state != PlayerState.BOOST:
+		_current_state = PlayerState.BOOST
+		Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+		return
+
 	match _current_state:
 		PlayerState.FREEMOVE:
 			if is_on_floor():
@@ -205,6 +213,13 @@ func _handle_state_transitions() -> void:
 				_current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+				_current_state = PlayerState.FREEMOVE
+		PlayerState.BOOST:
+			if is_on_wall_only():
+				_wall_away_direction = sign(get_wall_normal().x)
+				_facing_direction = _wall_away_direction 
+				_current_state = PlayerState.WALLSLIDE
+			elif is_on_floor():
 				_current_state = PlayerState.FREEMOVE
 
 ## Moves player based on inputs and states.
@@ -272,7 +287,6 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
 			if velocity.y > max_y_vel:
 				velocity.y = max_y_vel
-
 		PlayerState.WALLJUMP:
 			_update_jump_if_needed(delta)
 
@@ -286,6 +300,15 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 
 			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
 				velocity.x = 0
+		PlayerState.BOOST:
+			if _boost != Vector2.ZERO:
+				velocity = _boost
+				_boost = Vector2.ZERO
+
+			velocity += get_gravity() * delta
+			
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
 
 func _update_jump_if_needed(delta: float) -> void:
 	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
