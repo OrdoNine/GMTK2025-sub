@@ -77,6 +77,8 @@ const _EARLY_JUMP_DAMP : float = 0.5
 ## The multiplier limit that forces wall slide speed not to increase indefinitely.
 const _WALL_SLIDE_SPEED_LIMIT : float = 4.0
 
+## The acceleration value of the player's X movement while wall-jumping.
+## Higher values mean it is easier to control.
 const _WALL_JUMP_CONTROL_ACCELERATION: float = 700.0
 
 ## If jumped from or is on some wall, then it is the direction away from the
@@ -86,16 +88,13 @@ var _wall_away_direction : int = 0
 ## A variable to track the direction you are facing.
 var _facing_direction: int = 1
 
-## A variable to track if we are taking damage.
-var _can_be_stunned: bool = false
-
-## A variable to track the cardinality of deadly area, the player is in, to know about giving a stun.
+## The number of hazard hitboxes that the player is currently touching.
 var _deadly_area_count: int = 0
 
-## A variable to track if the player was on floor at the previous frame to give a landing sound.
+## If the player was on a floor on the previous frame. Used to play a landing
+## sound.
 var _was_on_floor : bool = true
 
-## A variable to track if you are stunned.
 var _stunned : bool = false
 
 ## When this variable is non-zero, the player's velocity will be set to this
@@ -124,17 +123,12 @@ func _physics_process(delta: float) -> void:
 	_handle_state_transitions()
 
 
-# Functions that you wouldn't touch.
 func on_entered_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count + 1
-	if _deadly_area_count > 0:
-		_can_be_stunned = true
 
 
 func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
-	if _deadly_area_count <= 0:
-		_can_be_stunned = false
 
 
 func game_reset(_new_round : bool) -> void:
@@ -148,7 +142,6 @@ func game_reset(_new_round : bool) -> void:
 	_previous_state = PlayerState.FREEMOVE
 	_deadly_area_count = 0
 	_facing_direction = 1
-	_can_be_stunned = false
 	_was_on_floor = true
 	
 	_boost = Vector2.ZERO
@@ -454,10 +447,11 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			velocity.x += acceleration * move_dir * delta
 			velocity.x *= damping
 
-## for the entire duration of the jump, set y velocity to a factor of jump_power,
-## tapering off the longer the jump button is held.
-## once the jump button is released, stop the jump and dampen the y velocity. makes it
-## easier to control the height of the jumps
+
+# for the entire duration of the jump, set y velocity to a factor of jump_power,
+# tapering off the longer the jump button is held.
+# once the jump button is released, stop the jump and dampen the y velocity. makes it
+# easier to control the height of the jumps
 func _update_jump(delta: float) -> void:
 	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
 		if Input.is_action_pressed("player_jump") and not is_on_ceiling():
@@ -474,15 +468,15 @@ func _update_jump(delta: float) -> void:
 func _should_stun() -> bool:
 	var stunned = Global.is_timer_active(Global.TimerType.STUN)
 	var invincible = Global.is_timer_active(Global.TimerType.INVINCIBILITY)
-	return _can_be_stunned and not stunned and not invincible
+	return _deadly_area_count > 0 and not stunned and not invincible
 
-## Returns the direction where player should face in accordance with the inputs.
+
 func _compute_move_dir() -> int:
 	if %ItemCrafter.is_item_active_or_crafting():
 		return 0
 	return int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
 
-## Handles how player looks
+
 func _handle_player_visuals() -> void:
 	visible = true
 	var sprite = $AnimatedSprite2D
