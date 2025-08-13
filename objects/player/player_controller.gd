@@ -110,20 +110,32 @@ var _boost : Vector2 = Vector2.ZERO
 ## to do a walljump while wallsliding (not coyote time wall-jump).
 var _walljump_request := false
 
+
+func _ready() -> void:
+	Global.get_game().round_started.connect(game_reset)
+	game_reset(true)
+
+
+func _physics_process(delta: float) -> void:
+	_handle_player_controls(delta)
+	_handle_player_visuals()
+	_update_timers(delta)
+	_previous_state = _current_state
+	_handle_state_transitions()
+
+
 # Functions that you wouldn't touch.
 func on_entered_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count + 1
 	if _deadly_area_count > 0:
 		_can_be_stunned = true
 
+
 func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
 	if _deadly_area_count <= 0:
 		_can_be_stunned = false
 
-func _ready() -> void:
-	Global.get_game().round_started.connect(game_reset)
-	game_reset(true)
 
 func game_reset(_new_round : bool) -> void:
 	position = _start_pos
@@ -145,23 +157,19 @@ func game_reset(_new_round : bool) -> void:
 	for timer in Global.PLAYER_TIMERS:
 		Global.deactivate_timer(timer)
 
+
 func _on_spring_bounce(bounce_power: float) -> void:
 	_boost = Vector2(0, -bounce_power)
 	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+
 
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
 	_boost = Vector2(side_power * _facing_direction, -bounce_power)
 	_current_state = PlayerState.WALLJUMP #TODO: REMOVE THIS LINE
 
+
 func _on_item_crafter_bridge_used() -> void:
 	velocity.y = 0 # IMO, a valid exception to not be in the update velocites.
-
-func _physics_process(delta: float) -> void:
-	_handle_player_controls(delta)
-	_handle_player_visuals()
-	_update_timers(delta)
-	_previous_state = _current_state
-	_handle_state_transitions()
 
 
 func _update_timers(delta: float) -> void:
@@ -170,6 +178,7 @@ func _update_timers(delta: float) -> void:
 			Global.update_timer(timer, delta / _JUMP_LENGTH)
 			continue
 		Global.update_timer(timer, delta)
+
 
 func kill() -> void:
 	Global.get_game().player_lives -= 1
@@ -182,30 +191,38 @@ func kill() -> void:
 		print("Normal death")
 		#Global.game_state = Global.GameState.DEATH
 
+
 func _handle_flight(flight: bool, delta: float) -> bool:
 	if !flight: return false
 	
 	const fly_speed := 1200.0
 	var speed = fly_speed * delta
 	
-	var x_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
+	var x_dir := (
+			int(Input.is_action_pressed("player_right")) -
+			int(Input.is_action_pressed("player_left")))
 	position.x += x_dir * speed
 	
-	var y_dir := int(Input.is_action_pressed("player_down")) - int(Input.is_action_pressed("player_up"))
+	var y_dir := (
+			int(Input.is_action_pressed("player_down")) - 
+			int(Input.is_action_pressed("player_up")))
 	position.y += y_dir * speed
 
 	return true
 
-# formula to obtain the maximum velocity given an acceleration (a) and a damping factor (k):
+
+# formula to obtain the maximum velocity given an acceleration (a) and a
+# damping factor (k):
 #	(this is the velocity function. v0 is the initial velocity)
-#	(x is the integer number of frames that have elapsed since initial velocity)
+#	(x is the integer number of frames that have elapsed since init velocity)
 #	v(x) = v0*k^x + sum(n=1, x, a*k^n)
 #	
 #	lim v(x) as x -> inf = a / (1 - k) - a, as:
 #		- sum(n=0, x, a*k^n) is a geometric series.
-#		  the limit of this series is a / (1 - k). subtract a to remove the n=0 term.
-#		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if k >= 1, limit
-#		  approaches infinity.
+#		  the limit of this series is a / (1 - k). subtract a to remove the n=0
+#		  term.
+#		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if
+#		- k >= 1, limit approaches infinity.
 func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	if damping >= 1.0:
 		push_error("velocity limit approaches infinity")
@@ -217,8 +234,10 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	
 	return acceleration / (1.0 - damping) - acceleration
 
+
 func calc_damping_from_limit(limit: float, acceleration: float) -> float:
 	return -acceleration / (limit + acceleration) + 1.0
+
 
 func calc_walljump_damping() -> float:
 	# i want the maximum velocity of this state to be the same as
@@ -233,6 +252,7 @@ func calc_walljump_damping() -> float:
 		_WALL_JUMP_CONTROL_ACCELERATION)
 	
 	return wall_jump_damping
+
 
 # Functions that you actually might need to touch
 ## Moves player based on inputs and states.
@@ -322,11 +342,13 @@ func _handle_state_transitions() -> void:
 				transition_to_walljump()
 		
 		PlayerState.WALLSLIDE:
+			var moving_toward_wall := _compute_move_dir() != -_wall_away_direction
+			
 			if _walljump_request:
 				print("to walljump")
 				transition_to_walljump()
 			
-			elif _stunned or not is_on_wall_only() or _compute_move_dir() != -_wall_away_direction:
+			elif _stunned or not is_on_wall_only() or moving_toward_wall:
 				Global.activate_timer(Global.TimerType.WALLJUMP_COYOTE)
 				_current_state = PlayerState.FREEMOVE
 		
@@ -366,15 +388,17 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			if is_on_floor():
 				Global.deactivate_timer(Global.TimerType.WALLJUMP_COYOTE)
 
-			var should_jump : bool = Input.is_action_just_pressed("player_jump") and Global.is_timer_active(Global.TimerType.COYOTE)
-			if should_jump and not _stunned:
+			if not _stunned and (
+					Input.is_action_pressed("player_jump")
+					and Global.is_timer_active(Global.TimerType.COYOTE)
+			):
 				var snd := Global.play(Global.Sound.JUMP)
 				if snd:
 					snd.pitch_scale = 1.0 + randf() * 0.1
 				Global.activate_timer(Global.TimerType.JUMP_PROGRESS)
-
-			_update_jump_if_needed(delta)
-
+			
+			_update_jump(delta)
+			
 			velocity += get_gravity() * delta
 			
 			velocity.x += acceleration * move_dir * delta
@@ -382,17 +406,19 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			
 			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
 				velocity.x = 0
+		
 		PlayerState.WALLSLIDE:
 			Global.activate_timer(Global.TimerType.COYOTE)
-			_update_jump_if_needed(delta)
+			_update_jump(delta)
 
 			#if move_dir != _wall_away_direction:
 			velocity.x = -_wall_away_direction * 100.0
 
 			var should_jump : bool = Input.is_action_just_pressed("player_jump")
 			if should_jump:
+				var dt := 1.0 / Engine.physics_ticks_per_second
 				var eject_velocity := calc_velocity_limit(
-						_WALL_JUMP_CONTROL_ACCELERATION / Engine.physics_ticks_per_second,
+						_WALL_JUMP_CONTROL_ACCELERATION * dt,
 						calc_walljump_damping())
 				
 				_facing_direction = _wall_away_direction
@@ -406,8 +432,9 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
 			if velocity.y > max_y_vel:
 				velocity.y = max_y_vel
+		
 		PlayerState.WALLJUMP:
-			_update_jump_if_needed(delta)
+			_update_jump(delta)
 
 			velocity += get_gravity() * delta
 
@@ -416,6 +443,7 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 
 			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
 				velocity.x = 0
+		
 		PlayerState.BOOST:
 			if _boost != Vector2.ZERO:
 				velocity = _boost
@@ -426,20 +454,27 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			velocity.x += acceleration * move_dir * delta
 			velocity.x *= damping
 
-func _update_jump_if_needed(delta: float) -> void:
+## for the entire duration of the jump, set y velocity to a factor of jump_power,
+## tapering off the longer the jump button is held.
+## once the jump button is released, stop the jump and dampen the y velocity. makes it
+## easier to control the height of the jumps
+func _update_jump(delta: float) -> void:
 	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
-		var continue_jumping : bool = Input.is_action_pressed("player_jump") and not is_on_ceiling()
-		if continue_jumping:
-			velocity.y = -_JUMP_POWER * Global.get_time_of(Global.TimerType.JUMP_PROGRESS)
+		if Input.is_action_pressed("player_jump") and not is_on_ceiling():
+			# continue jumping
+			velocity.y = -_JUMP_POWER * (
+					Global.get_time_of(Global.TimerType.JUMP_PROGRESS))
 		else:
+			# stop jump
 			velocity.y *= _EARLY_JUMP_DAMP
 			Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 
+
 ## Returns if you should stun the player
 func _should_stun() -> bool:
-	var not_stunned = not Global.is_timer_active(Global.TimerType.STUN)
-	var not_invincible = not Global.is_timer_active(Global.TimerType.INVINCIBILITY)
-	return _can_be_stunned and not_stunned and not_invincible
+	var stunned = Global.is_timer_active(Global.TimerType.STUN)
+	var invincible = Global.is_timer_active(Global.TimerType.INVINCIBILITY)
+	return _can_be_stunned and not stunned and not invincible
 
 ## Returns the direction where player should face in accordance with the inputs.
 func _compute_move_dir() -> int:
@@ -485,7 +520,10 @@ func _handle_player_visuals() -> void:
 	# crafting animation will stretch out the player a little bit
 	# stretching increases as it gets closer to being finishedD
 	if Global.is_timer_active(Global.TimerType.CRAFTING):
-		var t: float = 1.0 - Global.get_time_of(Global.TimerType.CRAFTING) / Global.get_activation_time_of(Global.TimerType.CRAFTING)
+		var t := (Global.get_time_of(Global.TimerType.CRAFTING) /
+				Global.get_activation_time_of(Global.TimerType.CRAFTING))
+		t = 1.0 - t
+		
 		sprite.scale = Vector2(
 			pow(2, t * 0.4),
 			pow(2, -t * 0.4)
