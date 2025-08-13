@@ -233,6 +233,12 @@ func update_movement(delta: float) -> void:
 	# its a basic state machine
 	update_state(move_dir, delta)
 	
+	# play landing sound when player touches the floor
+	if not _was_on_floor and is_on_floor():
+		var sound := play_sound(landing_sound)
+		if sound:
+			sound.pitch_scale = 1.0 + randf() * 0.2
+	
 	_was_on_floor = is_on_floor()
 	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
 
@@ -284,12 +290,6 @@ func update_state(move_dir: float, delta: float) -> void:
 				# unset data for wall-jump coyote time
 				_wall_direction = 0
 				_new_anim = "idle" if move_dir == 0 else "run"
-				
-				# play landing sound when player touches the floor
-				if not _was_on_floor:
-					var sound := play_sound(landing_sound)
-					if sound:
-						sound.pitch_scale = 1.0 + randf() * 0.2
 			else:
 				_new_anim = "jump" if velocity.y > 0 else "fall"
 			
