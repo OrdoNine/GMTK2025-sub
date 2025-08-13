@@ -2,10 +2,12 @@
 # - rewrite the timer system
 # - Fix walljump accel/damping (it's too slippery)
 # - fix all the bugs with animations:
-#   - head hitting
-#   - crafting animation
-#	- being able to turn around while stunned
-#   - being stunned does not make you hop up a little
+#   - head hitting.
+#   - crafting animation.
+#	- being able to turn around while stunned.
+#   - being stunned while touching a wall will make you alternate facing
+#     direction on every frame.
+#   - being stunned does not make you hop up a little.
 # - i think the stun check is messier because in pkrewrite, all it did was
 #   disable jumping and movement, but in this code there's like a stun check in
 #   something not related to movement? That doesn't seem good.
@@ -121,6 +123,10 @@ func _physics_process(delta: float) -> void:
 	_update_timers(delta)
 	_previous_state = _current_state
 	_handle_state_transitions()
+
+
+func _process(_delta):
+	pass
 
 
 func on_entered_deadly_area(_area: Area2D) -> void:
@@ -456,6 +462,7 @@ func _update_jump(delta: float) -> void:
 	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
 		if Input.is_action_pressed("player_jump") and not is_on_ceiling():
 			# continue jumping
+			print(Global.get_time_of(Global.TimerType.JUMP_PROGRESS))
 			velocity.y = -_JUMP_POWER * (
 					Global.get_time_of(Global.TimerType.JUMP_PROGRESS))
 		else:
