@@ -1,4 +1,5 @@
 # TODO:
+# - walljump->wallslide only when moving towards wall
 # - rewrite the timer system
 # - Fix walljump accel/damping (it's too slippery)
 # - Allow jump from freemove to continue when entering wallslide
@@ -15,6 +16,15 @@
 # - get rid of this completely and make it use my structure because this did
 #   not click with me when i started editing it, unlike what you assumed would
 #   happen.
+# - use my code in pkrewrite which is already fully working so that we can stop
+#   focusing on rewriting code that already works perfectly fine and actually
+#   work on the game. yes i would like to have to jump across two different
+#   methods while editing the code for each state, it is very helpful and
+#   intuitive for reading and editing. it is just too complex and indirect for
+#   state transitions to be permitted to be triggered from the actual state
+#   code themselves, and instead i need to separate that to happen only within
+#   a separate and (almost) independent function. it is folly to think physics
+#   code is inherently intertwined with state transitions.
 extends CharacterBody2D
 class_name Player
 
