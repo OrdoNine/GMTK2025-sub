@@ -209,25 +209,31 @@ func update_slippery_jump_state(
 		accel: float, damping: float,
 		move_dir: float, delta: float) -> void:
 	_new_anim = "jump"
+	var do_wall_pull_force := false
 	
 	# wallslide transition
-	if is_on_wall_only() and not _ignore_grounded_on_this_frame:
-		_jump_remaining = 0.0
-		current_state = PlayerState.WALLSLIDE
-		velocity.x = -get_wall_normal().x * 100.0 # please stay on the wall
-	
-	# freemove transition
-	elif is_on_floor() and not _ignore_grounded_on_this_frame:
-		_jump_remaining = 0.0
-		current_state = PlayerState.FREEMOVE
-		var sound := play_sound(landing_sound)
-		if sound:
-			sound.pitch_scale = 1.0 + randf() * 0.2
+	if not _ignore_grounded_on_this_frame:
+		if is_on_wall_only() and move_dir == sign(-get_wall_normal().x):
+			_jump_remaining = 0.0
+			current_state = PlayerState.WALLSLIDE
+			do_wall_pull_force = true
+		
+		# freemove transition
+		elif is_on_floor():
+			_jump_remaining = 0.0
+			current_state = PlayerState.FREEMOVE
+			var sound := play_sound(landing_sound)
+			if sound:
+				sound.pitch_scale = 1.0 + randf() * 0.2
 	
 	# diminished mid-air control
-	else:
+	if not do_wall_pull_force:
 		velocity.x += move_dir * accel * delta
 		velocity.x *= damping
+	
+	# please stay on the wall
+	else:
+		velocity.x = -get_wall_normal().x * 100.0
 
 func update_state(move_dir: float, delta: float) -> void:
 	var item_crafter := $ItemCrafter
