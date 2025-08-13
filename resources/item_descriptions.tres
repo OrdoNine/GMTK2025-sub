@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ItemTable" load_steps=11 format=3 uid="uid://dk170cfsd87wp"]
+[gd_resource type="Resource" script_class="ItemTable" load_steps=11 format=3 uid="uid://d04t1ovvv1pe6"]
 
 [ext_resource type="Script" uid="uid://il8056th70y6" path="res://scripts/resources/item_description.gd" id="1_t4463"]
 [ext_resource type="PackedScene" uid="uid://b0abxmeyedi4a" path="res://objects/player_tools/bomb/bomb.tscn" id="2_5u0bn"]
