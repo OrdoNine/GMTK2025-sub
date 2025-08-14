@@ -36,6 +36,9 @@ const player_state_to_damping: Dictionary[PlayerState, float] = {
 ## The start position of the player, where it starts.
 @onready var _start_pos : Vector2 = position
 
+## The last position of the player, where it was the last frame.
+var _last_pos : Vector2 = _start_pos
+
 ## The current state of the player.
 var _current_state : PlayerState = PlayerState.FREEMOVE :
 	set(x):
@@ -106,6 +109,7 @@ func _ready() -> void:
 
 func game_reset(_new_round : bool) -> void:
 	position = _start_pos
+	_last_pos = position
 	velocity = Vector2.ZERO
 
 	%ItemCrafter.reset()
@@ -125,7 +129,7 @@ func game_reset(_new_round : bool) -> void:
 		Global.deactivate_timer(timer)
 
 func _on_spring_bounce(bounce_power: float) -> void:
-	_boost = Vector2(0, bounce_power)
+	_boost = Vector2(0, -bounce_power)
 	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
@@ -217,6 +221,8 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
 				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
 				Global.play(Global.Sound.JUMP) # Play the jump sound.
+			elif Global.is_timer_active(Global.TimerType.COYOTE):
+				_update_jump_if_needed(delta)
 
 			velocity += get_gravity() * delta
 
@@ -281,7 +287,8 @@ func _handle_state_transitions() -> void:
 			var move_dir = _compute_move_dir()
 			if move_dir != 0:
 				_facing_direction = move_dir
-				if is_on_wall_only():
+				if is_on_wall_only() and abs(position.x - _last_pos.x) > 0.1:
+					print("Pos: ", position.x, " Last Pos: ", _last_pos.x)
 					_wall_away_direction = sign(get_wall_normal().x)
 					_facing_direction = _wall_away_direction 
 					_current_state = PlayerState.WALLSLIDE
@@ -328,6 +335,7 @@ func _handle_player_controls(delta: float) -> void:
 		Global.play(Global.Sound.LAND)
 
 	_was_on_floor = is_on_floor()
+	_last_pos = position
 	move_and_slide()
 
 ## Returns if you should jump without coyote stuff
