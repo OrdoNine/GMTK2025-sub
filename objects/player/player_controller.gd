@@ -218,6 +218,7 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
 				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
 				Global.play(Global.Sound.JUMP) # Play the jump sound.
+				_jumped_from_the_damn_floor = false
 			elif Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
 				_update_jump_if_needed(delta)
 

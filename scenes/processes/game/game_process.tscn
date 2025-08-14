@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dsd4k1sulk80x" path="res://scenes/processes/game/game.tscn" id="1_n0kln"]
 [ext_resource type="PackedScene" uid="uid://dtffmkkwd7jot" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.tscn" id="2_0jm6c"]
 [ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="4_q1tbv"]
-[ext_resource type="Script" uid="uid://dpr74hn47ekq2" path="res://scenes/processes/game/ui.gd" id="4_s4fpp"]
+[ext_resource type="Script" path="res://scenes/processes/game/ui.gd" id="4_s4fpp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q1tbv"]
 bg_color = Color(0, 0, 0, 0.376471)
