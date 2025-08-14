@@ -56,7 +56,10 @@ func game_reset(_new_round: bool):
 	last_pattern = {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced": false} 
 	emit_signal("completed_loop")
 
+var disabled : bool = OS.is_debug_build()
+
 func _process(delta: float) -> void:
+	if disabled: return
 	if mace:
 		if completion >= loop_dist:
 			completion = 0
