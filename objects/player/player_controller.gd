@@ -37,14 +37,21 @@ const player_state_to_damping: Dictionary[PlayerState, float] = {
 @onready var _start_pos : Vector2 = position
 
 ## The current state of the player.
-var _current_state : PlayerState = PlayerState.FREEMOVE
+var _current_state : PlayerState = PlayerState.FREEMOVE :
+	set(x):
+		if x != _current_state:
+			if Input.is_key_pressed(KEY_T):
+				print("T PRESSED!")
+			if OS.is_debug_build():
+				print(PlayerState.keys()[_current_state], " -> ", PlayerState.keys()[x])
+			_current_state = x
 
 ## The previous state of the player.
 var _previous_state : PlayerState = PlayerState.FREEMOVE
 
 ## The velocity of the jump at the moment it was pressed. The velocity
 ## decreases over time, according to the progress of the jump timer.
-const _JUMP_POWER : float = 300.0
+const _JUMP_POWER : float = 300.0	
 
 ## The time it takes for the player to complete a jump.
 const _JUMP_LENGTH : float = 0.5
@@ -168,10 +175,80 @@ func _handle_flight(flight: bool, delta: float) -> bool:
 	return true
 
 # Functions that you actually might need to touch
+func _update_player_velocities(move_dir: int, delta: float) -> void:
+	var acceleration : float = player_state_to_acceleration[_current_state]
+	var damping : float = player_state_to_damping[_current_state]
+	
+	match _current_state:
+		PlayerState.FREEMOVE:
+			var can_jump_from_floor = is_on_floor()
+			if can_jump_from_floor:
+				Global.deactivate_timer(Global.TimerType.WALLJUMP_COYOTE)
+				Global.activate_timer(Global.TimerType.COYOTE)
+
+			if _should_jump():
+				if Global.is_timer_active(Global.TimerType.COYOTE):
+					Global.play(Global.Sound.JUMP) # Play the jump sound.
+					Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+
+				if Global.is_timer_active(Global.TimerType.WALLJUMP_COYOTE):
+					velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST # Gives the xboost
+					Global.play(Global.Sound.JUMP) # Play the jump sound.
+					Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+
+			_update_jump_if_needed(delta)
+
+			velocity += get_gravity() * delta
+			
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
+			
+			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
+				velocity.x = 0
+		PlayerState.WALLSLIDE:
+			Global.activate_timer(Global.TimerType.COYOTE)
+
+			if move_dir != _wall_away_direction:
+				velocity.x = -_wall_away_direction
+				Global.activate_timer(Global.TimerType.WALLJUMP_COYOTE)
+
+			if _should_jump():
+				_facing_direction = _wall_away_direction
+				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
+				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+				Global.play(Global.Sound.JUMP) # Play the jump sound.
+
+			velocity += get_gravity() * delta
+
+			var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
+			if velocity.y > max_y_vel:
+				velocity.y = max_y_vel
+		PlayerState.WALLJUMP:
+			_update_jump_if_needed(delta)
+
+			velocity += get_gravity() * delta
+
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
+
+			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
+				velocity.x = 0
+		PlayerState.BOOST:
+			if _boost != Vector2.ZERO:
+				velocity = _boost
+				_boost = Vector2.ZERO
+
+			velocity += get_gravity() * delta
+			
+			velocity.x += acceleration * move_dir * delta
+			velocity.x *= damping
+
 ## This method handles state transitions. It is only for checking things and changing states.[br]
 ## Everything in this must be related to changing player state. And nothing outside this method
 ## should be related to state transitions.
 func _handle_state_transitions() -> void:
+	# TODO: Move this shit out from here.
+	# TODO: So much mental load!!
 	# Handling Stun
 	if _should_stun() and not _stunned:
 		_stunned = true
@@ -196,6 +273,11 @@ func _handle_state_transitions() -> void:
 			if is_on_floor():
 				_wall_away_direction = 0
 
+			if _should_jump():
+				if Global.is_timer_active(Global.TimerType.WALLJUMP_COYOTE):
+					Global.deactivate_timer(Global.TimerType.WALLJUMP_COYOTE)
+					_current_state = PlayerState.WALLJUMP
+
 			var move_dir = _compute_move_dir()
 			if move_dir != 0:
 				_facing_direction = move_dir
@@ -212,7 +294,7 @@ func _handle_state_transitions() -> void:
 			if is_on_wall_only():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
 				_wall_away_direction = sign(get_wall_normal().x)
-				_facing_direction = _wall_away_direction 
+				_facing_direction = _wall_away_direction
 				_current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
@@ -248,70 +330,9 @@ func _handle_player_controls(delta: float) -> void:
 	_was_on_floor = is_on_floor()
 	move_and_slide()
 
-func _update_player_velocities(move_dir: int, delta: float) -> void:
-	var acceleration : float = player_state_to_acceleration[_current_state]
-	var damping : float = player_state_to_damping[_current_state]
-	
-	match _current_state:
-		PlayerState.FREEMOVE:
-			var can_jump = is_on_floor()
-			if can_jump:
-				Global.activate_timer(Global.TimerType.COYOTE)
-
-			var should_jump : bool = Input.is_action_just_pressed("player_jump") and Global.is_timer_active(Global.TimerType.COYOTE)
-			if should_jump and not _stunned:
-				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
-				Global.play(Global.Sound.JUMP) # Play the jump sound.
-
-			_update_jump_if_needed(delta)
-
-			velocity += get_gravity() * delta
-			
-			velocity.x += acceleration * move_dir * delta
-			velocity.x *= damping
-			
-			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
-				velocity.x = 0
-		PlayerState.WALLSLIDE:
-			Global.activate_timer(Global.TimerType.COYOTE)
-
-			if move_dir != _wall_away_direction:
-				velocity.x = -_wall_away_direction
-
-			var should_jump : bool = Input.is_action_just_pressed("player_jump")
-			if should_jump:
-				_facing_direction = _wall_away_direction
-				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
-				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
-				Global.play(Global.Sound.JUMP) # Play the jump sound.
-
-			velocity += get_gravity() * delta
-
-			var max_y_vel = get_gravity().y * _WALL_SLIDE_SPEED_LIMIT * delta
-			if velocity.y > max_y_vel:
-				velocity.y = max_y_vel
-		PlayerState.WALLJUMP:
-			_update_jump_if_needed(delta)
-
-			velocity += get_gravity() * delta
-
-			velocity.x += acceleration * move_dir * delta
-			velocity.x *= damping
-
-			if velocity.x != _wall_away_direction:
-				velocity.x = -_wall_away_direction
-
-			if %ItemCrafter.is_item_active_or_crafting() or _stunned:
-				velocity.x = 0
-		PlayerState.BOOST:
-			if _boost != Vector2.ZERO:
-				velocity = _boost
-				_boost = Vector2.ZERO
-
-			velocity += get_gravity() * delta
-			
-			velocity.x += acceleration * move_dir * delta
-			velocity.x *= damping
+## Returns if you should jump without coyote stuff
+func _should_jump():
+	return Input.is_action_just_pressed("player_jump") and not _stunned
 
 func _update_jump_if_needed(delta: float) -> void:
 	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:

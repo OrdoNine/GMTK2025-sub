@@ -4,6 +4,7 @@ class_name Globals
 ## Timers used in Player
 enum TimerType {
 	COYOTE,
+	WALLJUMP_COYOTE,
 	INVINCIBILITY,
 	STUN,
 	JUMP_PROGRESS,
@@ -13,7 +14,8 @@ enum TimerType {
 ## Activate values are which will cause the timer to update.
 ## They will be considered deactivated at 0.
 const timer_to_activate_values : Dictionary[TimerType, float] = {
-	TimerType.COYOTE: 0.13,
+	TimerType.COYOTE: 0.2,
+	TimerType.WALLJUMP_COYOTE: 0.2,
 	TimerType.INVINCIBILITY: 2.0,
 	TimerType.STUN: 2.0,
 	TimerType.JUMP_PROGRESS: 1.0,
@@ -53,7 +55,13 @@ func deactivate_timer(timer_type: TimerType) -> void:
 func update_timer(timer_type: TimerType, delta_time: float) -> void:
 	timer_to_current_value[timer_type] = move_toward(get_time_of(timer_type), 0, delta_time);
 
-const PLAYER_TIMERS = [TimerType.COYOTE, TimerType.INVINCIBILITY, TimerType.STUN, TimerType.JUMP_PROGRESS]
+const PLAYER_TIMERS = [
+	TimerType.COYOTE,
+	TimerType.WALLJUMP_COYOTE,
+	TimerType.INVINCIBILITY,
+	TimerType.STUN,
+	TimerType.JUMP_PROGRESS
+]
 
 enum Sound {
 	JUMP,
