@@ -13,6 +13,11 @@ const DAMAGE_STUN_LENGTH := 2.0
 const IFRAME_LENGTH := 3.0 # must be longer than stun length
 const COYOTE_JUMP_TIME := 0.13
 
+const jump_sound := preload("res://assets/sounds/jump.wav")
+const landing_sound := preload("res://assets/sounds/land.wav")
+const hurt_sound := preload("res://assets/sounds/hurt.wav")
+const boost_sound := preload("res://assets/sounds/boost.wav")
+
 @export_group("Normal Movement")
 @export_range(0, 10000) var jump_power := 300.0
 @export_range(0.1, 10)  var jump_length := 0.5
@@ -28,28 +33,35 @@ const COYOTE_JUMP_TIME := 0.13
 @export_range(0, 10000) var booster_control_acceleration = 450.0
 @export_range(0, 10000) var booster_control_damping := 0.98
 
-const jump_sound := preload("res://assets/sounds/jump.wav")
-const landing_sound := preload("res://assets/sounds/land.wav")
-const hurt_sound := preload("res://assets/sounds/hurt.wav")
-const boost_sound := preload("res://assets/sounds/boost.wav")
-
 var current_state := PlayerState.FREEMOVE
 var is_stunned := false
 
-var facing_direction: int = 1 # 1: right, -1: left
-var _wall_direction := 0 # direction of the wall the player was on shortly before. 0 means "no wall"
+## 1: right, -1: left
+var facing_direction: int = 1
+## direction of the wall the player was on shortly before. 0 means "no wall"
+var _wall_direction := 0
 
-# progress of the jump, from 0.0 to 1.0.
-# 1.0 means the player just started jumping; 0.0 means the player is not jumping
+## progress of the jump, from 0.0 to 1.0.
+## 1.0 means the player just started jumping; 0.0 means the player is not jumping
 var _jump_remaining = 0.0
-var _coyote_jump_timer := 0.0
-var _can_jump := false
 
-var _ignore_grounded_on_this_frame: bool = false
+var _coyote_jump_timer := 0.0
+
+## The animation state as set by the state code.
+## (More complex animation setup must be done elsewhere)
 var _new_anim := "idle"
+
+## If the player should stay in an airborne state for this frame.
+## ...A bit of a hacky workaround for trying to get boosters/springs working
+## as intended when you touch them while grounded.
+var _stay_airborne_this_frame: bool = false
+
+## If the player was on the floor on the last frame. Only really used to play
+## a landing sound.
 var _was_on_floor := true
 
-var _deadly_area_count: int = 0 # for tracking if the player should be taking damage
+## The number of hazard hitboxes the player is currently overlapping with.
+var _deadly_area_count: int = 0
 
 var _stun_timer: float = 0.0
 var _iframe_timer: float = 0.0
@@ -68,15 +80,12 @@ func _physics_process(delta: float) -> void:
 	# debug fly
 	if OS.is_debug_build() and Input.is_key_pressed(KEY_SHIFT):
 		const fly_speed := 1200.0
-		if Input.is_action_pressed("player_right"):
-			position.x += fly_speed * delta
-		if Input.is_action_pressed("player_left"):
-			position.x -= fly_speed * delta
-		if Input.is_action_pressed("player_up"):
-			position.y -= fly_speed * delta
-		if Input.is_action_pressed("player_down"):
-			position.y += fly_speed * delta
+		var right := int(Input.is_action_pressed("player_right"))
+		var left  := int(Input.is_action_pressed("player_left"))
+		var down  := int(Input.is_action_pressed("player_down"))
+		var up    := int(Input.is_action_pressed("player_up"))
 		
+		position += Vector2(right - left, down - up) * fly_speed * delta
 		return
 	
 	var sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -95,13 +104,13 @@ func _physics_process(delta: float) -> void:
 	
 	update_movement(delta)
 	
+	# update stun
 	if is_stunned:
 		_new_anim = "hurt"
 		_stun_timer = move_toward(_stun_timer, 0, delta)
 		if _stun_timer == 0.0:
 			is_stunned = false
 	
-	_ignore_grounded_on_this_frame = false
 	move_and_slide()
 
 
@@ -163,8 +172,7 @@ func game_reset(_new_round: bool):
 	_jump_remaining = 0.0
 	_stun_timer = 0.0
 	_iframe_timer = 0.0
-	_ignore_grounded_on_this_frame = false
-	_can_jump = false
+	_stay_airborne_this_frame = false
 	
 	_new_anim = "idle"
 	_was_on_floor = true
@@ -175,22 +183,51 @@ func game_reset(_new_round: bool):
 
 func update_movement(delta: float) -> void:
 	var item_crafter := $ItemCrafter
+	
+	# calculate move direction
+	var move_dir := 0
+	var is_control_revoked: bool = item_crafter.is_active_or_crafting or is_stunned
+	if not is_control_revoked:
+		move_dir = (
+			int(Input.is_action_pressed("player_right"))
+			- int(Input.is_action_pressed("player_left"))
+		)
+	
+	velocity += get_gravity() * delta
+	update_state(move_dir, delta)
+	
+	# play landing sound when player touches the floor
+	if not _was_on_floor and is_on_floor():
+		var sound := play_sound(landing_sound)
+		if sound:
+			sound.pitch_scale = 1.0 + randf() * 0.2
+	
+	# misc. housekeeping
+	_was_on_floor = is_on_floor()
+	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
+	_stay_airborne_this_frame = false
+
+
+func update_jump(can_jump: bool, delta: float):
+	# reset jump state while stunned
 	if is_stunned:
-		_can_jump = false
+		can_jump = false
 		_coyote_jump_timer = 0
 		_jump_remaining = 0
 	
-	# begin jump
-	if _can_jump:
+	if can_jump:
 		_coyote_jump_timer = COYOTE_JUMP_TIME
 	
+	# begin jump
 	if Input.is_action_just_pressed("player_jump") and _coyote_jump_timer > 0.0:
+		_coyote_jump_timer = 0.0
+		
 		var sound := play_sound(jump_sound)
 		sound.pitch_scale = 1.0 + randf() * 0.1
 		_jump_remaining = 1.0
 		
 		# if the player is on or have very recently exited a wall (coyote time),
-		# then initiate the walljump. the initial x velocity of the walljump
+		# then initiate a walljump. the initial x velocity of the walljump
 		# will be the maximum x velocity of it.
 		if _wall_direction != 0:
 			var wall_jump_max_velocity = calc_velocity_limit(
@@ -200,7 +237,12 @@ func update_movement(delta: float) -> void:
 			current_state = PlayerState.WALLJUMP
 			facing_direction = _wall_direction
 			velocity.x = _wall_direction * wall_jump_max_velocity
-			_ignore_grounded_on_this_frame = true
+			
+			# make sure the player does not go back into wallslide/freemove
+			# because they are currently on a wall--state will be updated
+			# after this point before and before move_and_slide, causing that
+			# bug.
+			_stay_airborne_this_frame = true
 
 	# for the entire duration of the jump, set y velocity to a factor of
 	# jump_power, tapering off the longer the jump button is held. once the
@@ -216,73 +258,31 @@ func update_movement(delta: float) -> void:
 		if is_jumping:
 			velocity.y *= jump_stop_power
 		_jump_remaining = 0.0
-	
-	# calculate move direction
-	var move_dir := 0
-	var is_control_revoked: bool = item_crafter.is_active_or_crafting or is_stunned
-	if not is_control_revoked:
-		move_dir = (
-			int(Input.is_action_pressed("player_right"))
-			- int(Input.is_action_pressed("player_left"))
-		)
-	
-	# apply gravity
-	velocity += get_gravity() * delta
-	
-	# update physics stuff based on current state
-	# its a basic state machine
-	update_state(move_dir, delta)
-	
-	# play landing sound when player touches the floor
-	if not _was_on_floor and is_on_floor():
-		var sound := play_sound(landing_sound)
-		if sound:
-			sound.pitch_scale = 1.0 + randf() * 0.2
-	
-	_was_on_floor = is_on_floor()
-	_coyote_jump_timer = move_toward(_coyote_jump_timer, 0.0, delta)
 
 
-func update_slippery_jump_state(
-			accel: float, damping: float,
-			move_dir: float, delta: float
-		) -> void:
-	_new_anim = "jump"
-	var do_wall_pull_force := false
-	
-	# wallslide transition
-	if not _ignore_grounded_on_this_frame:
-		if is_on_wall_only() and move_dir == sign(-get_wall_normal().x):
-			_jump_remaining = 0.0
-			current_state = PlayerState.WALLSLIDE
-			do_wall_pull_force = true
-		
-		# freemove transition
-		elif is_on_floor():
-			_jump_remaining = 0.0
-			current_state = PlayerState.FREEMOVE
-			var sound := play_sound(landing_sound)
-			if sound:
-				sound.pitch_scale = 1.0 + randf() * 0.2
-	
-	# diminished mid-air control
-	if not do_wall_pull_force:
-		velocity.x += move_dir * accel * delta
-		velocity.x *= damping
-	
-	# please stay on the wall
-	else:
-		velocity.x = -get_wall_normal().x * 100.0
-
-
+# best to make this the only function where the current state is read
 func update_state(move_dir: float, delta: float) -> void:
 	var item_crafter := $ItemCrafter
-	_can_jump = false
+	
+	# would rather not have state be checked outside of the match statement,
+	# but this is the cleanest way i could think of to fit these requirements:
+	#  1. the check must happen on the same frame (no can_jump member variable)
+	#  2. since update_jump may cause a transition into WALLJUMP, simply
+	#     calling it inside a state case may cause problems as the state
+	#     is now actually different but it is still continuing to execute the
+	#     old state. Honestly there are valid ways of doing this but i'm. uh.
+	#     it feels like something the state code should not manage? (plus
+	#     no command for exiting a match arm)
+	# this call is in update_state, however, so hopefully it's still organized
+	# enough.
+	var can_jump := (
+		   (current_state == PlayerState.FREEMOVE and is_on_floor())
+		or (current_state == PlayerState.WALLSLIDE and is_on_wall_only())
+	)
+	update_jump(can_jump, delta)
 	
 	match current_state:
 		PlayerState.FREEMOVE:
-			_can_jump = is_on_floor()
-			
 			velocity.x += walk_acceleration * move_dir * delta
 			velocity.x *= speed_damping
 			
@@ -295,36 +295,31 @@ func update_state(move_dir: float, delta: float) -> void:
 			
 			if move_dir != 0:
 				facing_direction = move_dir
-				
-				# transition into wallslide when moving towards a wall
-				if is_on_wall_only() and sign(get_wall_normal().x) == -move_dir:
-					current_state = PlayerState.WALLSLIDE
+			
+			# transition into wallslide when moving towards a wall
+			if is_on_wall_only() and sign(get_wall_normal().x) == -move_dir:
+				current_state = PlayerState.WALLSLIDE
 		
 		PlayerState.CRAFTING:
 			_new_anim = "hurt"
 			
+			# velocity is zero while crafting
 			velocity.x = 0.0
 			if not item_crafter.active_item:
 				velocity.y = 0.0
 			
+			# transition into freemove when done
 			if not item_crafter.is_active_or_crafting:
 				current_state = PlayerState.FREEMOVE
 		
 		PlayerState.WALLSLIDE:
 			_new_anim = "wallslide"
-			_can_jump = is_on_wall_only()
-			
 			_wall_direction = sign(get_wall_normal().x)
-			facing_direction = -_wall_direction
-			_coyote_jump_timer = COYOTE_JUMP_TIME
 			
-			# no longer on wall, transition into freemove
-			if not is_on_wall_only() or move_dir != -_wall_direction:
-				velocity.x = 0.0
-				current_state = PlayerState.FREEMOVE
+			if not _stay_airborne_this_frame:
+				facing_direction = -_wall_direction
+				_coyote_jump_timer = COYOTE_JUMP_TIME
 				
-			# wall sliding
-			else:
 				# maintain maximum y velocity while wall sliding
 				velocity.y = min(
 					velocity.y,
@@ -335,13 +330,17 @@ func update_state(move_dir: float, delta: float) -> void:
 				# make it so it's not like 0.00001 pixels away from the wall and
 				# thus counts it as no longer on the wall.
 				velocity.x = -_wall_direction * 100.0 # please stay on the wall
+					
+				# no longer on wall, transition into freemove
+				if not is_on_wall_only() or move_dir != -_wall_direction:
+					velocity.x = 0.0
+					current_state = PlayerState.FREEMOVE
 
 		PlayerState.WALLJUMP:
 			# i want the maximum velocity of this state to be the same as
 			# that of the normal movement mode, but with a different
 			# acceleration.
 			var damping := calc_walljump_damping()
-			
 			update_slippery_jump_state(
 					wall_jump_control_acceleration, damping,
 					move_dir, delta)
@@ -350,6 +349,31 @@ func update_state(move_dir: float, delta: float) -> void:
 			update_slippery_jump_state(
 					booster_control_acceleration, booster_control_damping,
 					move_dir, delta)
+
+
+func update_slippery_jump_state(
+			accel: float, damping: float,
+			move_dir: float, delta: float
+		) -> void:
+	_new_anim = "jump"
+	
+	velocity.x += move_dir * accel * delta
+	velocity.x *= damping
+	
+	if not _stay_airborne_this_frame:
+		# wallslide transition
+		if is_on_wall_only() and move_dir == sign(-get_wall_normal().x):
+			_jump_remaining = 0.0
+			current_state = PlayerState.WALLSLIDE
+		
+		# freemove transition
+		elif is_on_floor():
+			_jump_remaining = 0.0
+			current_state = PlayerState.FREEMOVE
+			
+			var sound := play_sound(landing_sound)
+			if sound:
+				sound.pitch_scale = 1.0 + randf() * 0.2
 
 
 # formula to obtain the maximum velocity given an acceleration (a) and a
@@ -388,17 +412,17 @@ func calc_walljump_damping() -> float:
 		walk_acceleration,
 		speed_damping)
 	
-	var wall_jump_daming := calc_damping_from_limit(
+	var wall_jump_damping := calc_damping_from_limit(
 		normal_movement_limit,
 		wall_jump_control_acceleration)
 	
-	return wall_jump_daming
+	return wall_jump_damping
 
 
 func spring_bounce_callback(bounce_power: float) -> void:
 	_jump_remaining = 0.0
 	velocity.y = -bounce_power
-	_ignore_grounded_on_this_frame = true
+	_stay_airborne_this_frame = true
 	play_sound(boost_sound)
 
 
@@ -407,7 +431,7 @@ func horiz_spring_bounce_callback(bounce_power: float, side_power: float) -> voi
 	velocity.y = -bounce_power
 	current_state = PlayerState.BOOSTER_JUMP
 	
-	_ignore_grounded_on_this_frame = true
+	_stay_airborne_this_frame = true
 	play_sound(boost_sound)
 
 
@@ -426,23 +450,20 @@ func take_damage() -> void:
 	current_state = PlayerState.FREEMOVE
 	velocity = Vector2(0, -200)
 	
-	_jump_remaining = 0.0
-	_coyote_jump_timer = 0.0
-	_can_jump = false
-	
 	play_sound(hurt_sound)
 
 
 func kill() -> void:
-	Global.player_lives -= 1
-	
-	if Global.player_lives == 0:
-		print("Game over")
-		Global.game_state = Global.GameState.GAME_OVER
-		
-	else:
-		print("Normal death")
-		Global.game_state = Global.GameState.DEATH
+	#Global.player_lives -= 1
+	#
+	#if Global.player_lives == 0:
+		#print("Game over")
+		#Global.game_state = Global.GameState.GAME_OVER
+		#
+	#else:
+		#print("Normal death")
+		#Global.game_state = Global.GameState.DEATH
+	pass
 
 
 func play_sound(stream: AudioStream) -> AudioStreamPlayer:
