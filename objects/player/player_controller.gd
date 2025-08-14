@@ -40,8 +40,8 @@ const player_state_to_damping: Dictionary[PlayerState, float] = {
 var _current_state : PlayerState = PlayerState.FREEMOVE :
 	set(x):
 		if x != _current_state:
-			if Input.is_key_pressed(KEY_T):
-				print("T PRESSED!")
+			if _current_state == PlayerState.WALLJUMP and x == PlayerState.FREEMOVE:
+				print("PAUSEEEEE")
 			if OS.is_debug_build():
 				print(PlayerState.keys()[_current_state], " -> ", PlayerState.keys()[x])
 			_current_state = x
@@ -286,10 +286,10 @@ func _handle_state_transitions() -> void:
 					_facing_direction = _wall_away_direction 
 					_current_state = PlayerState.WALLSLIDE
 		PlayerState.WALLSLIDE:
-			if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
-				_current_state = PlayerState.WALLJUMP
 			if _stunned or not is_on_wall_only():
 				_current_state = PlayerState.FREEMOVE
+			if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
+				_current_state = PlayerState.WALLJUMP
 		PlayerState.WALLJUMP:
 			if is_on_wall_only():
 				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
@@ -305,7 +305,7 @@ func _handle_state_transitions() -> void:
 				_facing_direction = _wall_away_direction 
 				_current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
-				_current_state = PlayerState.FREEMOVE
+				_current_state = PlayerState.FREEMOVE	
 
 ## Moves player based on inputs and states.
 func _handle_player_controls(delta: float) -> void:
