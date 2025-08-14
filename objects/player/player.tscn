@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://downf0rj4synv" path="res://objects/player/player_controller.gd" id="1_g7ett"]
 [ext_resource type="Texture2D" uid="uid://c3ncuyamidcqv" path="res://assets/strudel-sheet.png" id="2_ssrue"]
 [ext_resource type="Script" uid="uid://bvsbxfk17seio" path="res://objects/player/crafting.gd" id="3_ssrue"]
-[ext_resource type="Resource" uid="uid://dk170cfsd87wp" path="res://resources/item_descriptions.tres" id="4_jnjyq"]
+[ext_resource type="Resource" uid="uid://d04t1ovvv1pe6" path="res://resources/item_descriptions.tres" id="4_jnjyq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gbba"]
 size = Vector2(15, 15)

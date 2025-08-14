@@ -35,8 +35,6 @@ enum PlayerState {
 	BOOST, ## Airborne after touching a booster, having heavily diminished mid-air contorl.
 }
 
-const PollTimer = preload("res://scripts/poll_timer.gd")
-
 ## A map from player state to acceleration used.
 const player_state_to_acceleration : Dictionary[PlayerState, float] = {
 	PlayerState.FREEMOVE: 3800,
@@ -527,12 +525,10 @@ func _handle_player_visuals() -> void:
 		visible = t < 0.5
 
 	# crafting animation will stretch out the player a little bit
-	# stretching increases as it gets closer to being finishedD
-	if Global.is_timer_active(Global.TimerType.CRAFTING):
-		var t := (Global.get_time_of(Global.TimerType.CRAFTING) /
-				Global.get_activation_time_of(Global.TimerType.CRAFTING))
-		t = 1.0 - t
-		
+	# stretching increases as it gets closer to being finished
+	var item_crafter := $ItemCrafter
+	if item_crafter.is_crafting():
+		var t: float = item_crafter.get_crafting_progress_ratio()
 		sprite.scale = Vector2(
 			pow(2, t * 0.4),
 			pow(2, -t * 0.4)
