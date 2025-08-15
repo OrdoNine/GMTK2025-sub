@@ -9,6 +9,9 @@ func _init(p_timeout_length: float):
 	timeout_length = p_timeout_length
 	is_active = false
 
+func _to_string() -> String:
+	return "Timeout Length: " + str(timeout_length) + "\nTime Remaining: " + str(time_remaining)
+
 func activate():
 	time_remaining = timeout_length
 	is_active = true
