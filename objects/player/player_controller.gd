@@ -61,7 +61,9 @@ var stunned : bool = false
 ## When this variable is non-zero, the player's velocity will be set to this
 ## and this variable will be reset afterwards. Intended to be used by code that
 ## handles boost/spring.
-var boost : Vector2 = Vector2.ZERO
+# Yes this state transition restriction thing was definitely a good idea
+var boost: Vector2 = Vector2.ZERO
+var transition_to_boost := false # The spring should not make you go into the BOOST state
 
 @onready var item_crafter := %ItemCrafter
 @onready var _start_pos : Vector2 = position
@@ -126,8 +128,9 @@ func _handle_state_transitions() -> void:
 		%ItemCrafter.enabled = true
 		return
 
-	if boost != Vector2.ZERO:
+	if transition_to_boost:
 		_current_state = Boost.new(self)
+		transition_to_boost = false
 		return
 	
 	var new_state := _current_state.update_transition()
@@ -153,6 +156,10 @@ func _handle_player_controls(delta: float) -> void:
 
 	if %ItemCrafter.is_item_active() or stunned:
 		move_direction = 0
+	
+	if boost != Vector2.ZERO:
+		velocity = boost
+		boost = Vector2.ZERO
 	
 	_current_state.update_physics(delta)
 	
@@ -330,12 +337,13 @@ func on_exited_deadly_area(_area: Area2D) -> void:
 
 
 func _on_spring_bounce(bounce_power: float) -> void:
-	boost = Vector2(0, -bounce_power)
+	boost = Vector2(velocity.x, -bounce_power)
 	jump_progress_timer.deactivate()
 
 
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
 	boost = Vector2(side_power * facing_direction, -bounce_power)
+	transition_to_boost = true
 
 
 func _on_item_crafter_bridge_used() -> void:
@@ -496,10 +504,6 @@ class WallJump extends MovementStateBase:
 ## dampen at a slower rate.
 class Boost extends MovementStateBase:
 	func update_physics(dt: float):
-		if player.boost != Vector2.ZERO:
-			player.velocity = player.boost
-			player.boost = Vector2.ZERO
-
 		player.velocity += player.get_gravity() * dt
 		player.update_jump_if_needed() # i like this trick
 		
