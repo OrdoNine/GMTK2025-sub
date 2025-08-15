@@ -3,8 +3,7 @@ class_name Player
 
 const FREEMOVE_ACCEL: float = 3800
 const FREEMOVE_DAMPING: float = 0.8
-const WALLJUMP_ACCEL: float = 450
-const WALLJUMP_DAMPING: float = 0.98
+const WALLJUMP_ACCEL: float = 700.0
 const BOOST_ACCEL: float = 450
 const BOOST_DAMPING: float = 0.98
 
@@ -16,11 +15,9 @@ const JUMP_POWER : float = 300.0
 ## to control the variable jump height.
 const JUMP_STOP_DAMP : float = 0.5
 
-## The multiplier limit that forces wall slide speed not to increase indefinitely.
+## The multiplier limit that forces wall slide speed not to increase
+## indefinitely.
 const WALL_SLIDE_SPEED_LIMIT : float = 4.0
-
-## The velocity boost in the x axis, while wall jumping.
-const WALL_JUMP_INITIAL_XBOOST : float = 230.0
 
 ## The current state of the player.
 var _current_state: MovementStateBase = FreeMove.new(self)
@@ -171,10 +168,14 @@ func _handle_flight(flight: bool, delta: float) -> bool:
 	const fly_speed := 1200.0
 	var speed = fly_speed * delta
 	
-	var x_dir := int(Input.is_action_pressed("player_right")) - int(Input.is_action_pressed("player_left"))
+	var x_dir := (
+		int(Input.is_action_pressed("player_right")) -
+		int(Input.is_action_pressed("player_left")))
 	position.x += x_dir * speed
 	
-	var y_dir := int(Input.is_action_pressed("player_down")) - int(Input.is_action_pressed("player_up"))
+	var y_dir := (
+		int(Input.is_action_pressed("player_down")) -
+		int(Input.is_action_pressed("player_up")))
 	position.y += y_dir * speed
 
 	return true
@@ -269,6 +270,49 @@ func kill() -> void:
 		##Global.game_state = Global.GameState.DEATH
 
 
+# formula to obtain the maximum velocity given an acceleration (a) and a
+# damping factor (k):
+#	(this is the velocity function. v0 is the initial velocity)
+#	(x is the integer number of frames that have elapsed since initial velocity)
+#	v(x) = v0*k^x + sum(n=1, x, a*k^n)
+#	
+#	lim v(x) as x -> inf = a / (1 - k) - a, as:
+#		- sum(n=0, x, a*k^n) is a geometric series.
+#		  the limit of this series is a / (1 - k). subtract a to remove the n=0
+#		  term.
+#		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if
+#		  k >= 1, limit approaches infinity.
+func calc_velocity_limit(acceleration: float, damping: float) -> float:
+	if damping >= 1.0:
+		push_error("velocity limit approaches infinity")
+		return INF
+	
+	if damping < 0.0:
+		push_error("velocity limit does not exist")
+		return NAN
+	
+	return acceleration / (1.0 - damping) - acceleration
+
+
+func calc_damping_from_limit(limit: float, acceleration: float) -> float:
+	return -acceleration / (limit + acceleration) + 1.0
+
+
+func calc_walljump_damping() -> float:
+	# i want the maximum velocity of this state to be the same as
+	# that of the normal movement mode, but with a different
+	# acceleration.
+	var normal_movement_limit := calc_velocity_limit(
+		FREEMOVE_ACCEL,
+		FREEMOVE_DAMPING)
+	
+	var wall_jump_damping := calc_damping_from_limit(
+		normal_movement_limit,
+		WALLJUMP_ACCEL)
+	
+	return wall_jump_damping
+
+
 func on_entered_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count + 1
 
@@ -332,8 +376,12 @@ class FreeMove extends MovementStateBase:
 			
 			# handle coyote-time walljump
 			if player.walljump_coyote_timer.is_active:
-				player.velocity.x = player.wall_away_direction * \
-						player.WALL_JUMP_INITIAL_XBOOST
+				var eject_velocity := player.calc_velocity_limit(
+						player.WALLJUMP_ACCEL / Engine.physics_ticks_per_second,
+						player.calc_walljump_damping()
+				)
+				
+				player.velocity.x = player.wall_away_direction * eject_velocity
 				Global.play(Global.Sound.JUMP)
 				player.jump_progress_timer.activate()
 
@@ -381,9 +429,13 @@ class WallSlide extends MovementStateBase:
 		
 		# begin wall jump
 		if player.should_jump():
+			var eject_velocity := player.calc_velocity_limit(
+					player.WALLJUMP_ACCEL / Engine.physics_ticks_per_second,
+					player.calc_walljump_damping()
+			)
+			
 			player.facing_direction = player.wall_away_direction
-			player.velocity.x = player.wall_away_direction * \
-					player.WALL_JUMP_INITIAL_XBOOST
+			player.velocity.x = player.wall_away_direction * eject_velocity
 			player.jump_progress_timer.activate()
 			Global.play(Global.Sound.JUMP)
 			transition_to_walljump = true
@@ -415,7 +467,7 @@ class WallJump extends MovementStateBase:
 		player.velocity += player.get_gravity() * dt
 
 		const acc := WALLJUMP_ACCEL
-		const damp := WALLJUMP_DAMPING
+		var damp := player.calc_walljump_damping()
 		player.velocity.x += acc * player.move_direction * dt
 		player.velocity.x *= damp
 	
