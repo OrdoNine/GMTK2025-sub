@@ -73,9 +73,12 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_handle_player_controls(delta)
-	_handle_player_visuals()
 	_update_timers(delta)
 	_handle_state_transitions()
+
+
+func _process(delta: float) -> void:
+	_handle_player_visuals()
 
 
 func game_reset(_new_round : bool) -> void:
@@ -214,18 +217,23 @@ func _handle_player_visuals() -> void:
 	var sprite = $AnimatedSprite2D
 	var item_crafter = $ItemCrafter
 	
-	var animation = "idle" if move_direction == 0 else "run"
-	
-	if velocity.y > 0:
-		animation = "jump"
-	elif velocity.y < 0:
-		animation = "fall"
+	var animation := "idle"
+	if is_on_floor():
+		animation = "idle" if move_direction == 0 else "run"
+	else:
+		if velocity.y > 0:
+			animation = "jump"
+		else:
+			animation = "fall"
 	
 	# ew, is
 	if _current_state is WallSlide:
 		animation = "wallslide"
 	
 	if stunned:
+		animation = "hurt"
+	
+	if item_crafter.is_crafting():
 		animation = "hurt"
 	
 	if sprite.animation != animation:
