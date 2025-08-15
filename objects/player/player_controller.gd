@@ -285,7 +285,7 @@ func _handle_state_transitions() -> void:
 			var move_dir = _compute_move_dir()
 			if move_dir != 0:
 				_facing_direction = move_dir
-				if is_on_wall_only() and abs(position.x - _last_pos.x) > 0.1:
+				if is_on_wall_only():
 					_wall_away_direction = sign(get_wall_normal().x)
 					_facing_direction = _wall_away_direction 
 					_current_state = PlayerState.WALLSLIDE
