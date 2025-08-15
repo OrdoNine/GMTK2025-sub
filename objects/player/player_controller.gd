@@ -61,6 +61,21 @@ const _WALL_SLIDE_SPEED_LIMIT : float = 4.0
 ## The velocity boost in the x axis, while wall jumping.
 const _WALL_JUMP_INITIAL_XBOOST : float = 230.0
 
+# Timers
+var _freemove_coyote_timer := PollTimer.new(0.13)
+var _walljump_coyote_timer := PollTimer.new(0.13)
+var _invincibility_timer := PollTimer.new(2)
+var _stun_timer := PollTimer.new(2)
+var _jump_progress_timer := PollTimer.new(0.5)
+
+var timers : Array[PollTimer] = [
+	_freemove_coyote_timer,
+	_walljump_coyote_timer,
+	_invincibility_timer,
+	_stun_timer,
+	_jump_progress_timer,
+]
+
 ## If jumped from or is on some wall, then it is the direction away from the
 ## wall with player being at the origin.
 var _wall_away_direction : int = 0
@@ -122,12 +137,12 @@ func game_reset(_new_round : bool) -> void:
 	_boost = Vector2.ZERO
 
 	# Deactivating all timers!
-	for timer in Global.PLAYER_TIMERS:
-		Global.deactivate_timer(timer)
+	for timer in timers:
+		timer.deactivate()
 
 func _on_spring_bounce(bounce_power: float) -> void:
 	_boost = Vector2(0, -bounce_power)
-	Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+	_jump_progress_timer.deactivate()
 
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
 	_boost = Vector2(side_power * _facing_direction, -bounce_power)
@@ -144,11 +159,8 @@ func _physics_process(delta: float) -> void:
 	_handle_state_transitions()
 
 func _update_timers(delta: float) -> void:
-	for timer in Global.PLAYER_TIMERS:
-		if timer == Global.TimerType.JUMP_PROGRESS:
-			Global.update_timer(timer, delta / _JUMP_LENGTH)
-			continue
-		Global.update_timer(timer, delta)
+	for timer in timers:
+		timer.update(delta)
 
 func kill() -> void:
 	Global.get_game().player_lives -= 1
@@ -184,22 +196,22 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 		PlayerState.FREEMOVE:
 			var can_jump_from_floor = is_on_floor()
 			if can_jump_from_floor:
-				Global.deactivate_timer(Global.TimerType.WALLJUMP_COYOTE)
-				Global.activate_timer(Global.TimerType.COYOTE)
+				_walljump_coyote_timer.deactivate()
+				_freemove_coyote_timer.activate()
 
 			if _should_jump():
-				if Global.is_timer_active(Global.TimerType.COYOTE):
+				if _freemove_coyote_timer.is_active:
 					Global.play(Global.Sound.JUMP) # Play the jump sound.
-					Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+					_jump_progress_timer.activate() # Activate the timer.
 					_jumped_from_the_damn_floor = true
 
-				if Global.is_timer_active(Global.TimerType.WALLJUMP_COYOTE):
+				if _walljump_coyote_timer.is_active:
 					velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST # Gives the xboost
 					Global.play(Global.Sound.JUMP) # Play the jump sound.
-					Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+					_jump_progress_timer.activate() # Activate the timer.
 					_jumped_from_the_damn_floor = false
 
-			_update_jump_if_needed(delta)
+			_update_jump_if_needed()
 
 			velocity += get_gravity() * delta
 			
@@ -211,16 +223,16 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 		PlayerState.WALLSLIDE:
 			if move_dir != _wall_away_direction:
 				velocity.x = -_wall_away_direction
-				Global.activate_timer(Global.TimerType.WALLJUMP_COYOTE)
+				_walljump_coyote_timer.activate()
 
 			if _should_jump():
 				_facing_direction = _wall_away_direction
 				velocity.x = _wall_away_direction * _WALL_JUMP_INITIAL_XBOOST
-				Global.activate_timer(Global.TimerType.JUMP_PROGRESS) # Activate the timer.
+				_jump_progress_timer.activate() # Activate the timer.
 				Global.play(Global.Sound.JUMP) # Play the jump sound.
 				_jumped_from_the_damn_floor = false
-			elif Global.is_timer_active(Global.TimerType.JUMP_PROGRESS):
-				_update_jump_if_needed(delta)
+			elif _jump_progress_timer.is_active:
+				_update_jump_if_needed()
 
 			velocity += get_gravity() * delta
 
@@ -228,7 +240,7 @@ func _update_player_velocities(move_dir: int, delta: float) -> void:
 			if velocity.y > max_y_vel:
 				velocity.y = max_y_vel
 		PlayerState.WALLJUMP:
-			_update_jump_if_needed(delta)
+			_update_jump_if_needed()
 
 			velocity += get_gravity() * delta
 
@@ -258,18 +270,18 @@ func _handle_state_transitions() -> void:
 		_stunned = true
 		%ItemCrafter.enabled = false
 		Global.play(Global.Sound.HURT)
-		Global.activate_timer(Global.TimerType.STUN)
+		_stun_timer.activate()
 
-	if _stunned and not Global.is_timer_active(Global.TimerType.STUN):
+	if _stunned and not _stun_timer.is_active:
 		_stunned = false
-		Global.activate_timer(Global.TimerType.INVINCIBILITY)
+		_invincibility_timer.activate()
 		_current_state = PlayerState.FREEMOVE
 		%ItemCrafter.enabled = true
 		return
 
 	if _boost != Vector2.ZERO and _current_state != PlayerState.BOOST:
 		_current_state = PlayerState.BOOST
-		Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+		_jump_progress_timer.deactivate()
 		return
 
 	match _current_state:
@@ -278,8 +290,8 @@ func _handle_state_transitions() -> void:
 				_wall_away_direction = 0
 
 			if _should_jump():
-				if Global.is_timer_active(Global.TimerType.WALLJUMP_COYOTE):
-					Global.deactivate_timer(Global.TimerType.WALLJUMP_COYOTE)
+				if _walljump_coyote_timer.is_active:
+					_walljump_coyote_timer.deactivate()
 					_current_state = PlayerState.WALLJUMP
 
 			var move_dir = _compute_move_dir()
@@ -293,17 +305,17 @@ func _handle_state_transitions() -> void:
 		PlayerState.WALLSLIDE:
 			if _stunned or not is_on_wall_only():
 				_current_state = PlayerState.FREEMOVE
-			if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _jumped_from_the_damn_floor:
+			if _jump_progress_timer.is_active and not _jumped_from_the_damn_floor:
 				_current_state = PlayerState.WALLJUMP
 
 		PlayerState.WALLJUMP:
 			if is_on_wall_only():
-				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+				_jump_progress_timer.deactivate()
 				_wall_away_direction = sign(get_wall_normal().x)
 				_facing_direction = _wall_away_direction
 				_current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
-				Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+				_jump_progress_timer.deactivate()
 				_current_state = PlayerState.FREEMOVE
 
 		PlayerState.BOOST:
@@ -312,7 +324,7 @@ func _handle_state_transitions() -> void:
 				_facing_direction = _wall_away_direction 
 				_current_state = PlayerState.WALLSLIDE
 			elif is_on_floor():
-				_current_state = PlayerState.FREEMOVE	
+				_current_state = PlayerState.FREEMOVE
 
 ## Moves player based on inputs and states.
 func _handle_player_controls(delta: float) -> void:
@@ -342,23 +354,19 @@ func _handle_player_controls(delta: float) -> void:
 func _should_jump():
 	return Input.is_action_just_pressed("player_jump") and not _stunned
 
-func _update_jump_if_needed(delta: float) -> void:
-	if Global.is_timer_active(Global.TimerType.JUMP_PROGRESS) and not _stunned:
+func _update_jump_if_needed() -> void:
+	if _jump_progress_timer.is_active and not _stunned:
 		var continue_jumping : bool = Input.is_action_pressed("player_jump") and not is_on_ceiling()
-		if _current_state == PlayerState.WALLSLIDE:
-			print("Should continue jumping: ", continue_jumping)
-			print("Is player jump action pressed: ", Input.is_action_pressed("player_jump"))
-			print("Is on ceiling: ", is_on_ceiling())
 		if continue_jumping:
-			velocity.y = -_JUMP_POWER * Global.get_time_of(Global.TimerType.JUMP_PROGRESS)
+			velocity.y = -_JUMP_POWER * _jump_progress_timer.get_progress_ratio()
 		else:
 			velocity.y *= _EARLY_JUMP_DAMP
-			Global.deactivate_timer(Global.TimerType.JUMP_PROGRESS)
+			_jump_progress_timer.deactivate()
 
 ## Returns if you should stun the player
 func _should_stun() -> bool:
-	var not_stunned = not Global.is_timer_active(Global.TimerType.STUN)
-	var not_invincible = not Global.is_timer_active(Global.TimerType.INVINCIBILITY)
+	var not_stunned = not _stun_timer.is_active
+	var not_invincible = not _invincibility_timer.is_active
 	return _can_be_stunned and not_stunned and not_invincible
 
 ## Returns the direction where player should face in accordance with the inputs.
@@ -398,14 +406,14 @@ func _handle_player_visuals() -> void:
 	modulate = Color(1.0, 1.0, 1.0)
 
 	# flash visible/invisible while iframes are active
-	if Global.is_timer_active(Global.TimerType.INVINCIBILITY):
+	if _invincibility_timer.is_active:
 		var t = fmod(Time.get_ticks_msec() / 128.0, 1.0)
 		visible = t < 0.5
 
 	# crafting animation will stretch out the player a little bit
 	# stretching increases as it gets closer to being finishedD
-	if Global.is_timer_active(Global.TimerType.CRAFTING):
-		var t: float = 1.0 - Global.get_time_of(Global.TimerType.CRAFTING) / Global.get_activation_time_of(Global.TimerType.CRAFTING)
+	if %ItemCrafter._crafting_timer.is_active:
+		var t: float = 1.0 - %ItemCrafter._crafting_timer.get_progress_ratio()
 		sprite.scale = Vector2(
 			pow(2, t * 0.4),
 			pow(2, -t * 0.4)

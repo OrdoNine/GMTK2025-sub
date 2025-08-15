@@ -30,6 +30,8 @@ var _active_item_key := KEY_NONE
 var crafted_item_cost : int;
 var crafted_item_prefab : PackedScene = null;
 
+var _crafting_timer := PollTimer.new(0.5)
+
 func _ready() -> void:
 	enabled = true;
 	reset()
@@ -37,7 +39,7 @@ func _ready() -> void:
 func reset() -> void:
 	Global.stop(Global.Sound.CRAFTING)
 	Global.stop(Global.Sound.PLACE)
-	Global.deactivate_timer(Global.TimerType.CRAFTING)
+	_crafting_timer.deactivate()
 	crafted_item_prefab = null
 	active_item = null
 	_active_item_key = KEY_NONE
@@ -64,6 +66,7 @@ func deactivate_item_craft_if_any():
 	if crafted_item_prefab != null:
 		Global.stop(Global.Sound.PLACE)
 		Global.stop(Global.Sound.CRAFTING)
+		_crafting_timer.deactivate()
 		crafted_item_prefab = null
 		_active_item_key = KEY_NONE
 
@@ -110,7 +113,7 @@ func trigger_item_craft(index: int) -> bool:
 		return true;
 	
 	Global.play(Global.Sound.CRAFTING)
-	Global.activate_timer(Global.TimerType.CRAFTING)
+	_crafting_timer.activate()
 	crafted_item_cost = item_desc.cost
 	crafted_item_prefab = item_desc.item_scene
 	
@@ -136,8 +139,8 @@ func _physics_process(delta: float) -> void:
 	if active_item != null and not active_item.active:
 		active_item = null
 	
-	Global.update_timer(Global.TimerType.CRAFTING, delta)
+	_crafting_timer.update(delta)
 	# update item craft progress
 	if crafted_item_prefab != null:
-		if not Global.is_timer_active(Global.TimerType.CRAFTING):
+		if not _crafting_timer.is_active:
 			finish_item_craft()
