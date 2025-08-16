@@ -58,12 +58,15 @@ var _was_on_floor : bool = true
 ## A variable to track if you are stunned.
 var stunned : bool = false
 
-## When this variable is non-zero, the player's velocity will be set to this
+## A enum stating the possible boosts, the player can have.
+enum BoostFrom {
+	SPRING,
+	BOOSTER
+}
+## When this variable is not-null, the player's velocity will be set to it's said velocity
 ## and this variable will be reset afterwards. Intended to be used by code that
 ## handles boost/spring.
-# Yes this state transition restriction thing was definitely a good idea
-var boost: Vector2 = Vector2.ZERO
-var transition_to_boost := false # The spring should not make you go into the BOOST state
+var boost : Variant = null
 
 @onready var item_crafter := %ItemCrafter
 @onready var _start_pos : Vector2 = position
@@ -72,94 +75,57 @@ func _ready() -> void:
 	Global.get_game().round_started.connect(game_reset)
 	game_reset(true)
 
-
+## Every tick, player and the associated timers are updated here.
 func _physics_process(delta: float) -> void:
-	_handle_player_controls(delta)
-	_update_timers(delta)
-	_handle_state_transitions()
-
-
-func _process(delta: float) -> void:
-	_handle_player_visuals()
-
-
-func game_reset(_new_round : bool) -> void:
-	position = _start_pos
-	velocity = Vector2.ZERO
-
-	%ItemCrafter.reset()
-
-	# Reseting all player variables
-	_current_state = FreeMove.new(self)
-	_deadly_area_count = 0
-	facing_direction = 1
-	_was_on_floor = true
-	
-	boost = Vector2.ZERO
-
-	# Deactivating all timers!
-	for timer in timers:
-		timer.deactivate()
-
-
-func _update_timers(delta: float) -> void:
-	for timer in timers:
-		timer.update(delta)
-
-
-## This method handles state transitions. It is only for checking things and
-## changing states.[br]
-## Everything in this must be related to changing player state. Nothing outside
-## this method should be related to state transitions.
-func _handle_state_transitions() -> void:
-	# TODO: Move this shit out from here. So much mental load!!
-	# Handling Stun
+#region Handling Stun and Invincibility
+	# If you should be stunned and are not stunned, then you will be stunned.
 	if _should_stun() and not stunned:
 		stunned = true
-		%ItemCrafter.enabled = false
+		item_crafter.enabled = false
 		Global.play(Global.Sound.HURT)
 		_stun_timer.activate()
-		velocity = Vector2(0, -200) # IMO, a valid exception to not be in the update velocites.
+		velocity = Vector2(0, -200) # a little boost.
 
+	# If stuntime is over, cancel the stun restrictions and start invincibility time.
 	if stunned and not _stun_timer.is_active:
 		stunned = false
 		_invincibility_timer.activate()
 		_current_state = FreeMove.new(self)
-		%ItemCrafter.enabled = true
-		return
-
-	if transition_to_boost:
-		_current_state = Boost.new(self)
-		transition_to_boost = false
-		return
+		item_crafter.enabled = true
+#endregion
 	
-	var new_state := _current_state.update_transition()
-	if new_state != null:
-		_current_state = new_state
-
-
-## Moves player based on inputs and states.
-func _handle_player_controls(delta: float) -> void:
+	# Check if you should fly, if yes, then fly and exit.
 	var do_fly := OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT)
 	if _handle_flight(do_fly, delta):
 		return
-	
+
+	# Check if you are crafting an item, if yes then set velocity to 0 and exit
+	if item_crafter.is_crafting():
+		velocity = Vector2.ZERO
+		move_direction = 0
+		return
+
+	# Check if there is a boost, if there is then apply them.
+	if boost != null:
+		velocity = boost.vel
+		if boost.from == BoostFrom.BOOSTER:
+			_current_state = Boost.new(self)
+		boost = null
+
+	# Compute move_direction
 	move_direction = (
 		int(Input.is_action_pressed("player_right")) -
 		int(Input.is_action_pressed("player_left"))
 	)
-	
-	if %ItemCrafter.is_crafting():
-		velocity = Vector2.ZERO
-		move_direction = 0 # IMO, a valid exception to not be in the update velocites.
-		return
 
-	if %ItemCrafter.is_item_active() or stunned:
+	# If bridge is active, then set move_direction to 0 and velocity.y = 0
+	if item_crafter.is_item_active() and item_crafter.item_id == "bridge":
+		velocity.y = 0
 		move_direction = 0
 	
-	if boost != Vector2.ZERO:
-		velocity = boost
-		boost = Vector2.ZERO
+	# If stunned, set move_direction to 0
+	if stunned:
+		move_direction = 0
 	
 	_current_state.update_physics(delta)
 	
@@ -168,61 +134,24 @@ func _handle_player_controls(delta: float) -> void:
 	if just_landed:
 		Global.play(Global.Sound.LAND)
 
+	# Compute the next frame
 	_was_on_floor = is_on_floor()
 	move_and_slide()
-
-
-func _handle_flight(flight: bool, delta: float) -> bool:
-	if !flight: return false
 	
-	const fly_speed := 1200.0
-	var speed = fly_speed * delta
-	
-	var x_dir := (
-		int(Input.is_action_pressed("player_right")) -
-		int(Input.is_action_pressed("player_left")))
-	position.x += x_dir * speed
-	
-	var y_dir := (
-		int(Input.is_action_pressed("player_down")) -
-		int(Input.is_action_pressed("player_up")))
-	position.y += y_dir * speed
+	# If there is needed some update to the transitions, do so.
+	var new_state := _current_state.update_transition()
+	if new_state != null:
+		_current_state = new_state
 
-	return true
+	# Updating Timers
+	for timer in timers:
+		timer.update(delta)
 
-
-## Returns if you should jump without coyote stuff
-func should_jump():
-	if %ItemCrafter.is_item_active_or_crafting():
-		return false
-	return Input.is_action_just_pressed("player_jump") and not stunned
-
-
-func update_jump_if_needed() -> void:
-	if jump_progress_timer.is_active and not stunned:
-		var continue_jumping : bool = \
-				Input.is_action_pressed("player_jump") \
-				and not is_on_ceiling()
-		
-		if continue_jumping:
-			velocity.y = -JUMP_POWER * jump_progress_timer.get_progress_ratio()
-		else:
-			velocity.y *= JUMP_STOP_DAMP
-			jump_progress_timer.deactivate()
-
-
-## Returns if you should stun the player
-func _should_stun() -> bool:
-	var stunned = _stun_timer.is_active
-	var invincible = _invincibility_timer.is_active
-	return _deadly_area_count > 0 and not stunned and not invincible
-
-
-## Handles how player looks
-func _handle_player_visuals() -> void:
+## Every tick the visuals of the players are updated here.
+func _process(_dt: float) -> void:
+#region Handling Player Looks
 	visible = true
 	var sprite = $AnimatedSprite2D
-	var item_crafter = $ItemCrafter
 	
 	var animation := "idle"
 	if is_on_floor():
@@ -271,19 +200,65 @@ func _handle_player_visuals() -> void:
 		)
 	else:
 		sprite.scale = Vector2.ONE
+#endregion
 
+## The player is reset here.
+## [param _new_round] should be true if new round is starting!
+func game_reset(_new_round : bool) -> void:
+	position = _start_pos
+	velocity = Vector2.ZERO
+
+	item_crafter.reset()
+
+	# Reseting all player variables
+	_current_state = FreeMove.new(self)
+	_deadly_area_count = 0
+	facing_direction = 1
+	_was_on_floor = true
+	
+	boost = null
+
+	# Deactivating all timers!
+	for timer in timers:
+		timer.deactivate()
+
+func _handle_flight(flight: bool, delta: float) -> bool:
+	if !flight: return false
+	
+	const fly_speed := 1200.0
+	var speed = fly_speed * delta
+	
+	var x_dir := (
+		int(Input.is_action_pressed("player_right")) -
+		int(Input.is_action_pressed("player_left")))
+	position.x += x_dir * speed
+	
+	var y_dir := (
+		int(Input.is_action_pressed("player_down")) -
+		int(Input.is_action_pressed("player_up")))
+	position.y += y_dir * speed
+
+	return true
+
+func update_jump_if_needed() -> void:
+	if jump_progress_timer.is_active and not stunned:
+		var continue_jumping : bool = \
+				Input.is_action_pressed("player_jump") \
+				and not is_on_ceiling()
+		
+		if continue_jumping:
+			velocity.y = -JUMP_POWER * jump_progress_timer.get_progress_ratio()
+		else:
+			velocity.y *= JUMP_STOP_DAMP
+			jump_progress_timer.deactivate()
+
+## Returns if you should stun the player
+func _should_stun() -> bool:
+	var invincible = _invincibility_timer.is_active
+	return _deadly_area_count > 0 and not stunned and not invincible
 
 func kill() -> void:
 	Global.get_game().player_lives -= 1
-	
-	#if Global.get_game().player_lives == 0:
-		#print("Game over")
-		##Global.get_game().game_state = Global.GameState.GAME_OVER
-		#
-	#else:
-		#print("Normal death")
-		##Global.game_state = Global.GameState.DEATH
-
 
 # formula to obtain the maximum velocity given an acceleration (a) and a
 # damping factor (k):
@@ -308,10 +283,8 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	
 	return acceleration / (1.0 - damping) - acceleration
 
-
 func calc_damping_from_limit(limit: float, acceleration: float) -> float:
 	return -acceleration / (limit + acceleration) + 1.0
-
 
 func calc_walljump_damping() -> float:
 	# i want the maximum velocity of this state to be the same as
@@ -327,28 +300,22 @@ func calc_walljump_damping() -> float:
 	
 	return wall_jump_damping
 
-
 func on_entered_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count + 1
-
 
 func on_exited_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count - 1
 
-
 func _on_spring_bounce(bounce_power: float) -> void:
-	boost = Vector2(velocity.x, -bounce_power)
+	boost = {}
+	boost.vel = Vector2(velocity.x, -bounce_power)
+	boost.from = BoostFrom.SPRING
 	jump_progress_timer.deactivate()
 
-
 func _on_booster_bounce(side_power: float, bounce_power: float) -> void:
-	boost = Vector2(side_power * facing_direction, -bounce_power)
-	transition_to_boost = true
-
-
-func _on_item_crafter_bridge_used() -> void:
-	velocity = Vector2.ZERO # IMO, a valid exception to not be in the update velocites.
-
+	boost = {}
+	boost.vel = Vector2(side_power * facing_direction, -bounce_power)
+	boost.from = BoostFrom.BOOSTER
 
 class MovementStateBase:
 	var player: Player
@@ -356,27 +323,26 @@ class MovementStateBase:
 	func _init(p_player: Player):
 		player = p_player
 	
-	
 	func enter() -> void:
 		pass
-	
-	
+
 	func exit() -> void:
 		pass
 	
-	
-	func update_physics(dt: float) -> void:
+	func update_physics(_dt: float) -> void:
 		pass
-	
 	
 	func update_transition() -> MovementStateBase:
 		return null
 
-
 ## normal grounded/mid-air movement mode
 class FreeMove extends MovementStateBase:
+	func should_jump() -> bool:
+		return not player.item_crafter.is_item_active_or_crafting()\
+				and Input.is_action_just_pressed("player_jump")\
+				and not player.stunned
+
 	func update_physics(dt: float):
-		var on_floor = player.is_on_floor()
 		if player.is_on_floor():
 			# activate coyote timer if player is able to jump
 			player.walljump_coyote_timer.deactivate()
@@ -384,7 +350,7 @@ class FreeMove extends MovementStateBase:
 			
 			player.wall_away_direction = 0
 
-		if player.should_jump():
+		if should_jump():
 			# handle normal jump
 			if player.freemove_coyote_timer.is_active:
 				Global.play(Global.Sound.JUMP)
@@ -415,13 +381,13 @@ class FreeMove extends MovementStateBase:
 	
 	func update_transition():
 		# handle coyote-time walljump
-		if player.should_jump():
+		if should_jump():
 			if player.walljump_coyote_timer.is_active:
 				player.walljump_coyote_timer.deactivate()
 				return WallJump.new(player)
 		
 		# transition to walljump
-		var wall_dir := signi(player.get_wall_normal().x)
+		var wall_dir := signi(int(player.get_wall_normal().x))
 		if player.is_on_wall_only() and player.move_direction == -wall_dir:
 			player.wall_away_direction = wall_dir
 			player.facing_direction = player.wall_away_direction 
@@ -444,7 +410,10 @@ class WallSlide extends MovementStateBase:
 			transition_to_wallslide = true
 		
 		# begin wall jump
-		if player.should_jump():
+		var should_jump : bool = not player.item_crafter.is_item_active_or_crafting()\
+						and Input.is_action_just_pressed("player_jump")\
+						and not player.stunned
+		if should_jump:
 			var eject_velocity := player.calc_velocity_limit(
 					player.WALLJUMP_ACCEL / Engine.physics_ticks_per_second,
 					player.calc_walljump_damping()
@@ -489,7 +458,7 @@ class WallJump extends MovementStateBase:
 	
 	
 	func update_transition():
-		var wall_dir := signi(player.get_wall_normal().x)
+		var wall_dir := signi(int(player.get_wall_normal().x))
 		if player.is_on_wall_only() and player.move_direction == -wall_dir:
 			player.jump_progress_timer.deactivate()
 			player.wall_away_direction = wall_dir

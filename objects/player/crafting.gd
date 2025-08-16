@@ -1,10 +1,11 @@
 extends Node2D
 
-signal bridge_used
-
 ## An item that is active for further input to increase it's power or something.[br]
 ## Like for bridge maker, holding it for longer makes it wider.
 var active_item: Node2D = null
+
+## ID of the last item used.
+var item_id: StringName = ""
 
 func is_item_active_or_crafting() -> bool:
 	return is_crafting() or is_item_active()
@@ -105,9 +106,7 @@ func trigger_item_craft(index: int) -> bool:
 	if item_desc.immediate:
 		crafted_item_cost = item_desc.cost
 		crafted_item_prefab = item_desc.item_scene
-		
-		if item_desc.id == "bridge":
-			bridge_used.emit()
+		item_id = item_desc.id
 		
 		finish_item_craft()
 		return true;
@@ -116,6 +115,7 @@ func trigger_item_craft(index: int) -> bool:
 	_crafting_timer.activate()
 	crafted_item_cost = item_desc.cost
 	crafted_item_prefab = item_desc.item_scene
+	item_id = item_desc.id
 	
 	return true
 
