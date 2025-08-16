@@ -4,6 +4,7 @@ class_name Player
 const FREEMOVE_ACCEL: float = 3800
 const FREEMOVE_DAMPING: float = 0.8
 const WALLJUMP_ACCEL: float = 700.0
+var WALLJUMP_DAMPING: float = calc_damping_from_limit(calc_velocity_limit(FREEMOVE_ACCEL, FREEMOVE_DAMPING), WALLJUMP_ACCEL)
 const BOOST_ACCEL: float = 450
 const BOOST_DAMPING: float = 0.98
 
@@ -79,7 +80,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 #region Handling Stun and Invincibility
 	# If you should be stunned and are not stunned, then you will be stunned.
-	if _should_stun() and not stunned:
+	var should_stun = _deadly_area_count > 0 and not stunned and not _invincibility_timer.is_active
+	if should_stun and not stunned:
 		stunned = true
 		item_crafter.enabled = false
 		Global.play(Global.Sound.HURT)
@@ -149,7 +151,6 @@ func _physics_process(delta: float) -> void:
 
 ## Every tick the visuals of the players are updated here.
 func _process(_dt: float) -> void:
-#region Handling Player Looks
 	visible = true
 	var sprite = $AnimatedSprite2D
 	
@@ -200,7 +201,6 @@ func _process(_dt: float) -> void:
 		)
 	else:
 		sprite.scale = Vector2.ONE
-#endregion
 
 ## The player is reset here.
 ## [param _new_round] should be true if new round is starting!
@@ -252,11 +252,6 @@ func update_jump_if_needed() -> void:
 			velocity.y *= JUMP_STOP_DAMP
 			jump_progress_timer.deactivate()
 
-## Returns if you should stun the player
-func _should_stun() -> bool:
-	var invincible = _invincibility_timer.is_active
-	return _deadly_area_count > 0 and not stunned and not invincible
-
 func kill() -> void:
 	Global.get_game().player_lives -= 1
 
@@ -272,7 +267,7 @@ func kill() -> void:
 #		  term.
 #		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if
 #		  k >= 1, limit approaches infinity.
-func calc_velocity_limit(acceleration: float, damping: float) -> float:
+static func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	if damping >= 1.0:
 		push_error("velocity limit approaches infinity")
 		return INF
@@ -283,22 +278,8 @@ func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	
 	return acceleration / (1.0 - damping) - acceleration
 
-func calc_damping_from_limit(limit: float, acceleration: float) -> float:
+static func calc_damping_from_limit(limit: float, acceleration: float) -> float:
 	return -acceleration / (limit + acceleration) + 1.0
-
-func calc_walljump_damping() -> float:
-	# i want the maximum velocity of this state to be the same as
-	# that of the normal movement mode, but with a different
-	# acceleration.
-	var normal_movement_limit := calc_velocity_limit(
-		FREEMOVE_ACCEL,
-		FREEMOVE_DAMPING)
-	
-	var wall_jump_damping := calc_damping_from_limit(
-		normal_movement_limit,
-		WALLJUMP_ACCEL)
-	
-	return wall_jump_damping
 
 func on_entered_deadly_area(_area: Area2D) -> void:
 	_deadly_area_count = _deadly_area_count + 1
@@ -360,7 +341,7 @@ class FreeMove extends MovementStateBase:
 			if player.walljump_coyote_timer.is_active:
 				var eject_velocity := player.calc_velocity_limit(
 						player.WALLJUMP_ACCEL / Engine.physics_ticks_per_second,
-						player.calc_walljump_damping()
+						player.WALLJUMP_DAMPING
 				)
 				
 				player.velocity.x = player.wall_away_direction * eject_velocity
@@ -414,9 +395,11 @@ class WallSlide extends MovementStateBase:
 						and Input.is_action_just_pressed("player_jump")\
 						and not player.stunned
 		if should_jump:
+			# NOTE: Maybe don't compute it often if you are pretty darn sure that
+			# Engine.physics_ticks_per_second is not going to change.
 			var eject_velocity := player.calc_velocity_limit(
 					player.WALLJUMP_ACCEL / Engine.physics_ticks_per_second,
-					player.calc_walljump_damping()
+					player.WALLJUMP_DAMPING
 			)
 			
 			player.facing_direction = player.wall_away_direction
@@ -452,7 +435,7 @@ class WallJump extends MovementStateBase:
 		player.velocity += player.get_gravity() * dt
 
 		const acc := WALLJUMP_ACCEL
-		var damp := player.calc_walljump_damping()
+		var damp := player.WALLJUMP_DAMPING
 		player.velocity.x += acc * player.move_direction * dt
 		player.velocity.x *= damp
 	
