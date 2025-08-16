@@ -267,7 +267,7 @@ func kill() -> void:
 #		  term.
 #		- v0*k^x approaches 0 if 0 <= k < 1. if k < 0, limit does not exist. if
 #		  k >= 1, limit approaches infinity.
-static func calc_velocity_limit(acceleration: float, damping: float) -> float:
+func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	if damping >= 1.0:
 		push_error("velocity limit approaches infinity")
 		return INF
@@ -278,7 +278,7 @@ static func calc_velocity_limit(acceleration: float, damping: float) -> float:
 	
 	return acceleration / (1.0 - damping) - acceleration
 
-static func calc_damping_from_limit(limit: float, acceleration: float) -> float:
+func calc_damping_from_limit(limit: float, acceleration: float) -> float:
 	return -acceleration / (limit + acceleration) + 1.0
 
 func on_entered_deadly_area(_area: Area2D) -> void:
