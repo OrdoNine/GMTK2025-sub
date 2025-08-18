@@ -70,6 +70,10 @@ var stunned : bool = false
 ## handles boost/spring.
 var boost : Variant = null
 
+## A temporary value intended for one and only use of only resetting
+## the velocity of the player on the use of bridge once.
+var just_checked_item_is_active = false
+
 @onready var item_crafter := %ItemCrafter
 @onready var _start_pos : Vector2 = position
 
@@ -96,13 +100,14 @@ func _physics_process(delta: float) -> void:
 		_current_state = FreeMove.new(self)
 		item_crafter.enabled = true
 	
-	var do_fly : bool = OS.is_debug_build() and Input.is_key_pressed(KEY_SHIFT) and Global.get_game_process().has_debug_freedom()
+	var do_fly : bool = Input.is_key_pressed(KEY_SHIFT) and Global.get_game_process().has_debug_freedom()
 	if _handle_flight(do_fly, delta):
 		return
 
 	# Freeze the player while they are crafting
 	if item_crafter.is_crafting():
 		velocity = Vector2.ZERO
+		jump_progress_timer.deactivate()
 		move_direction = 0
 		return
 
@@ -118,11 +123,14 @@ func _physics_process(delta: float) -> void:
 		int(Input.is_action_pressed("player_left"))
 	)
 
-	# TODO: set y velocity only on the moment of activation
 	if item_crafter.is_item_active() and item_crafter.item_id == "bridge":
-		velocity.y = 0
 		velocity.x = 0
 		move_direction = 0
+		if not just_checked_item_is_active:
+			velocity.y = 0
+			just_checked_item_is_active = true
+	else:
+		just_checked_item_is_active = false
 	
 	if stunned:
 		move_direction = 0

@@ -49,20 +49,8 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	%PauseUI.visible = false
+	%WarmupMenu.visible = false
 
 
 func _on_game_round_ended() -> void:
 	Global.get_game().next_round()
-
-
-func _on_exit_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/processes/main_menu/main_menu_process.tscn")
-
-
-func _on_resume_button_pressed() -> void:
-	get_tree().paused = false
-	%PauseUI.visible = false
-
-
-func _on_restart_button_pressed() -> void:
-	get_tree().reload_current_scene()

@@ -1,16 +1,31 @@
-[gd_scene load_steps=8 format=3 uid="uid://da5g5immlawvn"]
+[gd_scene load_steps=12 format=3 uid="uid://da5g5immlawvn"]
 
 [ext_resource type="Script" uid="uid://df0211nygnxti" path="res://scenes/processes/game/game_process.gd" id="1_882wm"]
 [ext_resource type="PackedScene" uid="uid://dsd4k1sulk80x" path="res://scenes/processes/game/game.tscn" id="1_n0kln"]
 [ext_resource type="PackedScene" uid="uid://dtffmkkwd7jot" path="res://scenes/ui_menus/game_play_ui/gameplay_ui.tscn" id="2_0jm6c"]
 [ext_resource type="Script" uid="uid://dbg8rqsthl6kt" path="res://objects/ui_button/audible_button.gd" id="4_q1tbv"]
 [ext_resource type="Script" uid="uid://dpr74hn47ekq2" path="res://scenes/processes/game/ui.gd" id="4_s4fpp"]
+[ext_resource type="FontFile" uid="uid://llyue0qrvm3r" path="res://assets/fonts/ProggyClean.ttf" id="6_3pvqi"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q1tbv"]
 bg_color = Color(0, 0, 0, 0.376471)
 
 [sub_resource type="LabelSettings" id="LabelSettings_gsata"]
 font_size = 64
+
+[sub_resource type="LabelSettings" id="LabelSettings_0ymen"]
+font = ExtResource("6_3pvqi")
+font_size = 128
+font_color = Color(0.76662, 0.76662, 0.76662, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_a68py"]
+font = ExtResource("6_3pvqi")
+font_size = 32
+font_color = Color(0.728822, 0.728822, 0.728822, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_3pvqi"]
+font = ExtResource("6_3pvqi")
+font_color = Color(0.505344, 0.505344, 0.505344, 1)
 
 [node name="GameProcess" type="Node2D" groups=["game_process"]]
 process_mode = 3
@@ -38,6 +53,7 @@ metadata/_custom_type_script = "uid://btyqrdhbher3c"
 
 [node name="PauseUI" type="Control" parent="UILayer/UI"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -86,7 +102,53 @@ text = "Exit To Menu"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
+[node name="WarmupMenu" type="Control" parent="UILayer/UI"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_right = 960.0
+offset_bottom = 720.0
+
+[node name="PanelContainer" type="PanelContainer" parent="UILayer/UI/WarmupMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_q1tbv")
+
+[node name="CenterContainer" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CenterContainer" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Countdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer"]
+layout_mode = 2
+text = "3"
+label_settings = SubResource("LabelSettings_0ymen")
+
+[node name="CenterContainer2" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="WhatIsTheCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer2"]
+layout_mode = 2
+text = "The next loop starts in..."
+label_settings = SubResource("LabelSettings_a68py")
+
+[node name="CenterContainer3" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="WhatIsTheCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer3"]
+layout_mode = 2
+text = "[Press any key to pause]"
+label_settings = SubResource("LabelSettings_3pvqi")
+
 [connection signal="round_ended" from="Game" to="." method="_on_game_round_ended"]
-[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_button_pressed"]
-[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/Restart" to="." method="_on_restart_button_pressed"]
-[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitToMenu" to="." method="_on_exit_button_pressed"]
+[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="UILayer/UI" method="_on_resume_button_pressed"]
+[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/Restart" to="UILayer/UI" method="_on_restart_pressed"]
+[connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitToMenu" to="UILayer/UI" method="_on_exit_to_menu_pressed"]
