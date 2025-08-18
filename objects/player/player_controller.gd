@@ -96,7 +96,7 @@ func _physics_process(delta: float) -> void:
 		_current_state = FreeMove.new(self)
 		item_crafter.enabled = true
 	
-	var do_fly := OS.is_debug_build() && Input.is_key_pressed(KEY_SHIFT)
+	var do_fly : bool = OS.is_debug_build() and Input.is_key_pressed(KEY_SHIFT) and Global.get_game_process().has_debug_freedom()
 	if _handle_flight(do_fly, delta):
 		return
 

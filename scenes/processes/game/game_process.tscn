@@ -12,7 +12,7 @@ bg_color = Color(0, 0, 0, 0.376471)
 [sub_resource type="LabelSettings" id="LabelSettings_gsata"]
 font_size = 64
 
-[node name="GameProcess" type="Node2D"]
+[node name="GameProcess" type="Node2D" groups=["game_process"]]
 process_mode = 3
 script = ExtResource("1_882wm")
 

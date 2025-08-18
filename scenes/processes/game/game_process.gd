@@ -1,5 +1,18 @@
 extends Node2D
 
+var debug_help : bool = false
+# TBQH, a hash set
+var keys_to_toggle_debug : Dictionary[Key, bool] = {
+	KEY_CTRL: false,
+	KEY_QUOTELEFT: false
+}
+# TBQH, a hash set
+var pressed_keys : Dictionary[Key, bool] = {}
+
+func has_debug_freedom() -> bool:
+	return debug_help and OS.is_debug_build()
+
+
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("game_pause"):
 		var root := get_tree()
@@ -7,26 +20,49 @@ func _input(event: InputEvent) -> void:
 		if root.paused:
 			root.paused = false
 			%PauseUI.visible = false
-			
 		else:
 			root.paused = true
 			%PauseUI.visible = true
 
+
+# Just toggles debug_help for now
+func _process(dt: float):
+	if pressed_keys.size() == keys_to_toggle_debug.size():
+		for key in keys_to_toggle_debug:
+			if not Input.is_physical_key_pressed(key):
+				pressed_keys.erase(key)
+		return
+	
+	for key in keys_to_toggle_debug:
+		if not Input.is_physical_key_pressed(key):
+			pressed_keys.erase(key)
+			return
+		else:
+			pressed_keys[key] = false
+	
+	debug_help = not debug_help
+
+
 func _exit_tree() -> void:
 	get_tree().paused = false
-	
+
+
 func _ready() -> void:
 	%PauseUI.visible = false
+
 
 func _on_game_round_ended() -> void:
 	Global.get_game().next_round()
 
+
 func _on_exit_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/processes/main_menu/main_menu_process.tscn")
+
 
 func _on_resume_button_pressed() -> void:
 	get_tree().paused = false
 	%PauseUI.visible = false
+
 
 func _on_restart_button_pressed() -> void:
 	get_tree().reload_current_scene()

@@ -97,7 +97,7 @@ func trigger_item_craft(index: int) -> bool:
 		push_error("index out of range of item table")
 		return false
 	
-	if not meets_stamina_requirement(item_desc.cost) and not OS.is_debug_build():
+	if not meets_stamina_requirement(item_desc.cost) and not Global.get_game_process().has_debug_freedom():
 		return false
 	
 	if item_desc.only_when_airborne and is_player_on_floor():

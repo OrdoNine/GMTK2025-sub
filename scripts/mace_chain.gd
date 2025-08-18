@@ -56,10 +56,15 @@ func game_reset(_new_round: bool):
 	last_pattern = {"move" : null, "position" : Vector2(), "rotation" : 0, "advanced": false} 
 	emit_signal("completed_loop")
 
-var disabled : bool = OS.is_debug_build()
+var disabled : bool = false
 
 func _process(delta: float) -> void:
-	if disabled: return
+	if Input.is_physical_key_pressed(KEY_1) and Input.is_physical_key_pressed(KEY_CTRL):
+		disabled = not disabled
+
+	if disabled and Global.get_game_process().has_debug_freedom():
+		return
+
 	if mace:
 		if completion >= loop_dist:
 			completion = 0

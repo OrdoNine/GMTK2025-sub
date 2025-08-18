@@ -15,8 +15,10 @@ var _sound_players: Array[AudioStreamPlayer] = []
 
 func _ready() -> void:
 	maceAttackPatterns = read_JSON("res://resources/components/macepatterns.json")
-	
-	
+	_load_sounds()
+
+
+func _load_sounds() -> void:
 	var sounds : Array = Sound.keys()
 	for sound in sounds:
 		var name_lowercased : String = sound.to_lower()
@@ -28,6 +30,7 @@ func _ready() -> void:
 		
 		_sound_players.push_back(player)
 
+
 func play(sound: Sound) -> AudioStreamPlayer:
 	if not _sound_players:
 		return
@@ -37,6 +40,7 @@ func play(sound: Sound) -> AudioStreamPlayer:
 	_sound_players[sound].play()
 	return _sound_players[sound]
 
+
 func stop(sound: Sound) -> void:
 	if not _sound_players:
 		return
@@ -44,6 +48,7 @@ func stop(sound: Sound) -> void:
 		return
 
 	_sound_players[sound].stop()
+
 
 var maceAttackPatterns : Dictionary
 func read_JSON(path):
@@ -53,6 +58,11 @@ func read_JSON(path):
 		return data
 	push_error("COULD NOT READ " + str(path) + ". Please check the file for any errors.")
 	return
-	
+
+
 func get_game() -> Game:
 	return get_tree().get_first_node_in_group("game")
+
+
+func get_game_process():
+	return get_tree().get_first_node_in_group("game_process")
