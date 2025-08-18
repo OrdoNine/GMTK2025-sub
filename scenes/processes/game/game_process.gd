@@ -14,7 +14,7 @@ func has_debug_freedom() -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("game_pause"):
+	if event.is_action_pressed("game_pause") and not %WarmupMenu.visible:
 		var root := get_tree()
 		
 		if root.paused:
@@ -44,13 +44,11 @@ func _process(dt: float):
 
 
 func _exit_tree() -> void:
+	# The only way possible to currently call this is by going to main menu.
+	# And thus, we must unpause it for the main menu scene to work.
 	get_tree().paused = false
 
 
 func _ready() -> void:
 	%PauseUI.visible = false
 	%WarmupMenu.visible = false
-
-
-func _on_game_round_ended() -> void:
-	Global.get_game().next_round()
