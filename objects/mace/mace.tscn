@@ -38,7 +38,7 @@ script = ExtResource("1_t4b7o")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_qbiwt")
-animation = &"close_mouth"
+animation = &"open_mouth"
 autoplay = "close_mouth"
 
 [node name="Area2D" type="Area2D" parent="."]
