@@ -26,7 +26,7 @@ func _input(event: InputEvent) -> void:
 
 
 # Just toggles debug_help for now
-func _process(dt: float):
+func _process(_dt: float):
 	if pressed_keys.size() == keys_to_toggle_debug.size():
 		for key in keys_to_toggle_debug:
 			if not Input.is_physical_key_pressed(key):

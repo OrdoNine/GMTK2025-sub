@@ -98,7 +98,7 @@ metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [node name="ExitToMenu" type="Button" parent="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer"]
 layout_mode = 2
-text = "Exit To Menu"
+text = "Exit to Menu"
 script = ExtResource("4_q1tbv")
 metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
@@ -124,32 +124,91 @@ layout_mode = 2
 layout_mode = 2
 alignment = 1
 
-[node name="CenterContainer" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="CountdownMode" type="VBoxContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
 
-[node name="WarmupCounter" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode"]
+layout_mode = 2
+
+[node name="WarmupCounter" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode/CenterContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "3"
 label_settings = SubResource("LabelSettings_0ymen")
 
-[node name="CenterContainer2" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="CenterContainer2" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode"]
 layout_mode = 2
 
-[node name="WhatIsTheCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer2"]
+[node name="WhatIsTheCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode/CenterContainer2"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "The next loop starts in..."
 label_settings = SubResource("LabelSettings_a68py")
 
-[node name="CenterContainer3" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+[node name="CenterContainer3" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode"]
 layout_mode = 2
 
-[node name="WhatIsTheCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CenterContainer3"]
+[node name="StopCountdown" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/CountdownMode/CenterContainer3"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "[Press any key to pause]"
 label_settings = SubResource("LabelSettings_3pvqi")
+
+[node name="IndefiniteMode" type="VBoxContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CenterContainer4" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer4"]
+layout_mode = 2
+text = "Paused"
+label_settings = SubResource("LabelSettings_gsata")
+horizontal_alignment = 1
+
+[node name="CenterContainer5" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer5"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Start new round"
+script = ExtResource("4_q1tbv")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="CenterContainer6" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="Restart" type="Button" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer6"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Restart"
+script = ExtResource("4_q1tbv")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
+
+[node name="CenterContainer7" type="CenterContainer" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="ExitToMenu" type="Button" parent="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer7"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+text = "Exit to Menu"
+script = ExtResource("4_q1tbv")
+metadata/_custom_type_script = "uid://dbg8rqsthl6kt"
 
 [connection signal="round_ended" from="Game" to="UILayer/UI" method="_on_game_round_ended"]
 [connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ResumeButton" to="UILayer/UI" method="_on_resume_button_pressed"]
 [connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/Restart" to="UILayer/UI" method="_on_restart_pressed"]
 [connection signal="pressed" from="UILayer/UI/PauseUI/PanelContainer/CenterContainer/VBoxContainer/ExitToMenu" to="UILayer/UI" method="_on_exit_to_menu_pressed"]
+[connection signal="pressed" from="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer5/ResumeButton" to="UILayer/UI" method="_on_warmup_resume_button_pressed"]
+[connection signal="pressed" from="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer6/Restart" to="UILayer/UI" method="_on_restart_pressed"]
+[connection signal="pressed" from="UILayer/UI/WarmupMenu/PanelContainer/CenterContainer/VBoxContainer/IndefiniteMode/CenterContainer7/ExitToMenu" to="UILayer/UI" method="_on_exit_to_menu_pressed"]
