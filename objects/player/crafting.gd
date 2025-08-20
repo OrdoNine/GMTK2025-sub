@@ -132,6 +132,10 @@ func _input(event: InputEvent) -> void:
 		if item_index_to_craft == -1:
 			item_index_to_craft = [KEY_Z, KEY_X, KEY_C, KEY_V].find(event.keycode)
 	
+		# Also check for ZXCV keys as alternatives
+		if item_index_to_craft == -1:
+			item_index_to_craft = [KEY_J, KEY_K, KEY_L, KEY_SEMICOLON].find(event.keycode)
+
 		if item_index_to_craft != -1 and trigger_item_craft(item_index_to_craft):
 			_active_item_key = event.keycode
 	elif event.is_released() and event.keycode == _active_item_key:

@@ -166,7 +166,7 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Arrow keys/WASD - move
 Z/Space - jump
-Hold the number keys (1-4) or ZXCV to craft items"
+Hold the number keys (1-4) or ZXCV/JKL; to craft items"
 label_settings = SubResource("LabelSettings_me56q")
 horizontal_alignment = 1
 
