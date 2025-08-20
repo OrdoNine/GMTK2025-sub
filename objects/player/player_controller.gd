@@ -265,6 +265,7 @@ func update_jump_if_needed() -> void:
 
 func kill() -> void:
 	Global.get_game().player_lives -= 1
+	Global.play(Global.Sound.HURT)
 
 
 # formula to obtain the maximum velocity given an acceleration (a) and a

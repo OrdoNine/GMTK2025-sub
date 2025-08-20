@@ -7,9 +7,15 @@ const collectibles: Dictionary[Vector2i, Resource] = {
 
 var round_number: int = 1
 var stamina_points: int = 0
-var player_lives: int = 3
+var player_lives: int = 3 :
+	set(x):
+		player_lives = x
+		if x <= 0:
+			game_over.emit()
+
 signal round_started(new_round: bool)
 signal round_ended
+signal game_over
 
 func _ready() -> void:
 	setup_level()

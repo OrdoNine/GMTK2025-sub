@@ -55,3 +55,8 @@ func _on_warmup_resume_button_pressed() -> void:
 	%WarmupMenu.visible = false
 	get_tree().paused = false
 	Global.get_game().next_round()
+
+
+func _on_game_game_over() -> void:
+	get_tree().paused = true
+	%GameOver.visible = true
