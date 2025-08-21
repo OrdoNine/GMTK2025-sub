@@ -58,7 +58,7 @@ func game_reset(_new_round: bool):
 
 var disabled : bool = false
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if Input.is_physical_key_pressed(KEY_1) and Input.is_physical_key_pressed(KEY_CTRL):
 		disabled = not disabled
 
@@ -88,7 +88,7 @@ func _process(delta: float) -> void:
 			mace_vel = move_toward(mace_vel, mace_speed, mace_accel * delta)
 		
 		var dist = mace_vel
-		completion += dist
+		completion += dist * delta * 60.0
 		
 		mace.global_position = curve.sample_baked(completion)
 
