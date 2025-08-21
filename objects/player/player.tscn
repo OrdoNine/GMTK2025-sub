@@ -1,9 +1,11 @@
-[gd_scene load_steps=39 format=3 uid="uid://djd5uuxrh164d"]
+[gd_scene load_steps=41 format=3 uid="uid://djd5uuxrh164d"]
 
 [ext_resource type="Script" uid="uid://downf0rj4synv" path="res://objects/player/player_controller.gd" id="1_g7ett"]
 [ext_resource type="Texture2D" uid="uid://c3ncuyamidcqv" path="res://assets/strudel-sheet.png" id="2_ssrue"]
 [ext_resource type="Script" uid="uid://bvsbxfk17seio" path="res://objects/player/crafting.gd" id="3_ssrue"]
 [ext_resource type="Resource" uid="uid://dk170cfsd87wp" path="res://resources/item_descriptions.tres" id="4_jnjyq"]
+[ext_resource type="Texture2D" uid="uid://c2p0uwyowg32m" path="res://assets/strudel_blood.png" id="5_xkryw"]
+[ext_resource type="Script" uid="uid://bdiel7swuqa3r" path="res://objects/player/blood_particle_emitter.gd" id="6_ow0dq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8gbba"]
 size = Vector2(15, 15)
@@ -281,3 +283,19 @@ animation = &"wallslide"
 unique_name_in_owner = true
 script = ExtResource("3_ssrue")
 item_table = ExtResource("4_jnjyq")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+visible = false
+emitting = false
+texture = ExtResource("5_xkryw")
+one_shot = true
+explosiveness = 1.0
+particle_flag_align_y = true
+spread = 180.0
+gravity = Vector2(0, 100)
+initial_velocity_min = 400.0
+initial_velocity_max = 400.0
+
+[node name="BloodParticleEmitter" type="Node2D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("6_ow0dq")

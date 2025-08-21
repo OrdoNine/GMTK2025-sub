@@ -276,6 +276,8 @@ func kill(knockback_dir: Vector2) -> void:
 	
 	# switch to boost state to diminish damping
 	_current_state = Boost.new(self)
+	
+	%BloodParticleEmitter.emit()
 
 
 # formula to obtain the maximum velocity given an acceleration (a) and a
