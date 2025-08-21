@@ -184,7 +184,7 @@ func _process(_dt: float) -> void:
 	if stunned:
 		animation = "hurt"
 	
-	if item_crafter.is_crafting():
+	if item_crafter.is_item_active_or_crafting():
 		animation = "hurt"
 	
 	if sprite.animation != animation:
