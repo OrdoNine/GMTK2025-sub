@@ -12,6 +12,8 @@ const FREEMOVE_DAMPING: float = 0.8
 const WALLJUMP_ACCEL: float = 700.0
 const BOOST_ACCEL: float = 450
 const BOOST_DAMPING: float = 0.98
+const EATEN_KNOCKBACK_POWER: float = 200.0
+
 var WALLJUMP_DAMPING: float = calc_damping_from_limit(calc_velocity_limit(FREEMOVE_ACCEL, FREEMOVE_DAMPING), WALLJUMP_ACCEL)
 
 ## The velocity of the jump at the moment it was pressed. The velocity
@@ -82,17 +84,22 @@ func _ready() -> void:
 	game_reset(true)
 
 
+func take_damage(kb_vel: Vector2):
+	stunned = true
+	item_crafter.enabled = false
+	Global.play(Global.Sound.HURT)
+	_stun_timer.activate()
+	
+	velocity = kb_vel
+
+
 ## Every tick, player and the associated timers are updated here.
 func _physics_process(delta: float) -> void:
 	# Begin stun
-	var should_stun = _deadly_area_count > 0 and not stunned and not _invincibility_timer.is_active
+	var should_stun = _deadly_area_count > 0 and not _invincibility_timer.is_active
 	if should_stun and not stunned:
-		stunned = true
-		item_crafter.enabled = false
-		Global.play(Global.Sound.HURT)
-		_stun_timer.activate()
-		velocity = Vector2(0, -200) # a little boost.
-
+		take_damage(Vector2(0, -200))
+	
 	# Exit stun
 	if stunned and not _stun_timer.is_active:
 		stunned = false
@@ -263,9 +270,12 @@ func update_jump_if_needed() -> void:
 			jump_progress_timer.deactivate()
 
 
-func kill() -> void:
+func kill(knockback_dir: Vector2) -> void:
 	Global.get_game().player_lives -= 1
-	Global.play(Global.Sound.HURT)
+	take_damage(knockback_dir * EATEN_KNOCKBACK_POWER)
+	
+	# switch to boost state to diminish damping
+	_current_state = Boost.new(self)
 
 
 # formula to obtain the maximum velocity given an acceleration (a) and a

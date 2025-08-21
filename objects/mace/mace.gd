@@ -3,7 +3,8 @@ class_name Mace
 
 func _on_area_2d_body_entered(body: Node2D) -> void:
 	if body is Player:
-		body.kill()
+		var dir = global_position.direction_to(body.global_position)
+		body.kill(dir)
 
 const OPEN_MOUTH_ZONE_DISTANCE : float = 100
 const OPEN_MOUTH_ZONE_DISTANCE_SQUARED : float = OPEN_MOUTH_ZONE_DISTANCE * OPEN_MOUTH_ZONE_DISTANCE
