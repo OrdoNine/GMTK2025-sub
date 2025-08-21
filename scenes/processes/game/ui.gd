@@ -35,7 +35,7 @@ func _process(dt: float) -> void:
 		%CountdownMode.visible = false
 		%IndefiniteMode.visible = true
 		countdown_active = false
-		return # Not necessary but you don't need to do unnecessary things.
+		return # Not necessary but you don't need to do unnecessary things.	
 
 	countdown_timer.update(dt)
 	if countdown_timer.time_remaining == 0:

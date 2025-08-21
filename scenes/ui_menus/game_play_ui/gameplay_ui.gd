@@ -17,19 +17,23 @@ func _process(_delta: float) -> void:
 	%SlimeCountLabel.text = "x" + str(stamina_points)
 	%LifeCountLabel.text = "x" + str(player_lives)
 	
-	if stamina_points >= 5:
+	
+	if stamina_points >= Global.get_item_table().find_item("bomb").cost:
 		%BombDisplayIcon.modulate = can_use_color
 	else:
 		%BombDisplayIcon.modulate = cannot_use_color
 	
-	if stamina_points >= 6:
+	if stamina_points >= Global.get_item_table().find_item("booster").cost:
 		%BoosterDisplayIcon.modulate = can_use_color
-		%SpringDisplayIcon.modulate = can_use_color
 	else:
 		%BoosterDisplayIcon.modulate = cannot_use_color
+	
+	if stamina_points >= Global.get_item_table().find_item("spring").cost:
+		%SpringDisplayIcon.modulate = can_use_color
+	else:
 		%SpringDisplayIcon.modulate = cannot_use_color
 	
-	if stamina_points >= 8:
+	if stamina_points >= Global.get_item_table().find_item("bridge").cost:
 		%BridgeDisplayIcon.modulate = can_use_color
 	else:
 		%BridgeDisplayIcon.modulate = cannot_use_color

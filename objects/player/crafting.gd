@@ -37,6 +37,7 @@ func _ready() -> void:
 	enabled = true;
 	reset()
 
+
 func reset() -> void:
 	Global.stop(Global.Sound.CRAFTING)
 	Global.stop(Global.Sound.PLACE)
@@ -45,14 +46,16 @@ func reset() -> void:
 	active_item = null
 	_active_item_key = KEY_NONE
 
+
 func finish_item_craft():
+	Global.get_game().stamina_points -= crafted_item_cost if not Global.get_game_process().has_debug_freedom() else 0
+
 	Global.play(Global.Sound.PLACE)
 	var inst: Node2D = crafted_item_prefab.instantiate()
 	inst.global_position = global_position
 	Global.get_game().add_child(inst)
 	inst.activate()
 	
-	Global.get_game().stamina_points -= crafted_item_cost if not OS.is_debug_build() else 0
 	crafted_item_prefab = null
 	
 	# if active state is not false after activate() was called,
@@ -63,6 +66,7 @@ func finish_item_craft():
 	else:
 		_active_item_key = KEY_NONE
 
+
 func deactivate_item_craft_if_any():
 	if crafted_item_prefab != null:
 		Global.stop(Global.Sound.PLACE)
@@ -71,13 +75,16 @@ func deactivate_item_craft_if_any():
 		crafted_item_prefab = null
 		_active_item_key = KEY_NONE
 
+
 func deactivate_active_item_if_any():
 	if active_item != null:
 		active_item.deactivate()
 		active_item = null
 
+
 func meets_stamina_requirement(c: int) -> bool:
 	return Global.get_game().stamina_points >= c
+
 
 func is_player_on_floor() -> bool:
 	var player: CharacterBody2D = get_parent()
@@ -90,6 +97,7 @@ func is_player_on_floor() -> bool:
 	var _tilemap: TileMapLayer = Global.get_game().get_node("Map")
 	var player_tilemap_pos = _tilemap.local_to_map(_tilemap.to_local(player.global_position))
 	return _tilemap.get_cell_source_id(player_tilemap_pos + Vector2i(0, 1)) != -1
+
 
 func trigger_item_craft(index: int) -> bool:
 	var item_desc := item_table.items[index]
@@ -119,7 +127,7 @@ func trigger_item_craft(index: int) -> bool:
 	
 	return true
 
-# this is for crafting stuff
+
 func _input(event: InputEvent) -> void:
 	if not enabled: return
 	if not event is InputEventKey or event.is_echo(): return
@@ -141,6 +149,7 @@ func _input(event: InputEvent) -> void:
 	elif event.is_released() and event.keycode == _active_item_key:
 		deactivate_active_item_if_any()
 		deactivate_item_craft_if_any()
+
 
 func _physics_process(delta: float) -> void:
 	# if bridge maker is no longer active, then deactivate the tracking of it

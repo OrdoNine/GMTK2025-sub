@@ -12,6 +12,7 @@ var _left_dist := 1
 var _right_dist := 1
 var _tilemap: TileMapLayer
 var _expansion_wait := 0.0
+var _has_been_activated := false
 
 var active : bool : 
 	get :
@@ -21,6 +22,7 @@ func _ready():
 	_tilemap = get_node("../Map")
 
 func activate() -> void:
+	_has_been_activated = true
 	# i want the bridge maker to be placed directly below the player
 	# and aligned to the tilemap grid
 	var player_height := _tilemap.tile_set.tile_size.y # assumed player height
@@ -50,7 +52,10 @@ func is_active():
 	return active
 
 func _physics_process(delta: float) -> void:
-	if not active:
+	if not _has_been_activated:
+		return
+	
+	if not active or Global.get_game().stamina_points < 2:
 		queue_free()
 		return
 	
@@ -65,6 +70,7 @@ func _physics_process(delta: float) -> void:
 				_tilemap.set_cell(_pos_left, 1, PLACEMENT_BLOCK)
 				_pos_left.x -= 1
 				_left_dist += 1
+				Global.get_game().stamina_points -= 1
 		
 		if right_active:
 			if _tilemap.get_cell_source_id(_pos_right) != -1:
@@ -73,6 +79,7 @@ func _physics_process(delta: float) -> void:
 				_tilemap.set_cell(_pos_right, 1, PLACEMENT_BLOCK)
 				_pos_right.x += 1
 				_right_dist += 1
+				Global.get_game().stamina_points -= 1
 		
 		if _left_dist > MAX_BRIDGE_RADIUS:
 			left_active = false

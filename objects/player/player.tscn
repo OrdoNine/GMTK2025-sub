@@ -277,7 +277,7 @@ shape = SubResource("RectangleShape2D_8gbba")
 sprite_frames = SubResource("SpriteFrames_s8vy0")
 animation = &"wallslide"
 
-[node name="ItemCrafter" type="Node2D" parent="."]
+[node name="ItemCrafter" type="Node2D" parent="." groups=["crafter"]]
 unique_name_in_owner = true
 script = ExtResource("3_ssrue")
 item_table = ExtResource("4_jnjyq")

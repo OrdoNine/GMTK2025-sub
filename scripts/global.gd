@@ -66,3 +66,7 @@ func get_game() -> Game:
 
 func get_game_process():
 	return get_tree().get_first_node_in_group("game_process")
+
+
+func get_item_table() -> ItemTable:
+	return get_tree().get_first_node_in_group("crafter").item_table
