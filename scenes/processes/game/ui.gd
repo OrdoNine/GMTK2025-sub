@@ -27,24 +27,23 @@ func _on_game_round_ended() -> void:
 	countdown_active = true
 
 
-func _input(event: InputEvent) -> void:
-	# pause the countdown timer when pause is pressed
-	if event is InputEventKey:
-		if event.pressed and event.is_action("game_pause"):
-			if %WarmupMenu.visible and countdown_active:
-				%CountdownMode.visible = false
-				%IndefiniteMode.visible = true
-				countdown_active = false
-
-
 func _process(dt: float) -> void:
-	if %WarmupMenu.visible and countdown_active:
-		countdown_timer.update(dt)
-		if countdown_timer.time_remaining == 0:
-			%WarmupMenu.visible = false
-			get_tree().paused = false
-			Global.get_game().next_round()
-		%WarmupCounter.text = str(snappedf(countdown_timer.time_remaining, 0.1))
+	if not %WarmupMenu.visible or not countdown_active:
+		return
+
+	if Input.is_action_just_pressed("game_pause"):
+		%CountdownMode.visible = false
+		%IndefiniteMode.visible = true
+		countdown_active = false
+		return # Not necessary but you don't need to do unnecessary things.
+
+	countdown_timer.update(dt)
+	if countdown_timer.time_remaining == 0:
+		%WarmupMenu.visible = false
+		get_tree().paused = false
+		Global.get_game().next_round()
+
+	%WarmupCounter.text = str(snappedf(countdown_timer.time_remaining, 0.1))
 
 
 func _on_warmup_resume_button_pressed() -> void:
