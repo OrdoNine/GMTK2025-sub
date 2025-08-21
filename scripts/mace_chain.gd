@@ -37,6 +37,7 @@ var loops := 0 #how many times have we completed the same loop
 func _ready() -> void:
 	mace_start = mace.global_position
 	Global.get_game().round_started.connect(game_reset)
+	mace.chomped_player.connect(on_player_chomp)
 	game_reset(true)
 
 func game_reset(_new_round: bool):
@@ -91,6 +92,12 @@ func _physics_process(delta: float) -> void:
 		completion += dist * delta * 60.0
 		
 		mace.global_position = curve.sample_baked(completion)
+
+
+func on_player_chomp():
+	#reverse(30.0)
+	mace_vel = -1.0
+
 
 func _on_completed_loop() -> void:
 	if current_loop:
