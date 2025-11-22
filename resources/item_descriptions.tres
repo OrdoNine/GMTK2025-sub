@@ -11,9 +11,6 @@
 script = ExtResource("1_t4463")
 id = "bomb"
 name = "Bomb"
-cost = 5
-immediate = false
-only_when_airborne = false
 item_scene = ExtResource("2_5u0bn")
 metadata/_custom_type_script = "uid://il8056th70y6"
 
@@ -32,8 +29,6 @@ script = ExtResource("1_t4463")
 id = "spring"
 name = "Spring"
 cost = 6
-immediate = false
-only_when_airborne = false
 item_scene = ExtResource("4_y465p")
 metadata/_custom_type_script = "uid://il8056th70y6"
 
@@ -42,8 +37,6 @@ script = ExtResource("1_t4463")
 id = "booster"
 name = "Booster"
 cost = 6
-immediate = false
-only_when_airborne = false
 item_scene = ExtResource("5_hvwlg")
 metadata/_custom_type_script = "uid://il8056th70y6"
 
